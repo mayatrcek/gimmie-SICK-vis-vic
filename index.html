@@ -30,6 +30,7 @@
   h2.sec{font-size:18px;margin:26px 0 12px;display:flex;align-items:center;gap:8px}
   .dot{width:11px;height:11px;border-radius:50%}
   #map{height:460px;width:100%;margin:0 0 14px;border-radius:14px;border:1px solid var(--line);box-shadow:0 8px 24px rgba(13,27,42,.06);z-index:0}
+  #geomap{height:560px;width:100%;margin:0 0 8px;border-radius:14px;border:1px solid var(--line);box-shadow:0 8px 24px rgba(13,27,42,.06);z-index:0}
   .picker{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
   .picker label{font-size:13px;font-weight:600;color:var(--muted)}
   .picker select{font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);min-width:240px}
@@ -157,6 +158,7 @@
     <button id="btn-conditions" class="tab active" onclick="showTab('conditions')">Conditions</button>
     <button id="btn-fish" class="tab" onclick="showTab('fish')">Fish guide</button>
     <button id="btn-live" class="tab" onclick="showTab('live')">Live data</button>
+    <button id="btn-geo" class="tab" onclick="showTab('geo')">Underwater geography</button>
   </div>
 
   <div id="tab-conditions" class="tabpanel">
@@ -217,6 +219,13 @@
       <div class="foot"><span>NASA JPL MUR &middot; data: <span id="sst-date">…</span></span><a id="sstlink" target="_blank" rel="noopener">Open data &#8599;</a></div>
     </div>
   </div><!-- /tab-live -->
+
+  <div id="tab-geo" class="tabpanel" hidden>
+    <div class="sub" style="margin-top:6px">Depth (bathymetry) for Victorian waters with indicative seabed environments. Depth shading is Esri's Ocean basemap; the environment markers are curated/indicative — for detailed seabed habitat mapping see <a href="https://www.marineandcoasts.vic.gov.au/" target="_blank" rel="noopener">Marine &amp; Coasts Victoria (CoastKit)</a>.</div>
+    <h2 class="sec"><span class="dot" style="background:var(--accent)"></span>Underwater geography &amp; depth</h2>
+    <div id="geomap"></div>
+    <div class="legend" id="geolegend"></div>
+  </div><!-- /tab-geo -->
 
   <footer>
     Forecasts: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> (marine + weather models).
@@ -745,19 +754,62 @@ function renderFish(){
   });
   document.getElementById('fishcards').innerHTML=h;
 }
+/* ---- underwater geography map ---- */
+var geoMap;
+var ENV_TYPES=[
+  {key:'granite',  label:'Granite reef',       col:'#9b7cb6'},
+  {key:'basalt',   label:'Basalt reef',        col:'#c0563f'},
+  {key:'limestone',label:'Limestone reef',     col:'#e0c36a'},
+  {key:'sandmud',  label:'Sand / mud flats',   col:'#cdb98c'},
+  {key:'seagrass', label:'Seagrass meadows',   col:'#2e7d6b'},
+  {key:'pinnacle', label:'Offshore pinnacles', col:'#1b6ca8'}
+];
+var ENV=[
+  {t:'granite',n:'Wilsons Prom',lat:-39.03,lon:146.33,d:'Granite reef, sponge gardens, deep clear water'},
+  {t:'granite',n:'Refuge Cove (Prom)',lat:-39.03,lon:146.42,d:'Granite boulders & walls'},
+  {t:'basalt',n:'Phillip Island reefs',lat:-38.52,lon:145.25,d:'Lava-flow basalt reef & bommies'},
+  {t:'basalt',n:'Mornington / Mt Martha',lat:-38.26,lon:145.00,d:'Basalt reef inside Port Phillip'},
+  {t:'basalt',n:'Barwon Bluff',lat:-38.27,lon:144.50,d:'Basalt reef (old lava flow) at the river mouth'},
+  {t:'limestone',n:'Portland',lat:-38.34,lon:141.60,d:'Limestone reef & ledges'},
+  {t:'limestone',n:'The Arches (Port Campbell)',lat:-38.62,lon:142.95,d:'Limestone canyons, caves & arches'},
+  {t:'sandmud',n:'Port Phillip Bay floor',lat:-38.10,lon:144.82,d:'Open sand & mud basin, ~6–24 m'},
+  {t:'sandmud',n:'Western Port',lat:-38.37,lon:145.40,d:'Mud flats, channels & seagrass'},
+  {t:'seagrass',n:'Swan Bay / Queenscliff',lat:-38.23,lon:144.66,d:'Seagrass meadows'},
+  {t:'seagrass',n:'St Leonards',lat:-38.17,lon:144.72,d:'Seagrass & weed beds'},
+  {t:'pinnacle',n:'Pyramid Rock',lat:-38.506,lon:145.236,d:'Basalt pinnacle / bommie'},
+  {t:'pinnacle',n:'The Pinnacle (Cape Woolamai)',lat:-38.56,lon:145.36,d:'Offshore pinnacle, current-swept'},
+  {t:'pinnacle',n:'Seal Rocks',lat:-38.52,lon:145.10,d:'Pinnacles & reef off the Nobbies'}
+];
+function envCol(t){ for(var i=0;i<ENV_TYPES.length;i++){ if(ENV_TYPES[i].key===t) return ENV_TYPES[i].col; } return '#888'; }
+function envLabel(t){ for(var i=0;i<ENV_TYPES.length;i++){ if(ENV_TYPES[i].key===t) return ENV_TYPES[i].label; } return t; }
+function initGeoMap(){
+  geoMap=L.map('geomap',{scrollWheelZoom:true}).setView([-38.5,145.0],7);
+  L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}',{attribution:'Bathymetry &copy; Esri, GEBCO, NOAA',maxZoom:13}).addTo(geoMap);
+  L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}',{maxZoom:13,opacity:0.9}).addTo(geoMap);
+  ENV.forEach(function(e){
+    L.circleMarker([e.lat,e.lon],{radius:8,color:'#fff',weight:2,fillColor:envCol(e.t),fillOpacity:0.95})
+      .addTo(geoMap).bindPopup('<b>'+e.n+'</b><br><span style="color:'+envCol(e.t)+';font-weight:700">'+envLabel(e.t)+'</span><br>'+e.d);
+  });
+  var lg=document.getElementById('geolegend');
+  if(lg){ lg.innerHTML=ENV_TYPES.map(function(x){ return '<span><i class="chip" style="background:'+x.col+'"></i>'+x.label+'</span>'; }).join('')+'<span style="margin-left:auto;color:var(--muted);font-size:12px">Depth shading: Esri Ocean basemap &middot; markers indicative</span>'; }
+}
 function showTab(t){
   document.getElementById('tab-conditions').hidden=(t!=='conditions');
   document.getElementById('tab-fish').hidden=(t!=='fish');
   document.getElementById('tab-live').hidden=(t!=='live');
+  document.getElementById('tab-geo').hidden=(t!=='geo');
   document.getElementById('btn-conditions').classList.toggle('active',t==='conditions');
   document.getElementById('btn-fish').classList.toggle('active',t==='fish');
   document.getElementById('btn-live').classList.toggle('active',t==='live');
+  document.getElementById('btn-geo').classList.toggle('active',t==='geo');
   if(t==='conditions'){ setTimeout(function(){ try{map.invalidateSize();}catch(e){} },60); }
   if(t==='live'){ setTimeout(function(){ try{compMap.invalidateSize();}catch(e){} },60); }
+  if(t==='geo'){ setTimeout(function(){ try{geoMap.invalidateSize();}catch(e){} },60); }
 }
 
 initMap();
 initCompMap();
+initGeoMap();
 populateSelect();
 renderFish();
 wireImg('sst',sstURL());
