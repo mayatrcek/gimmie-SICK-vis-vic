@@ -636,10 +636,20 @@ function wireImg(id,url){
 }
 
 /* ---- orchestration ---- */
+function jsonp(url,cb){
+  var fn='__erd_cb_'+(jsonp._n=(jsonp._n||0)+1);
+  var s=document.createElement('script'); var done=false;
+  function cleanup(){ try{delete window[fn];}catch(e){window[fn]=undefined;} if(s&&s.parentNode) s.parentNode.removeChild(s); }
+  window[fn]=function(data){ done=true; try{cb(data);}catch(e){cb(null);} cleanup(); };
+  s.onerror=function(){ if(!done){ cb(null); cleanup(); } };
+  setTimeout(function(){ if(!done){ cb(null); cleanup(); } },12000);
+  s.src=url+(url.indexOf('?')>=0?'&':'?')+'.jsonp='+fn;
+  document.head.appendChild(s);
+}
 function fetchLastTime(ds,cb){
-  fetch(BASE+ds+'.json?time%5B(last)%5D').then(function(r){return r.json();}).then(function(j){
+  jsonp(BASE+ds+'.json?time%5B(last)%5D',function(j){
     var t=(j&&j.table&&j.table.rows&&j.table.rows[0])?j.table.rows[0][0]:null; cb(t);
-  }).catch(function(){ cb(null); });
+  });
 }
 function fmtDataDate(t){ if(!t) return 'unavailable'; var d=new Date(t); return d.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}); }
 function loadDataStamps(){
