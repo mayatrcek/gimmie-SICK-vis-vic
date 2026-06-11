@@ -306,7 +306,7 @@ var REGIONS=[
 ];
 var SPOTS={};
 REGIONS.forEach(function(rg){ rg.spots.forEach(function(s){ s.region=rg.region; if(s.onshore==null) s.onshore=rg.onshore; if(s.sheltered==null) s.sheltered=false; SPOTS[s.id]=s; }); });
-var DEFAULTS=['pointnepean','bells','woolamai','schanck','inverloch'];
+var DEFAULTS=['pointnepean','bells','woolamai','schanck'];
 var selected={}, kfSST=null;
 
 /* ---- thresholds (easy to tweak) ---- */
@@ -764,7 +764,8 @@ function renderFish(){
 /* ---- underwater geography map (CoastKit seabed-habitat data + bathymetry) ---- */
 var geoMap;
 function initGeoMap(){
-  geoMap=L.map('geomap',{scrollWheelZoom:true}).setView([-38.5,145.0],7);
+  geoMap=L.map('geomap',{scrollWheelZoom:true});
+  geoMap.fitBounds([[-39.05,143.55],[-37.60,146.15]]);
   L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}',{attribution:'Bathymetry &copy; Esri, GEBCO, NOAA; Habitat &copy; Seamap Australia (IMAS/UTAS)',maxZoom:13}).addTo(geoMap);
   L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}',{maxZoom:13,opacity:0.9}).addTo(geoMap);
   var habitat=L.tileLayer.wms('https://geoserver.imas.utas.edu.au/geoserver/seamap/wms',{layers:'SeamapAus_National_Benthic_Habitat_Layer',format:'image/png',transparent:true,version:'1.1.1',opacity:0.62,attribution:'Seamap Australia'}).addTo(geoMap);
