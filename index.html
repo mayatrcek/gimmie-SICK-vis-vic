@@ -15,7 +15,7 @@
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
        background:linear-gradient(160deg,#eef3f7,#e3ecf2);color:var(--ink);padding:24px;min-height:100vh}
-  .wrap{max-width:1200px;margin:0 auto}
+  .wrap{max-width:1400px;margin:0 auto}
   header{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;justify-content:space-between;margin-bottom:6px}
   h1{font-size:24px;font-weight:700;letter-spacing:-.01em}
   .region{color:var(--accent);font-weight:600}
@@ -30,7 +30,12 @@
   h2.sec{font-size:18px;margin:26px 0 12px;display:flex;align-items:center;gap:8px}
   .dot{width:11px;height:11px;border-radius:50%}
   #map{height:460px;width:100%;margin:0 0 14px;border-radius:14px;border:1px solid var(--line);box-shadow:0 8px 24px rgba(13,27,42,.06);z-index:0}
-  #geomap{height:560px;width:100%;margin:0 0 8px;border-radius:14px;border:1px solid var(--line);box-shadow:0 8px 24px rgba(13,27,42,.06);z-index:0}
+  #geomap{height:560px;flex:1;min-width:0;border-radius:14px;border:1px solid var(--line);box-shadow:0 8px 24px rgba(13,27,42,.06);z-index:0}
+  .geowrap{display:flex;gap:16px;align-items:flex-start}
+  @media(max-width:860px){.geowrap{flex-direction:column}#geomap{width:100%;flex:none}}
+  .geolegendbox{flex:0 0 320px;max-width:320px;max-height:560px;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+  @media(max-width:860px){.geolegendbox{flex:none;max-width:100%;width:100%;max-height:none}}
+  .geolegendbox img{max-width:100%}
   .picker{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
   .picker label{font-size:13px;font-weight:600;color:var(--muted)}
   .picker select{font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);min-width:240px}
@@ -223,8 +228,10 @@
   <div id="tab-geo" class="tabpanel" hidden>
     <div class="sub" style="margin-top:6px">Depth (bathymetry) for Victorian waters with indicative seabed environments. Depth shading is Esri's Ocean basemap; the environment markers are curated/indicative — for detailed seabed habitat mapping see <a href="https://www.marineandcoasts.vic.gov.au/" target="_blank" rel="noopener">Marine &amp; Coasts Victoria (CoastKit)</a>.</div>
     <h2 class="sec"><span class="dot" style="background:var(--accent)"></span>Underwater geography &amp; depth</h2>
-    <div id="geomap"></div>
-    <div class="legend" id="geolegend"></div>
+    <div class="geowrap">
+      <div id="geomap"></div>
+      <div class="geolegendbox" id="geolegend"></div>
+    </div>
   </div><!-- /tab-geo -->
 
   <footer>
