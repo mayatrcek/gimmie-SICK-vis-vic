@@ -306,7 +306,7 @@ var REGIONS=[
 ];
 var SPOTS={};
 REGIONS.forEach(function(rg){ rg.spots.forEach(function(s){ s.region=rg.region; if(s.onshore==null) s.onshore=rg.onshore; if(s.sheltered==null) s.sheltered=false; SPOTS[s.id]=s; }); });
-var DEFAULTS=['pointnepean','bells','woolamai','schanck'];
+var DEFAULTS=['pointnepean','bells','woolamai','schanck','inverloch'];
 var selected={}, kfSST=null;
 
 /* ---- thresholds (easy to tweak) ---- */
