@@ -236,7 +236,6 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
 /* sites: marker/weather at the headland; marine pulled just offshore.
@@ -759,27 +758,16 @@ function renderFish(){
 var geoMap;
 function initGeoMap(){
   geoMap=L.map('geomap',{scrollWheelZoom:true}).setView([-38.5,145.0],7);
-  L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}',{attribution:'Bathymetry &copy; Esri, GEBCO, NOAA; Habitats &copy; Marine &amp; Coasts Victoria (CoastKit)',maxZoom:13}).addTo(geoMap);
+  L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}',{attribution:'Bathymetry &copy; Esri, GEBCO, NOAA; Habitat &copy; Seamap Australia (IMAS/UTAS)',maxZoom:13}).addTo(geoMap);
   L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}',{maxZoom:13,opacity:0.9}).addTo(geoMap);
-  try{
-    if(window.L && L.esri && L.esri.dynamicMapLayer){
-      var habitat=L.esri.dynamicMapLayer({url:'https://corp-gis.mapshare.vic.gov.au/arcgis/rest/services/CoastKit/Biotopes/MapServer',opacity:0.7}).addTo(geoMap);
-      L.control.layers(null,{'Seabed habitat (CoastKit)':habitat},{collapsed:false}).addTo(geoMap);
-    }
-  }catch(e){}
+  var habitat=L.tileLayer.wms('https://geoserver.imas.utas.edu.au/geoserver/seamap/wms',{layers:'SeamapAus_National_Benthic_Habitat_Layer',format:'image/png',transparent:true,version:'1.1.1',opacity:0.62,attribution:'Seamap Australia'}).addTo(geoMap);
+  L.control.layers(null,{'Seabed habitat (Seamap Australia)':habitat},{collapsed:false}).addTo(geoMap);
   loadGeoLegend();
 }
 function loadGeoLegend(){
   var lg=document.getElementById('geolegend'); if(!lg) return;
-  var link='<a href="https://www.marineandcoasts.vic.gov.au/marine-and-coastal-knowledge/statewide-marine-habitat-map" target="_blank" rel="noopener">CoastKit</a>';
-  lg.innerHTML='<span style="color:var(--muted);font-size:12px">Loading habitat legend…</span>';
-  jsonp('https://corp-gis.mapshare.vic.gov.au/arcgis/rest/services/CoastKit/Biotopes/MapServer/legend?f=json', function(data){
-    if(!data||!data.layers){ lg.innerHTML='<span style="color:var(--muted);font-size:12px">Seabed habitat data &copy; '+link+' &mdash; legend couldn\'t load here; full classification in CoastKit.</span>'; return; }
-    var html='', seen={}, n=0, MAX=24;
-    data.layers.forEach(function(ly){ (ly.legend||[]).forEach(function(it){ var k=it.label||ly.layerName; if(!it.imageData||seen[k]) return; seen[k]=1; if(n<MAX){ html+='<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px"><img src="data:'+(it.contentType||'image/png')+';base64,'+it.imageData+'" width="14" height="14" style="border-radius:3px;border:1px solid #ddd">'+k+'</span>'; } n++; }); });
-    if(n>MAX) html+='<span style="color:var(--muted);font-size:12px">+'+(n-MAX)+' more &middot; full classification in '+link+'</span>';
-    lg.innerHTML=html||('<span style="color:var(--muted);font-size:12px">Seabed habitat data &copy; '+link+'.</span>');
-  }, 'callback');
+  var url='https://geoserver.imas.utas.edu.au/geoserver/seamap/wms?service=WMS&version=1.1.1&request=GetLegendGraphic&format=image%2Fpng&transparent=true&layer=SeamapAus_National_Benthic_Habitat_Layer&legend_options=fontSize:11;fontColor:0x444444;dpi:96';
+  lg.innerHTML='<div style="font-size:12px;color:var(--muted);margin-bottom:6px;width:100%">Seabed habitat classes &mdash; Seamap Australia national benthic habitat map:</div><img src="'+url+'" alt="Seabed habitat legend" style="max-width:100%;background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px">';
 }
 function showTab(t){
   document.getElementById('tab-conditions').hidden=(t!=='conditions');
