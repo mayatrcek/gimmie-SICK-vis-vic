@@ -806,10 +806,11 @@ function geoClick(e){
     render();
   }, 'json_callback');
   var size=geoMap.getSize(), b=geoMap.getBounds();
+  var sw=geoMap.options.crs.project(b.getSouthWest()), ne=geoMap.options.crs.project(b.getNorthEast());
   var url='https://geoserver.imas.utas.edu.au/geoserver/seamap/wms?service=WMS&version=1.1.1&request=GetFeatureInfo'+
     '&layers=SeamapAus_National_Benthic_Habitat_Layer&query_layers=SeamapAus_National_Benthic_Habitat_Layer'+
-    '&feature_count=1&srs=EPSG:4326&width='+size.x+'&height='+size.y+
-    '&bbox='+b.getWest()+','+b.getSouth()+','+b.getEast()+','+b.getNorth()+
+    '&feature_count=3&buffer=8&srs=EPSG:3857&width='+size.x+'&height='+size.y+
+    '&bbox='+sw.x+','+sw.y+','+ne.x+','+ne.y+
     '&x='+Math.round(e.containerPoint.x)+'&y='+Math.round(e.containerPoint.y);
   geoFeatureInfo(url, function(j){
     var f=(j&&j.features&&j.features[0])?j.features[0].properties:null;
