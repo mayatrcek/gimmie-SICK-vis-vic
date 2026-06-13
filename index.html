@@ -780,14 +780,7 @@ function habFromProps(p){
   return 'Mapped habitat (unlabelled)';
 }
 function geoFeatureInfo(url,cb){
-  var fn='__gfi_'+(geoFeatureInfo._n=(geoFeatureInfo._n||0)+1);
-  var s=document.createElement('script'); var done=false;
-  function cleanup(){ try{delete window[fn];}catch(e){window[fn]=undefined;} if(s.parentNode) s.parentNode.removeChild(s); }
-  window[fn]=function(data){ done=true; try{cb(data);}catch(e){cb(null);} cleanup(); };
-  s.onerror=function(){ if(!done){ cb(null); cleanup(); } };
-  setTimeout(function(){ if(!done){ cb(null); cleanup(); } },10000);
-  s.src=url+'&info_format=text/javascript&format_options=callback:'+fn;
-  document.head.appendChild(s);
+  fetch(url+'&info_format=application/json').then(function(r){return r.json();}).then(function(d){cb(d);}).catch(function(){cb(null);});
 }
 function geoClick(e){
   var ll=e.latlng;
@@ -813,9 +806,8 @@ function geoClick(e){
     '&bbox='+sw.x+','+sw.y+','+ne.x+','+ne.y+
     '&x='+Math.round(e.containerPoint.x)+'&y='+Math.round(e.containerPoint.y);
   geoFeatureInfo(url, function(j){
-    var f=(j&&j.features&&j.features[0])?j.features[0].properties:null;
-    if(f){ var raw=habFromProps(f); st.hab=GEO_RENAME[raw]||raw; }
-    else { st.hab='No habitat mapped here'; }
+    if(j===null){ st.hab='Lookup blocked (CORS)'; }
+    else { var f=(j.features&&j.features[0])?j.features[0].properties:null; if(f){ var raw=habFromProps(f); st.hab=GEO_RENAME[raw]||raw; } else { st.hab='No habitat mapped here'; } }
     render();
   });
 }
