@@ -31,6 +31,7 @@
   .dot{width:11px;height:11px;border-radius:50%}
   #map{height:460px;width:100%;margin:0 0 14px;border-radius:14px;border:1px solid var(--line);box-shadow:0 8px 24px rgba(13,27,42,.06);z-index:0}
   #geomap{height:560px;flex:1;min-width:0;border-radius:14px;border:1px solid var(--line);box-shadow:0 8px 24px rgba(13,27,42,.06);z-index:0}
+  #geomap .leaflet-container{cursor:pointer}
   .geowrap{display:flex;gap:16px;align-items:flex-start}
   @media(max-width:860px){.geowrap{flex-direction:column}#geomap{width:100%;flex:none}}
   .geolegendbox{flex:0 0 320px;max-width:320px;max-height:560px;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
@@ -778,6 +779,16 @@ function habFromProps(p){
   for(var k in p){ if(typeof p[k]==='string' && p[k].length>1 && k.toLowerCase().indexOf('id')<0) return p[k]; }
   return 'Mapped habitat (unlabelled)';
 }
+function geoFeatureInfo(url,cb){
+  var fn='__gfi_'+(geoFeatureInfo._n=(geoFeatureInfo._n||0)+1);
+  var s=document.createElement('script'); var done=false;
+  function cleanup(){ try{delete window[fn];}catch(e){window[fn]=undefined;} if(s.parentNode) s.parentNode.removeChild(s); }
+  window[fn]=function(data){ done=true; try{cb(data);}catch(e){cb(null);} cleanup(); };
+  s.onerror=function(){ if(!done){ cb(null); cleanup(); } };
+  setTimeout(function(){ if(!done){ cb(null); cleanup(); } },10000);
+  s.src=url+'&info_format=text/javascript&format_options=callback:'+fn;
+  document.head.appendChild(s);
+}
 function geoClick(e){
   var ll=e.latlng;
   var pop=L.popup({maxWidth:260}).setLatLng(ll).setContent('<b>Loading…</b>').openOn(geoMap);
@@ -797,14 +808,15 @@ function geoClick(e){
   var size=geoMap.getSize(), b=geoMap.getBounds();
   var url='https://geoserver.imas.utas.edu.au/geoserver/seamap/wms?service=WMS&version=1.1.1&request=GetFeatureInfo'+
     '&layers=SeamapAus_National_Benthic_Habitat_Layer&query_layers=SeamapAus_National_Benthic_Habitat_Layer'+
-    '&info_format=application/json&feature_count=1&srs=EPSG:4326&width='+size.x+'&height='+size.y+
+    '&feature_count=1&srs=EPSG:4326&width='+size.x+'&height='+size.y+
     '&bbox='+b.getWest()+','+b.getSouth()+','+b.getEast()+','+b.getNorth()+
     '&x='+Math.round(e.containerPoint.x)+'&y='+Math.round(e.containerPoint.y);
-  fetch(url).then(function(r){return r.json();}).then(function(j){
+  geoFeatureInfo(url, function(j){
     var f=(j&&j.features&&j.features[0])?j.features[0].properties:null;
-    st.hab = f ? habFromProps(f) : 'No habitat mapped here';
+    if(f){ var raw=habFromProps(f); st.hab=GEO_RENAME[raw]||raw; }
+    else { st.hab='No habitat mapped here'; }
     render();
-  }).catch(function(){ st.hab='Habitat lookup unavailable'; render(); });
+  });
 }
 var GEO_RENAME={
   'Hard Substrata':'Reef (rock / hard bottom)','Consolidated':'Reef (rock)','Bedrock':'Reef (bedrock)','Boulder':'Boulder reef',
