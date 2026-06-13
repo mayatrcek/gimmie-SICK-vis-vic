@@ -769,7 +769,42 @@ function initGeoMap(){
   L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}',{maxZoom:13,opacity:0.9}).addTo(geoMap);
   var habitat=L.tileLayer.wms('https://geoserver.imas.utas.edu.au/geoserver/seamap/wms',{layers:'SeamapAus_National_Benthic_Habitat_Layer',format:'image/png',transparent:true,version:'1.1.1',opacity:0.62,attribution:'Seamap Australia'}).addTo(geoMap);
   L.control.layers(null,{'Seabed habitat (Seamap Australia)':habitat},{collapsed:false}).addTo(geoMap);
+  geoMap.on('click', geoClick);
   loadGeoLegend();
+}
+function habFromProps(p){
+  var keys=['HAB_NAME','HABITAT','CATEGORY','NAT_HAB','DESCRIPT','DESC_NAME','BIOTA','SUBSTRATE','CLASS','NAME'];
+  for(var i=0;i<keys.length;i++){ if(p[keys[i]]) return p[keys[i]]; }
+  for(var k in p){ if(typeof p[k]==='string' && p[k].length>1 && k.toLowerCase().indexOf('id')<0) return p[k]; }
+  return 'Mapped habitat (unlabelled)';
+}
+function geoClick(e){
+  var ll=e.latlng;
+  var pop=L.popup({maxWidth:260}).setLatLng(ll).setContent('<b>Loading…</b>').openOn(geoMap);
+  var st={name:null,hab:null};
+  function render(){
+    var h='<b>'+(st.name||'Selected point')+'</b>'+
+      '<div style="font-size:11px;color:#5b6b7b;margin-top:2px">'+ll.lat.toFixed(3)+', '+ll.lng.toFixed(3)+'</div>'+
+      '<div style="margin-top:7px;font-size:12px;color:#5b6b7b">Seabed habitat</div><b>'+(st.hab||'…')+'</b>';
+    pop.setContent(h);
+  }
+  render();
+  jsonp('https://nominatim.openstreetmap.org/reverse?format=jsonp&zoom=12&addressdetails=1&lat='+ll.lat+'&lon='+ll.lng, function(d){
+    if(d){ var a=d.address||{}; st.name=a.hamlet||a.village||a.town||a.suburb||a.city||a.county||a.state||(d.display_name?d.display_name.split(',')[0]:null); }
+    if(!st.name) st.name='Offshore Victoria';
+    render();
+  }, 'json_callback');
+  var size=geoMap.getSize(), b=geoMap.getBounds();
+  var url='https://geoserver.imas.utas.edu.au/geoserver/seamap/wms?service=WMS&version=1.1.1&request=GetFeatureInfo'+
+    '&layers=SeamapAus_National_Benthic_Habitat_Layer&query_layers=SeamapAus_National_Benthic_Habitat_Layer'+
+    '&info_format=application/json&feature_count=1&srs=EPSG:4326&width='+size.x+'&height='+size.y+
+    '&bbox='+b.getWest()+','+b.getSouth()+','+b.getEast()+','+b.getNorth()+
+    '&x='+Math.round(e.containerPoint.x)+'&y='+Math.round(e.containerPoint.y);
+  fetch(url).then(function(r){return r.json();}).then(function(j){
+    var f=(j&&j.features&&j.features[0])?j.features[0].properties:null;
+    st.hab = f ? habFromProps(f) : 'No habitat mapped here';
+    render();
+  }).catch(function(){ st.hab='Habitat lookup unavailable'; render(); });
 }
 function loadGeoLegend(){
   var lg=document.getElementById('geolegend'); if(!lg) return;
