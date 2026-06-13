@@ -600,7 +600,7 @@ function dotIcon(col){
   return L.divIcon({className:'',html:'<div style="width:18px;height:18px;border-radius:50%;background:'+col+';border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>',iconSize:[18,18],iconAnchor:[9,9],popupAnchor:[0,-10]});
 }
 function initMap(){
-  map=L.map('map',{scrollWheelZoom:true}).setView([-38.75,145.35],7);
+  map=L.map('map',{scrollWheelZoom:true,maxBounds:[[-44.2,139.5],[-33.8,150.8]],maxBoundsViscosity:1.0,minZoom:6}).setView([-38.75,145.35],7);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     {attribution:'Imagery &copy; Esri, Maxar, Earthstar Geographics',maxZoom:19}).addTo(map);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
@@ -616,7 +616,7 @@ function initMap(){
 /* ---- 2-day chlorophyll composite (stacked image overlays) ---- */
 var compMap, compLayers=[];
 function initCompMap(){
-  compMap=L.map('compmap',{scrollWheelZoom:true}).setView([-39.0,145.6],7);
+  compMap=L.map('compmap',{scrollWheelZoom:true,maxBounds:[[-44.2,139.5],[-33.8,150.8]],maxBoundsViscosity:1.0,minZoom:6}).setView([-39.0,145.6],7);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
     {attribution:'&copy; OpenStreetMap, &copy; CARTO',maxZoom:18}).addTo(compMap);
 }
@@ -764,7 +764,7 @@ function renderFish(){
 /* ---- underwater geography map (CoastKit seabed-habitat data + bathymetry) ---- */
 var geoMap;
 function initGeoMap(){
-  geoMap=L.map('geomap',{scrollWheelZoom:true}).setView([-38.25,144.85],9);
+  geoMap=L.map('geomap',{scrollWheelZoom:true,maxBounds:[[-44.2,139.5],[-33.8,150.8]],maxBoundsViscosity:1.0,minZoom:6}).setView([-38.25,144.85],9);
   L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}',{attribution:'Bathymetry &copy; Esri, GEBCO, NOAA; Habitat &copy; Seamap Australia (IMAS/UTAS)',maxZoom:13}).addTo(geoMap);
   L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}',{maxZoom:13,opacity:0.9}).addTo(geoMap);
   var habitat=L.tileLayer.wms('https://geoserver.imas.utas.edu.au/geoserver/seamap/wms',{layers:'SeamapAus_National_Benthic_Habitat_Layer',format:'image/png',transparent:true,version:'1.1.1',opacity:0.62,attribution:'Seamap Australia'}).addTo(geoMap);
@@ -806,10 +806,45 @@ function geoClick(e){
     render();
   }).catch(function(){ st.hab='Habitat lookup unavailable'; render(); });
 }
+var GEO_RENAME={
+  'Hard Substrata':'Reef (rock / hard bottom)','Consolidated':'Reef (rock)','Bedrock':'Reef (bedrock)','Boulder':'Boulder reef',
+  'Soft Substrata':'Sand & mud (soft bottom)','Unconsolidated':'Sand & mud','Sand':'Sand','Mud':'Mud','Gravel':'Gravel / shell',
+  'Macroalgae':'Kelp & seaweed','Canopy Macroalgae':'Kelp forest','Macrophytes':'Marine plants','Mixed Macrophytes':'Mixed marine plants','Vegetation':'Marine vegetation',
+  'Seagrass':'Seagrass meadow','Sponges':'Sponge gardens','Bryozoans':'Lace corals (bryozoans)','Ascidians':'Sea squirts',
+  'Invertebrates':'Invertebrate life','Mixed Invertebrate Community':'Mixed invertebrates','Mixed Filter Feeder Community':'Filter feeders',
+  'Urchin Barren':'Urchin barren','Biota Present':'Marine life present','Bioturbators':'Burrowing animals',
+  'Shelled Biota':'Shellfish beds','Screw Shell Biota':'Screw-shell beds','Reef':'Reef'
+};
+var GEO_HIDE={'Coral Biota':1,'Coral':1,'Coral Reef':1,'Hard Coral':1,'Soft Coral':1,'Stromatolite':1,'Mangrove':1,'Mangroves':1,'Bacterial Mat':1,'Microbes':1,'Wetland Vegetation':1,'Saltmarsh':1,'Mixed Saltmarsh':1,'Microbial Mat':1};
+function ruleColor(ru){
+  try{ var s=ru.symbolizers&&ru.symbolizers[0]; if(s){ var g=s.Polygon||s.Point||s.Line||s.Raster; if(g) return g.fill||g.stroke||(g.graphic&&g.graphic.fill)||null; } }catch(e){}
+  return null;
+}
+function legendImageFallback(lg){
+  var url='https://geoserver.imas.utas.edu.au/geoserver/seamap/wms?service=WMS&version=1.1.1&request=GetLegendGraphic&format=image%2Fpng&transparent=true&layer=SeamapAus_National_Benthic_Habitat_Layer&legend_options=fontSize:11;fontColor:0x444444;dpi:96';
+  lg.innerHTML='<div style="font-size:12px;color:var(--muted);margin-bottom:6px;width:100%">Seabed habitat classes &mdash; Seamap Australia:</div><img src="'+url+'" alt="Seabed habitat legend" style="max-width:100%;background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px">';
+}
 function loadGeoLegend(){
   var lg=document.getElementById('geolegend'); if(!lg) return;
-  var url='https://geoserver.imas.utas.edu.au/geoserver/seamap/wms?service=WMS&version=1.1.1&request=GetLegendGraphic&format=image%2Fpng&transparent=true&layer=SeamapAus_National_Benthic_Habitat_Layer&legend_options=fontSize:11;fontColor:0x444444;dpi:96';
-  lg.innerHTML='<div style="font-size:12px;color:var(--muted);margin-bottom:6px;width:100%">Seabed habitat classes &mdash; Seamap Australia national benthic habitat map:</div><img src="'+url+'" alt="Seabed habitat legend" style="max-width:100%;background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px">';
+  lg.innerHTML='<div style="font-size:12px;color:var(--muted)">Loading habitat legend…</div>';
+  fetch('https://geoserver.imas.utas.edu.au/geoserver/seamap/wms?service=WMS&version=1.1.1&request=GetLegendGraphic&format=application/json&layer=SeamapAus_National_Benthic_Habitat_Layer')
+    .then(function(r){return r.json();})
+    .then(function(j){
+      var rules=(j&&j.Legend&&j.Legend[0]&&j.Legend[0].rules)?j.Legend[0].rules:null;
+      if(!rules||!rules.length) throw 0;
+      var html='<div style="font-size:12px;color:var(--ink);font-weight:600;margin-bottom:8px">Seabed types (Victoria &amp; Tasmania)</div>';
+      var seen={}, count=0;
+      rules.forEach(function(ru){
+        var title=ru.title||ru.name||''; if(!title||GEO_HIDE[title]) return;
+        var label=GEO_RENAME[title]||title; if(seen[label]) return; seen[label]=1; count++;
+        var col=ruleColor(ru)||'#cccccc';
+        html+='<div style="display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12.5px"><span style="width:16px;height:16px;border-radius:4px;background:'+col+';border:1px solid rgba(0,0,0,.15);flex:0 0 16px"></span>'+label+'</div>';
+      });
+      if(!count) throw 0;
+      html+='<div style="font-size:11px;color:var(--muted);margin-top:10px;border-top:1px solid var(--line);padding-top:8px">Simplified from <a href="https://seamapaustralia.org/" target="_blank" rel="noopener">Seamap Australia</a>. Tropical/estuarine classes hidden.</div>';
+      lg.innerHTML=html;
+    })
+    .catch(function(){ legendImageFallback(lg); });
 }
 function showTab(t){
   document.getElementById('tab-conditions').hidden=(t!=='conditions');
