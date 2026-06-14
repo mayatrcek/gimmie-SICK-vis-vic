@@ -127,6 +127,8 @@
   .tab{border:none;border-bottom:2px solid transparent;border-radius:8px 8px 0 0;background:none;padding:10px 18px;color:var(--muted);font-weight:600;cursor:pointer}
   .tab:hover{color:var(--accent)}
   .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .tab-badge{display:inline-block;width:8px;height:8px;border-radius:50%;background:#e0322d;margin-left:6px;vertical-align:middle;animation:fbpulse 1.8s ease-in-out infinite}
+  @keyframes fbpulse{0%,100%{box-shadow:0 0 0 0 rgba(224,50,45,.5)}50%{box-shadow:0 0 0 5px rgba(224,50,45,0)}}
   /* fish guide */
   .fishgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   @media(max-width:880px){.fishgrid{grid-template-columns:1fr}}
@@ -177,7 +179,8 @@
     <button id="btn-fish" class="tab" onclick="showTab('fish')">Fish guide</button>
     <button id="btn-live" class="tab" onclick="showTab('live')">Live data</button>
     <button id="btn-geo" class="tab" onclick="showTab('geo')">Underwater geography</button>
-    <button id="btn-feedback" class="tab" onclick="showTab('feedback')">Feedback</button>
+    <button id="btn-about" class="tab" onclick="showTab('about')">About</button>
+    <button id="btn-feedback" class="tab" onclick="showTab('feedback')">Feedback<span class="tab-badge" aria-label="new"></span></button>
   </div>
 
   <div id="tab-conditions" class="tabpanel">
@@ -250,6 +253,16 @@
     <div class="sub" style="margin-bottom:8px">Higher-resolution depth from DEECA CoastKit: colour-shaded seabed (down to 5&nbsp;m near the coast) with labelled depth contours. Zoom in for the finer 5&nbsp;m detail and minor contour lines. Toggle either layer top-right.</div>
     <div id="bathymap"></div>
   </div><!-- /tab-geo -->
+
+  <div id="tab-about" class="tabpanel" hidden>
+    <h2 class="sec"><span class="dot" style="background:var(--accent)"></span>About this site</h2>
+    <div class="card" style="padding:18px 20px;line-height:1.6">
+      <p style="margin:0 0 12px">This is a personal dive- and fishing-conditions dashboard for the Victorian coast &mdash; from the Surf Coast and Port Phillip Heads across to Wilsons Promontory. It brings swell, wind, rainfall, sea-surface temperature, chlorophyll and seabed information together for the spots I actually dive, so I can tell at a glance whether tomorrow is worth an early start.</p>
+      <p style="margin:0 0 12px">Everything here runs on free, public data: marine and weather forecasts from <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a>, sea-surface temperature from NASA JPL MUR, chlorophyll from NOAA CoastWatch, seabed habitat from <a href="https://seamapaustralia.org" target="_blank" rel="noopener">Seamap Australia</a>, and high-resolution bathymetry and depth contours from <a href="https://www.marineandcoasts.vic.gov.au/" target="_blank" rel="noopener">DEECA CoastKit (Victoria)</a>. The whole thing is a single static web page &mdash; no account, no tracking, no servers of mine.</p>
+      <p style="margin:0 0 12px"><b>Who&rsquo;s &ldquo;us&rdquo;:</b> built by Maya &mdash; a first-year computer-science student who dives and fishes the Victorian coast &mdash; together with Anthropic&rsquo;s Claude (model <code>claude-opus-4-8</code>), which helped write and wire up the maps, data feeds and conditions logic.</p>
+      <p style="margin:0;color:var(--muted);font-size:13px">Ratings and seabed labels are indicative and for planning only. Always check official forecasts, tides and safety information before entering the water.</p>
+    </div>
+  </div><!-- /tab-about -->
 
   <div id="tab-feedback" class="tabpanel" hidden>
     <div class="sub" style="margin-top:6px">Got a suggestion, found a bug, or know a spot I should add? Let me know &mdash; or <a href="https://docs.google.com/forms/d/e/1FAIpQLSeVaBIkCZPh9SYDHJeJlpWE2n3tH8go57vCOg1Ppq5Wc9-tpQ/viewform" target="_blank" rel="noopener">open the form in a new tab</a>.</div>
@@ -982,11 +995,13 @@ function showTab(t){
   document.getElementById('tab-fish').hidden=(t!=='fish');
   document.getElementById('tab-live').hidden=(t!=='live');
   document.getElementById('tab-geo').hidden=(t!=='geo');
+  document.getElementById('tab-about').hidden=(t!=='about');
   document.getElementById('tab-feedback').hidden=(t!=='feedback');
   document.getElementById('btn-conditions').classList.toggle('active',t==='conditions');
   document.getElementById('btn-fish').classList.toggle('active',t==='fish');
   document.getElementById('btn-live').classList.toggle('active',t==='live');
   document.getElementById('btn-geo').classList.toggle('active',t==='geo');
+  document.getElementById('btn-about').classList.toggle('active',t==='about');
   document.getElementById('btn-feedback').classList.toggle('active',t==='feedback');
   if(t==='conditions'){ setTimeout(function(){ try{map.invalidateSize();}catch(e){} },60); }
   if(t==='live'){ setTimeout(function(){ try{compMap.invalidateSize();}catch(e){} },60); }
