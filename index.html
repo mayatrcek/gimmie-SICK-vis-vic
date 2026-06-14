@@ -14,7 +14,14 @@
   }
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-       background:linear-gradient(160deg,#eef3f7,#e3ecf2);color:var(--ink);padding:24px;min-height:100vh}
+       background:linear-gradient(160deg,#eef3f7,#e3ecf2);color:var(--ink);padding:24px;min-height:100vh;transition:background .25s,color .25s}
+  body.dark{background:linear-gradient(160deg,#0f1319,#0a0d12);--ink:#e9edf2;--paper:#10141b;--panel:#1b212b;--line:#2b323d;--muted:#9aa6b4;--accent:#5b9bd6}
+  .themeswitch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--muted);user-select:none}
+  .themeswitch input{display:none}
+  .ts-track{width:38px;height:20px;background:var(--line);border-radius:999px;position:relative;transition:.2s;flex:0 0 38px}
+  .ts-thumb{position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+  .themeswitch input:checked + .ts-track{background:var(--accent)}
+  .themeswitch input:checked + .ts-track .ts-thumb{transform:translateX(18px)}
   .wrap{max-width:1400px;margin:0 auto}
   header{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;justify-content:space-between;margin-bottom:6px}
   h1{font-size:24px;font-weight:700;letter-spacing:-.01em}
@@ -148,7 +155,9 @@
 </head>
 <body>
 <div class="wrap">
-  <header><h1>Daily Ocean &amp; Dive Map &mdash; <span class="region">Victoria</span></h1></header>
+  <header><h1>Daily Ocean &amp; Dive Map &mdash; <span class="region">Victoria</span></h1>
+    <label class="themeswitch" title="Toggle dark mode"><input type="checkbox" id="themeToggle" onchange="setTheme(this.checked)"><span class="ts-track"><span class="ts-thumb"></span></span><span class="ts-label">Dark</span></label>
+  </header>
   <div class="sub">
     Pick Victorian dive/surf spots to compare conditions, plus live sea-surface temperature and water colour.
     Forecasts load live from Open-Meteo; SST/chlorophyll from NOAA CoastWatch. No login, free public data.
@@ -537,7 +546,7 @@ function weekStrip(s,rows){
 }
 var charts={};
 var ICON={
- wave:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2e7d6b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/><path d="M2 18c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/></svg>',
+ wave:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2e7d6b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12c-.8-4-4.6-6.3-8.4-4.6C9.3 8.8 8 12.4 9.2 15.4c.9 2.2 3.4 3.2 5.4 2 1.5-.9 1.9-2.9.8-4.3"/><path d="M2 18c2.6 0 3.7-1 4.8-2.8"/></svg>',
  wind:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1b6ca8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10a3 3 0 1 0-3-3"/><path d="M3 12h14a3 3 0 1 1-3 3"/><path d="M3 16h7"/></svg>',
  temp:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d97757" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14V5a2 2 0 0 0-4 0v9a4 4 0 1 0 4 0z"/></svg>'
 };
@@ -851,6 +860,15 @@ function loadGeoLegend(){
     })
     .catch(function(){ legendImageFallback(lg); });
 }
+function setTheme(dark){
+  document.body.classList.toggle('dark', dark);
+  try{ localStorage.setItem('vicdive-theme', dark?'dark':'light'); }catch(e){}
+  var t=document.getElementById('themeToggle'); if(t) t.checked=dark;
+}
+function restoreTheme(){
+  var dark=false; try{ dark=localStorage.getItem('vicdive-theme')==='dark'; }catch(e){}
+  setTheme(dark);
+}
 function showTab(t){
   document.getElementById('tab-conditions').hidden=(t!=='conditions');
   document.getElementById('tab-fish').hidden=(t!=='fish');
@@ -876,6 +894,7 @@ document.getElementById('stamp').textContent='Updated '+new Date().toLocaleStrin
 loadComposite();
 loadDataStamps();
 DEFAULTS.forEach(function(id){ addSpot(id); });
+restoreTheme();
 </script>
 </body>
 </html>
