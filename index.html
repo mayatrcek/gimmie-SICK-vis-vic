@@ -794,10 +794,16 @@ function initGeoMap(){
   loadGeoLegend();
 }
 function habFromProps(p){
-  var keys=['HAB_NAME','HABITAT','CATEGORY','NAT_HAB','DESCRIPT','DESC_NAME','BIOTA','SUBSTRATE','CLASS','NAME'];
-  for(var i=0;i<keys.length;i++){ if(p[keys[i]]) return p[keys[i]]; }
-  for(var k in p){ if(typeof p[k]==='string' && p[k].length>1 && k.toLowerCase().indexOf('id')<0) return p[k]; }
-  return 'Mapped habitat (unlabelled)';
+  if(!p) return null;
+  var kw=['substrat','reef','rock','bedrock','boulder','sand','mud','gravel','sediment','seagrass','macroalg','kelp','macrophyt','vegetation','algae','sponge','bryozoan','ascidian','filter feeder','shell','invertebrate','bioturbat','urchin','coral','biota','consolidat'];
+  var bad=['habitat map','statewide','seamap','dataset','source','survey','program','method','version','classification scheme'];
+  function looksBad(v){ var lv=v.toLowerCase(); for(var i=0;i<bad.length;i++){ if(lv.indexOf(bad[i])>=0) return true; } return false; }
+  // prefer a property whose VALUE names a seabed type
+  for(var k in p){ var v=p[k]; if(typeof v==='string' && !looksBad(v)){ var lv=v.toLowerCase(); for(var i=0;i<kw.length;i++){ if(lv.indexOf(kw[i])>=0) return v; } } }
+  // then known field names
+  var keys=['HAB_NAME','HABITAT','CATEGORY','NAT_HAB','DESCRIPT','DESC_NAME','BIOTA','SUBSTRATE','CLASS'];
+  for(var j=0;j<keys.length;j++){ if(p[keys[j]] && !looksBad(''+p[keys[j]])) return p[keys[j]]; }
+  return null;
 }
 function geoFeatureInfo(url,cb){
   fetch(url+'&info_format=application/json').then(function(r){return r.json();}).then(function(d){cb(d);}).catch(function(){cb(null);});
