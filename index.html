@@ -807,7 +807,12 @@ function initGeoMap(){
   bathyLayer.setZIndex(300);
   contourLayer=esriExport({baseUrl:'https://biod-gis.mapshare.vic.gov.au/arcgis/rest/services/CoastKit/BathyContours/MapServer',layerIds:'1,2,4,5,7,8,10,11,13,14,15,17,18',opacity:0.9,attribution:'Depth contours &copy; DEECA Victoria (CoastKit)'});
   contourLayer.setZIndex(500);
-  L.control.layers(null,{'Seabed habitat (Seamap Australia)':habitatLayer,'Depth, coloured (DEECA 5 m)':bathyLayer,'Depth contours (DEECA)':contourLayer},{collapsed:false}).addTo(geoMap);
+  contourLayer.addTo(geoMap);
+  L.control.layers(null,{'Seabed habitat (Seamap Australia)':habitatLayer,'Depth contours (DEECA)':contourLayer,'Depth, coloured (DEECA 5 m)':bathyLayer},{collapsed:false}).addTo(geoMap);
+  geoMap.on('overlayadd',function(e){
+    if(e.layer===bathyLayer && geoMap.hasLayer(habitatLayer)) geoMap.removeLayer(habitatLayer);
+    else if(e.layer===habitatLayer && geoMap.hasLayer(bathyLayer)) geoMap.removeLayer(bathyLayer);
+  });
   buildLegendColors();
   geoMap.on('click', geoClick);
   geoInfoEl=L.DomUtil.create('div','geoinfo',geoMap.getContainer());
