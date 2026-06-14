@@ -176,6 +176,7 @@
     <button id="btn-fish" class="tab" onclick="showTab('fish')">Fish guide</button>
     <button id="btn-live" class="tab" onclick="showTab('live')">Live data</button>
     <button id="btn-geo" class="tab" onclick="showTab('geo')">Underwater geography</button>
+    <button id="btn-feedback" class="tab" onclick="showTab('feedback')">Feedback</button>
   </div>
 
   <div id="tab-conditions" class="tabpanel">
@@ -245,6 +246,13 @@
       <div class="geolegendbox" id="geolegend"></div>
     </div>
   </div><!-- /tab-geo -->
+
+  <div id="tab-feedback" class="tabpanel" hidden>
+    <div class="sub" style="margin-top:6px">Got a suggestion, found a bug, or know a spot I should add? Let me know &mdash; or <a href="https://docs.google.com/forms/d/e/1FAIpQLSeVaBIkCZPh9SYDHJeJlpWE2n3tH8go57vCOg1Ppq5Wc9-tpQ/viewform" target="_blank" rel="noopener">open the form in a new tab</a>.</div>
+    <div class="card" style="padding:6px">
+      <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSeVaBIkCZPh9SYDHJeJlpWE2n3tH8go57vCOg1Ppq5Wc9-tpQ/viewform?embedded=true" style="width:100%;height:1100px;border:0;border-radius:10px;background:#fff" title="Feedback form">Loading…</iframe>
+    </div>
+  </div><!-- /tab-feedback -->
 
   <footer>
     Forecasts: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> (marine + weather models).
@@ -943,10 +951,12 @@ function showTab(t){
   document.getElementById('tab-fish').hidden=(t!=='fish');
   document.getElementById('tab-live').hidden=(t!=='live');
   document.getElementById('tab-geo').hidden=(t!=='geo');
+  document.getElementById('tab-feedback').hidden=(t!=='feedback');
   document.getElementById('btn-conditions').classList.toggle('active',t==='conditions');
   document.getElementById('btn-fish').classList.toggle('active',t==='fish');
   document.getElementById('btn-live').classList.toggle('active',t==='live');
   document.getElementById('btn-geo').classList.toggle('active',t==='geo');
+  document.getElementById('btn-feedback').classList.toggle('active',t==='feedback');
   if(t==='conditions'){ setTimeout(function(){ try{map.invalidateSize();}catch(e){} },60); }
   if(t==='live'){ setTimeout(function(){ try{compMap.invalidateSize();}catch(e){} },60); }
   if(t==='geo'){ setTimeout(function(){ try{geoMap.invalidateSize();}catch(e){} },60); }
