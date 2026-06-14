@@ -39,7 +39,8 @@
   #map{height:460px;width:100%;margin:0 0 14px;border-radius:14px;border:1px solid var(--line);box-shadow:0 8px 24px rgba(13,27,42,.06);z-index:0}
   #geomap{height:560px;flex:1;min-width:0;border-radius:14px;border:1px solid var(--line);box-shadow:0 8px 24px rgba(13,27,42,.06);z-index:0}
   #geomap .leaflet-container{cursor:pointer}
-  .geohover{position:absolute;z-index:1000;pointer-events:none;background:rgba(20,24,32,.92);color:#fff;font-size:12px;font-weight:600;padding:4px 9px;border-radius:6px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+  .geoinfo{position:absolute;left:10px;bottom:22px;z-index:1000;max-width:300px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.25);padding:10px 12px;font-size:12.5px;line-height:1.45}
+  .geoinfo .gi-hint{color:var(--muted)}
   .geowrap{display:flex;gap:16px;align-items:flex-start}
   @media(max-width:860px){.geowrap{flex-direction:column}#geomap{width:100%;flex:none}}
   .geolegendbox{flex:0 0 320px;max-width:320px;max-height:560px;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
@@ -773,7 +774,7 @@ function renderFish(){
   document.getElementById('fishcards').innerHTML=h;
 }
 /* ---- underwater geography map (CoastKit seabed-habitat data + bathymetry) ---- */
-var geoMap, habitatLayer, LEGEND_COLORS=null;
+var geoMap, habitatLayer, LEGEND_COLORS=null, geoInfoEl=null;
 function initGeoMap(){
   geoMap=L.map('geomap',{scrollWheelZoom:true,maxBounds:[[-44.2,139.5],[-33.8,150.8]],maxBoundsViscosity:1.0,minZoom:6}).setView([-38.25,144.85],9);
   L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}',{attribution:'Bathymetry &copy; Esri, GEBCO, NOAA; Habitat &copy; Seamap Australia (IMAS/UTAS)',maxZoom:13}).addTo(geoMap);
@@ -782,16 +783,18 @@ function initGeoMap(){
   L.control.layers(null,{'Seabed habitat (Seamap Australia)':habitatLayer},{collapsed:false}).addTo(geoMap);
   buildLegendColors();
   geoMap.on('click', geoClick);
-  var geoHover=L.DomUtil.create('div','geohover',geoMap.getContainer()); geoHover.style.display='none';
+  geoInfoEl=L.DomUtil.create('div','geoinfo',geoMap.getContainer());
+  geoInfoEl.innerHTML='<div class="gi-hover gi-hint">Hover the seabed to identify it &middot; click for detail</div><div class="gi-detail" hidden></div>';
+  L.DomEvent.disableClickPropagation(geoInfoEl);
   var hTimer=null;
   geoMap.on('mousemove', function(ev){
-    geoHover.style.left=(ev.containerPoint.x+14)+'px'; geoHover.style.top=(ev.containerPoint.y+14)+'px';
     clearTimeout(hTimer); var cp=ev.containerPoint, ll=ev.latlng;
-    hTimer=setTimeout(function(){ geoHover.style.display='block'; geoHover.textContent='…';
-      geoQuery(ll, cp, function(raw){ var g=raw?classifyHab(raw):null; geoHover.textContent=g?g.name:'Open water'; });
-    }, 280);
+    hTimer=setTimeout(function(){
+      geoQuery(ll, cp, function(raw){ var g=raw?classifyHab(raw):null, hv=geoInfoEl.querySelector('.gi-hover'); if(!hv) return; hv.className='gi-hover';
+        hv.innerHTML = g ? ('<span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:'+g.col+';vertical-align:-1px;margin-right:5px"></span>Under cursor: <b>'+g.name+'</b>') : 'Under cursor: Open water';
+      });
+    }, 200);
   });
-  geoMap.on('mouseout', function(){ clearTimeout(hTimer); geoHover.style.display='none'; });
   loadGeoLegend();
 }
 function habFromFeatures(feats){
@@ -862,25 +865,24 @@ function serverFeatureInfo(ll,cp,cb){
   geoFeatureInfo(url, function(j){ cb(habFromFeatures((j&&j.features)?j.features:[])); });
 }
 function geoClick(e){
-  var ll=e.latlng;
-  var pop=L.popup({maxWidth:280}).setLatLng(ll).setContent('<b>Loading…</b>').openOn(geoMap);
+  var ll=e.latlng, el=geoInfoEl; if(!el) return;
+  var det=el.querySelector('.gi-detail'); if(!det) return; det.hidden=false;
   var st={name:null,grp:null,raw:null};
   function render(){
-    var h='<div style="font-weight:700;font-size:14px">'+(st.name||'Selected point')+'</div>'+
-      '<div style="font-size:11px;color:#7b8794;margin:2px 0 8px">'+ll.lat.toFixed(3)+', '+ll.lng.toFixed(3)+'</div>';
-    if(st.grp){
-      h+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px"><span style="width:14px;height:14px;border-radius:3px;background:'+st.grp.col+';flex:0 0 14px"></span><b style="font-size:13px">'+st.grp.name+'</b></div>'+
-         '<div style="font-size:12px;color:#5b6b7b;line-height:1.45">'+st.grp.desc+'</div>'+
-         (st.raw?'<div style="font-size:11px;color:#9aa6b4;margin-top:6px">Seamap class: '+st.raw+'</div>':'');
-    } else if(st.raw===false){ h+='<div style="font-size:12px;color:#5b6b7b">Open water &mdash; no seabed habitat mapped here.</div>'; }
-    else { h+='<div style="font-size:12px;color:#9aa6b4">Reading seabed type…</div>'; }
-    pop.setContent(h);
+    var h='<div style="border-top:1px solid var(--line);margin-top:8px;padding-top:8px"></div>'+
+      '<div style="font-weight:700;font-size:13px">'+(st.name||'Selected point')+'</div>'+
+      '<div style="font-size:11px;color:var(--muted);margin:2px 0 6px">'+ll.lat.toFixed(3)+', '+ll.lng.toFixed(3)+'</div>';
+    if(st.grp){ h+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:3px"><span style="width:13px;height:13px;border-radius:3px;background:'+st.grp.col+';flex:0 0 13px"></span><b>'+st.grp.name+'</b></div>'+
+      '<div style="font-size:12px;color:var(--muted);line-height:1.4">'+st.grp.desc+'</div>'+
+      (st.raw?'<div style="font-size:11px;color:var(--muted);margin-top:5px">Seamap class: '+st.raw+'</div>':''); }
+    else if(st.raw===false){ h+='<div style="font-size:12px;color:var(--muted)">Open water &mdash; no seabed habitat here.</div>'; }
+    else { h+='<div style="font-size:12px;color:var(--muted)">Reading&hellip;</div>'; }
+    det.innerHTML=h;
   }
   render();
   jsonp('https://nominatim.openstreetmap.org/reverse?format=jsonp&zoom=12&addressdetails=1&lat='+ll.lat+'&lon='+ll.lng, function(d){
     if(d){ var a=d.address||{}; st.name=a.hamlet||a.village||a.town||a.suburb||a.city||a.county||a.state||(d.display_name?d.display_name.split(',')[0]:null); }
-    if(!st.name) st.name='Offshore Victoria';
-    render();
+    if(!st.name) st.name='Offshore Victoria'; render();
   }, 'json_callback');
   geoQuery(ll, e.containerPoint, function(raw){ if(raw){ st.raw=raw; st.grp=classifyHab(raw); } else { st.raw=false; } render(); });
 }
