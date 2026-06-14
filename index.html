@@ -793,17 +793,20 @@ function initGeoMap(){
   geoMap.on('mouseout', function(){ clearTimeout(hTimer); geoHover.style.display='none'; });
   loadGeoLegend();
 }
-function habFromProps(p){
-  if(!p) return null;
-  var kw=['substrat','reef','rock','bedrock','boulder','sand','mud','gravel','sediment','seagrass','macroalg','kelp','macrophyt','vegetation','algae','sponge','bryozoan','ascidian','filter feeder','shell','invertebrate','bioturbat','urchin','coral','biota','consolidat'];
+function habFromFeatures(feats){
+  if(!feats||!feats.length) return null;
   var bad=['habitat map','statewide','seamap','dataset','source','survey','program','method','version','classification scheme'];
   function looksBad(v){ var lv=v.toLowerCase(); for(var i=0;i<bad.length;i++){ if(lv.indexOf(bad[i])>=0) return true; } return false; }
-  // prefer a property whose VALUE names a seabed type
-  for(var k in p){ var v=p[k]; if(typeof v==='string' && !looksBad(v)){ var lv=v.toLowerCase(); for(var i=0;i<kw.length;i++){ if(lv.indexOf(kw[i])>=0) return v; } } }
-  // then known field names
-  var keys=['HAB_NAME','HABITAT','CATEGORY','NAT_HAB','DESCRIPT','DESC_NAME','BIOTA','SUBSTRATE','CLASS'];
-  for(var j=0;j<keys.length;j++){ if(p[keys[j]] && !looksBad(''+p[keys[j]])) return p[keys[j]]; }
-  return null;
+  var bio=['seagrass','macroalg','kelp','macrophyt','vegetation','algae','sponge','bryozoan','ascidian','filter feeder','shell','invertebrate','urchin','coral','bioturbat'];
+  var sub=['reef','bedrock','boulder','rock','hard substrat','soft substrat','substrat','sand','mud','gravel','sediment','consolidat'];
+  var gen=['biota'];
+  function scan(words){
+    for(var fi=0;fi<feats.length;fi++){ var p=feats[fi].properties||{};
+      for(var k in p){ var v=p[k]; if(typeof v==='string' && v.length>1 && !looksBad(v)){ var lv=v.toLowerCase();
+        for(var i=0;i<words.length;i++){ if(lv.indexOf(words[i])>=0) return v; } } } }
+    return null;
+  }
+  return scan(bio) || scan(sub) || scan(gen);
 }
 function geoFeatureInfo(url,cb){
   fetch(url+'&info_format=application/json').then(function(r){return r.json();}).then(function(d){cb(d);}).catch(function(){cb(null);});
@@ -813,12 +816,9 @@ function geoQuery(ll,cp,cb){
   var sw=geoMap.options.crs.project(b.getSouthWest()), ne=geoMap.options.crs.project(b.getNorthEast());
   var url='https://geoserver.imas.utas.edu.au/geoserver/seamap/wms?service=WMS&version=1.1.1&request=GetFeatureInfo'+
     '&layers=SeamapAus_National_Benthic_Habitat_Layer&query_layers=SeamapAus_National_Benthic_Habitat_Layer'+
-    '&feature_count=1&buffer=6&srs=EPSG:3857&width='+size.x+'&height='+size.y+
+    '&feature_count=10&buffer=3&srs=EPSG:3857&width='+size.x+'&height='+size.y+
     '&bbox='+sw.x+','+sw.y+','+ne.x+','+ne.y+'&x='+Math.round(cp.x)+'&y='+Math.round(cp.y);
-  geoFeatureInfo(url, function(j){
-    var f=(j&&j.features&&j.features[0])?j.features[0].properties:null;
-    cb(f?habFromProps(f):null);
-  });
+  geoFeatureInfo(url, function(j){ cb(habFromFeatures((j&&j.features)?j.features:[])); });
 }
 function geoClick(e){
   var ll=e.latlng;
