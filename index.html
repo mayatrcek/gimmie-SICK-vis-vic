@@ -782,13 +782,16 @@ function renderFish(){
   document.getElementById('fishcards').innerHTML=h;
 }
 /* ---- underwater geography map (CoastKit seabed-habitat data + bathymetry) ---- */
-var geoMap, habitatLayer, LEGEND_COLORS=null, geoInfoEl=null;
+var geoMap, habitatLayer, bathyLayer, LEGEND_COLORS=null, geoInfoEl=null;
 function initGeoMap(){
   geoMap=L.map('geomap',{scrollWheelZoom:true,maxBounds:[[-44.2,139.5],[-33.8,150.8]],maxBoundsViscosity:1.0,minZoom:6}).setView([-38.25,144.85],9);
   L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}',{attribution:'Bathymetry &copy; Esri, GEBCO, NOAA; Habitat &copy; Seamap Australia (IMAS/UTAS)',maxZoom:13}).addTo(geoMap);
   L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}',{maxZoom:13,opacity:0.9}).addTo(geoMap);
   habitatLayer=L.tileLayer.wms('https://geoserver.imas.utas.edu.au/geoserver/seamap/wms',{layers:'SeamapAus_National_Benthic_Habitat_Layer',format:'image/png',transparent:true,version:'1.1.1',opacity:0.62,crossOrigin:true,attribution:'Seamap Australia'}).addTo(geoMap);
-  L.control.layers(null,{'Seabed habitat (Seamap Australia)':habitatLayer},{collapsed:false}).addTo(geoMap);
+  habitatLayer.setZIndex(450);
+  bathyLayer=L.tileLayer.wms('https://services.ga.gov.au/gis/services/Bathymetry_Topography/MapServer/WMSServer',{layers:'0',format:'image/png',transparent:true,version:'1.1.1',opacity:0.6,attribution:'Bathymetry &copy; Geoscience Australia (CC BY 4.0)'});
+  bathyLayer.setZIndex(350);
+  L.control.layers(null,{'Seabed habitat (Seamap Australia)':habitatLayer,'Depth / bathymetry (Geoscience Australia)':bathyLayer},{collapsed:false}).addTo(geoMap);
   buildLegendColors();
   geoMap.on('click', geoClick);
   geoInfoEl=L.DomUtil.create('div','geoinfo',geoMap.getContainer());
