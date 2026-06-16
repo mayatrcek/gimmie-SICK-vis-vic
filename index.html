@@ -225,7 +225,7 @@
     <div class="sub" style="margin-top:6px">Live Point Nepean wave buoy (Ports Victoria) and NOAA satellite layers.</div>
     <h2 class="sec"><span class="dot" style="background:var(--green)"></span>Chlorophyll composite</h2>
     <div class="card" style="padding:0">
-      <div class="desc" style="padding:14px 16px 8px">Weekly geometric-mean of VIIRS chlorophyll (cloud-gap-filled) with the latest day blended on top. Greener = more plankton. &middot; <b>Latest day:</b> <span id="chl-date">…</span> &middot; <b>weekly mean to:</b> <span id="chlw-date">…</span></div>
+      <div class="desc" style="padding:14px 16px 8px">Latest available day of VIIRS chlorophyll (NOAA CoastWatch, ~4&nbsp;km, near real-time). Greener = more plankton; blank patches are cloud cover. &middot; <b>Latest day:</b> <span id="chl-date">…</span></div>
       <div id="compmap" style="height:420px;border-top:1px solid var(--line)"></div>
     </div>
     <h2 class="sec"><span class="dot" style="background:var(--accent)"></span>Point Nepean &mdash; live waves (Ports Victoria)</h2>
@@ -657,22 +657,18 @@ function initCompMap(){
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
     {attribution:'&copy; OpenStreetMap, &copy; CARTO',maxZoom:18}).addTo(compMap);
 }
-function chlOverlayURL(ds,sel){
-  return BASE+ds+'.transparentPng?chlor_a%5B'+sel+'%5D%5B0%5D%5B'+LAT_DESC+'%5D%5B'+LON+'%5D'+
-    '&.draw=surface&.vars=longitude%7Clatitude%7Cchlor_a&.colorBar=%7C%7C%7C%7C%7C&.size=700%7C'+(500+bump);
-}
 function loadComposite(){
   if(!compMap) return;
   compLayers.forEach(function(l){compMap.removeLayer(l);}); compLayers=[];
-  var bounds=[[-44,140],[-37.5,151]];
-  // base = weekly geometric-mean (fills cloud gaps across the coast, averaged); top = latest day blended for freshness
-  var weekly=L.imageOverlay(chlOverlayURL('nesdisVHNchlaWeekly','last'),bounds,{opacity:0.92}).addTo(compMap);
-  var daily =L.imageOverlay(chlOverlayURL('nesdisVHNchlaDaily','last'),bounds,{opacity:0.55}).addTo(compMap);
-  compLayers.push(weekly,daily);
+  // NOAA CoastWatch VIIRS chlorophyll (near real-time) via ERDDAP WMS — auto-latest day, dimension-agnostic
+  var chl=L.tileLayer.wms('https://coastwatch.noaa.gov/erddap/wms/noaacwNPPVIIRSchlaDaily/request?',
+    {layers:'noaacwNPPVIIRSchlaDaily:chlor_a',format:'image/png',transparent:true,version:'1.3.0',opacity:0.85,attribution:'Chlorophyll: NOAA CoastWatch (VIIRS NRT)'}).addTo(compMap);
+  compLayers.push(chl);
 }
 
 /* ---- SST / Chl images ---- */
 var BASE='https://coastwatch.pfeg.noaa.gov/erddap/griddap/';
+var CHLBASE='https://coastwatch.noaa.gov/erddap/griddap/';
 var LAT='(-44):(-37.5)', LAT_DESC='(-37.5):(-44)', LON='(140):(151)';
 var bump=0, sstMin=null, sstMax=null;
 function sstURL(){
@@ -699,16 +695,15 @@ function jsonp(url,cb,param){
   s.src=url+(url.indexOf('?')>=0?'&':'?')+(param||'.jsonp')+'='+fn;
   document.head.appendChild(s);
 }
-function fetchLastTime(ds,cb){
-  jsonp(BASE+ds+'.json?time%5B(last)%5D',function(j){
+function fetchLastTime(ds,cb,base){
+  jsonp((base||BASE)+ds+'.json?time%5B(last)%5D',function(j){
     var t=(j&&j.table&&j.table.rows&&j.table.rows[0])?j.table.rows[0][0]:null; cb(t);
   });
 }
 function fmtDataDate(t){ if(!t) return 'unavailable'; var d=new Date(t); return d.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}); }
 function loadDataStamps(){
   fetchLastTime('jplMURSST41',function(t){ var e=document.getElementById('sst-date'); if(e) e.textContent=fmtDataDate(t); });
-  fetchLastTime('nesdisVHNchlaDaily',function(t){ var e=document.getElementById('chl-date'); if(e) e.textContent=fmtDataDate(t); });
-  fetchLastTime('nesdisVHNchlaWeekly',function(t){ var e=document.getElementById('chlw-date'); if(e) e.textContent=fmtDataDate(t); });
+  fetchLastTime('noaacwNPPVIIRSchlaDaily',function(t){ var e=document.getElementById('chl-date'); if(e) e.textContent=fmtDataDate(t); },CHLBASE);
 }
 function reloadAll(){
   bump++;
