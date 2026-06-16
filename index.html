@@ -660,10 +660,18 @@ function initCompMap(){
 function loadComposite(){
   if(!compMap) return;
   compLayers.forEach(function(l){compMap.removeLayer(l);}); compLayers=[];
-  // NOAA CoastWatch VIIRS chlorophyll (near real-time) via ERDDAP WMS — auto-latest day, dimension-agnostic
+  // NOAA CoastWatch VIIRS chlorophyll (near real-time) via ERDDAP WMS. crs:EPSG4326 so it renders even if the server doesn't serve Web-Mercator tiles.
   var chl=L.tileLayer.wms('https://coastwatch.noaa.gov/erddap/wms/noaacwNPPVIIRSchlaDaily/request?',
-    {layers:'noaacwNPPVIIRSchlaDaily:chlor_a',format:'image/png',transparent:true,version:'1.3.0',opacity:0.85,attribution:'Chlorophyll: NOAA CoastWatch (VIIRS NRT)'}).addTo(compMap);
+    {layers:'noaacwNPPVIIRSchlaDaily:chlor_a',styles:'',format:'image/png',transparent:true,version:'1.3.0',crs:L.CRS.EPSG4326,opacity:0.85,attribution:'Chlorophyll: NOAA CoastWatch (VIIRS NRT)'}).addTo(compMap);
   compLayers.push(chl);
+}
+var liveLoaded=false;
+function loadLiveTab(){
+  if(liveLoaded) return; liveLoaded=true;
+  wireImg('sst',sstURL());
+  var sl=document.getElementById('sstlink'); if(sl) sl.href=BASE+'jplMURSST41.graph';
+  loadComposite();
+  loadDataStamps();
 }
 
 /* ---- SST / Chl images ---- */
@@ -691,7 +699,7 @@ function jsonp(url,cb,param){
   function cleanup(){ try{delete window[fn];}catch(e){window[fn]=undefined;} if(s&&s.parentNode) s.parentNode.removeChild(s); }
   window[fn]=function(data){ done=true; try{cb(data);}catch(e){cb(null);} cleanup(); };
   s.onerror=function(){ if(!done){ cb(null); cleanup(); } };
-  setTimeout(function(){ if(!done){ cb(null); cleanup(); } },12000);
+  setTimeout(function(){ if(!done){ cb(null); cleanup(); } },7000);
   s.src=url+(url.indexOf('?')>=0?'&':'?')+(param||'.jsonp')+'='+fn;
   document.head.appendChild(s);
 }
@@ -999,7 +1007,7 @@ function showTab(t){
   document.getElementById('btn-about').classList.toggle('active',t==='about');
   document.getElementById('btn-feedback').classList.toggle('active',t==='feedback');
   if(t==='conditions'){ setTimeout(function(){ try{map.invalidateSize();}catch(e){} },60); }
-  if(t==='live'){ setTimeout(function(){ try{compMap.invalidateSize();}catch(e){} },60); }
+  if(t==='live'){ loadLiveTab(); setTimeout(function(){ try{compMap.invalidateSize();}catch(e){} },60); }
   if(t==='geo'){ setTimeout(function(){ try{geoMap.invalidateSize();}catch(e){} try{bathyMap.invalidateSize();}catch(e){} },60); }
 }
 
@@ -1009,11 +1017,7 @@ initGeoMap();
 initBathyMap();
 populateSelect();
 renderFish();
-wireImg('sst',sstURL());
-document.getElementById('sstlink').href=BASE+'jplMURSST41.graph';
 document.getElementById('stamp').textContent='Updated '+new Date().toLocaleString();
-loadComposite();
-loadDataStamps();
 DEFAULTS.forEach(function(id){ addSpot(id); });
 restoreTheme();
 </script>
