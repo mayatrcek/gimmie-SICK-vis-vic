@@ -654,8 +654,11 @@ function initMap(){
 var compMap, compLayers=[];
 function initCompMap(){
   compMap=L.map('compmap',{scrollWheelZoom:true,maxBounds:[[-44.2,139.5],[-33.8,150.8]],maxBoundsViscosity:1.0,minZoom:6}).setView([-39.0,145.6],7);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-    {attribution:'&copy; OpenStreetMap, &copy; CARTO',maxZoom:18}).addTo(compMap);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',
+    {attribution:'&copy; OpenStreetMap, &copy; CARTO',maxZoom:18}).addTo(compMap).setZIndex(100);
+  // land + place/coast labels drawn ABOVE the chlorophyll (zIndex 200-202) so land reads clearly on top of the data
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',
+    {maxZoom:18}).addTo(compMap).setZIndex(650);
 }
 function loadComposite(){
   if(!compMap) return;
