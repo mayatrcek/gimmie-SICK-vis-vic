@@ -40,6 +40,7 @@
   #geomap{height:560px;flex:1;min-width:0;border-radius:14px;border:1px solid var(--line);box-shadow:0 8px 24px rgba(13,27,42,.06);z-index:0}
   #geomap .leaflet-container{cursor:pointer}
   #bathymap{height:520px;border-radius:14px;border:1px solid var(--line);box-shadow:0 8px 24px rgba(13,27,42,.06);z-index:0;margin-top:4px}
+  .compmask{filter:brightness(0) invert(0.92) sepia(0.35);}
   .geoinfo{position:absolute;left:10px;bottom:22px;z-index:1000;max-width:300px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.25);padding:10px 12px;font-size:12.5px;line-height:1.45}
   .geoinfo .gi-hint{color:var(--muted)}
   .geowrap{display:flex;gap:16px;align-items:flex-start}
@@ -656,7 +657,10 @@ function initCompMap(){
   compMap=L.map('compmap',{scrollWheelZoom:true,maxBounds:[[-44.2,139.5],[-33.8,150.8]],maxBoundsViscosity:1.0,minZoom:6}).setView([-39.0,145.6],7);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',
     {attribution:'&copy; OpenStreetMap, &copy; CARTO',maxZoom:18}).addTo(compMap).setZIndex(100);
-  // land + place/coast labels drawn ABOVE the chlorophyll (zIndex 200-202) so land reads clearly on top of the data
+  // opaque land mask (NASA GIBS OSM_Land_Mask, recoloured light via .compmask) ABOVE the chlorophyll so the coarse 4 km data is trimmed to the true coastline
+  L.tileLayer.wms('https://gibs.earthdata.nasa.gov/wms/epsg3857/best/wms.cgi?',
+    {layers:'OSM_Land_Mask',format:'image/png',transparent:true,version:'1.3.0',className:'compmask',attribution:''}).addTo(compMap).setZIndex(600);
+  // place/coast labels drawn ABOVE the land mask so land reads clearly on top of the data
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',
     {maxZoom:18}).addTo(compMap).setZIndex(650);
 }
