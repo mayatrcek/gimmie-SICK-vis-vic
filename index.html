@@ -47,6 +47,20 @@
   @media(max-width:860px){.geowrap{flex-direction:column}#geomap{width:100%;flex:none}}
   .geolegendbox{flex:0 0 320px;max-width:320px;max-height:560px;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
   @media(max-width:860px){.geolegendbox{flex:none;max-width:100%;width:100%;max-height:none}}
+  /* Phone layout: stop the tab bar from overflowing, shrink maps, add side gutters */
+  @media(max-width:560px){
+    .wrap{box-sizing:border-box;padding:0 12px}
+    h1{font-size:20px}
+    .tabs{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;gap:4px;scrollbar-width:none}
+    .tabs::-webkit-scrollbar{display:none}
+    .tab{white-space:nowrap;flex:0 0 auto;padding:9px 12px;font-size:14px}
+    #map{height:340px}
+    #geomap{height:380px}
+    #bathymap{height:340px}
+    #compmap{height:320px!important}
+    .geolegendbox{max-height:none}
+    .geoinfo{max-width:calc(100% - 20px)}
+  }
   .geolegendbox img{max-width:100%}
   .picker{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
   .picker label{font-size:13px;font-weight:600;color:var(--muted)}
