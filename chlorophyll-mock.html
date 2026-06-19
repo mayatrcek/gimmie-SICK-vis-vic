@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chlorophyll composite — VIC / TAS</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232e7d6b'/><g fill='none' stroke='%23bfe9c9' stroke-width='2.4' stroke-linecap='round'><path d='M5 13c3 0 3-2.5 6-2.5s3 2.5 6 2.5 3-2.5 6-2.5 3 2.5 6 2.5'/><path d='M5 20c3 0 3-2.5 6-2.5s3 2.5 6 2.5 3-2.5 6-2.5 3 2.5 6 2.5'/></g></svg>">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  :root{--ink:#0d1b2a;--paper:#f7f9fb;--panel:#ffffff;--line:#dce3ea;--muted:#5b6b7b;--accent:#1b6ca8;--green:#2e7d6b;}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       background:linear-gradient(160deg,#eef3f7,#e3ecf2);color:var(--ink);padding:24px;min-height:100vh;transition:background .25s,color .25s}
+  body.dark{background:linear-gradient(160deg,#0f1319,#0a0d12);--ink:#e9edf2;--paper:#10141b;--panel:#1b212b;--line:#2b323d;--muted:#9aa6b4;--accent:#5b9bd6}
+  .wrap{max-width:1100px;margin:0 auto}
+  header{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;justify-content:space-between;margin-bottom:6px}
+  h1{font-size:23px;font-weight:700;letter-spacing:-.01em}
+  .region{color:var(--green);font-weight:600}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:14px;line-height:1.55;max-width:860px}
+  .themeswitch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--muted);user-select:none}
+  .themeswitch input{display:none}
+  .ts-track{width:38px;height:20px;background:var(--line);border-radius:999px;position:relative;transition:.2s;flex:0 0 38px}
+  .ts-thumb{position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+  .themeswitch input:checked + .ts-track{background:var(--green)}
+  .themeswitch input:checked + .ts-track .ts-thumb{transform:translateX(18px)}
+  .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+  button{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:9px 16px;border-radius:8px;cursor:pointer;transition:.15s}
+  button:hover{border-color:var(--green);color:var(--green)}
+  button.primary{background:var(--green);color:#fff;border-color:var(--green)}
+  button.primary:hover{background:#225f53;color:#fff}
+  .stamp{color:var(--muted);font-size:13px;margin-left:auto}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 8px 24px rgba(13,27,42,.06)}
+  .desc{padding:14px 16px 8px;color:var(--muted);font-size:13px;line-height:1.5}
+  .desc b{color:var(--ink)}
+  .mapwrap{position:relative}
+  #compmap{height:600px;border-top:1px solid var(--line);z-index:0}
+  .maploading{position:absolute;left:12px;top:12px;z-index:500;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:12px;color:var(--muted);box-shadow:0 2px 8px rgba(0,0,0,.15)}
+  footer{margin-top:22px;color:var(--muted);font-size:12px;line-height:1.6;text-align:center}
+  footer a{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Chlorophyll composite &mdash; <span class="region">Victoria &amp; Tasmania</span></h1>
+    <label class="themeswitch" title="Toggle dark mode"><input type="checkbox" onchange="setTheme(this.checked)"><span class="ts-track"><span class="ts-thumb"></span></span><span>Dark</span></label>
+  </header>
+  <div class="sub">
+    The chlorophyll composite from the main site: a weekly geometric-mean of VIIRS chlorophyll (cloud-gap-filled) with
+    the latest day blended on top. Greener = more plankton. Free public data from NOAA CoastWatch.
+  </div>
+
+  <div class="bar">
+    <button class="primary" onclick="reloadComposite()">&#8635; Reload latest</button>
+    <span class="stamp" id="stamp"></span>
+  </div>
+
+  <div class="card">
+    <div class="desc">Weekly geometric-mean of VIIRS chlorophyll (cloud-gap-filled) with the latest day blended on top. Greener = more plankton. &middot; <b>Latest day:</b> <span id="chl-date">&hellip;</span> &middot; <b>weekly mean to:</b> <span id="chlw-date">&hellip;</span></div>
+    <div class="mapwrap">
+      <div id="compmap"></div>
+      <div class="maploading" id="mapmsg">Loading chlorophyll&hellip;</div>
+    </div>
+  </div>
+
+  <footer>
+    Chlorophyll: NOAA NESDIS CoastWatch (VIIRS), via
+    <a href="https://coastwatch.pfeg.noaa.gov/erddap/" target="_blank" rel="noopener">NOAA ERDDAP</a>.
+    Free public data &mdash; a planning aid, not for navigation. Built for Maya.
+  </footer>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* ---- chlorophyll composite (ported from index.html), de-bowed with latitude bands ----
+   ERDDAP renders flat plate-carree PNGs; the map is Web Mercator, so one flat overlay bows off
+   the coast (data appears shifted). We instead request the composite in several thin latitude
+   bands and place each at its own correct bounds. Within a thin band flat ~= Mercator, so the
+   bow vanishes. Plain image overlays only -- no WMS, no canvas/CORS. */
+var BASE='https://coastwatch.pfeg.noaa.gov/erddap/griddap/';
+var LAT_TOP=-37.5, LAT_BOT=-44.0, LON_W=140, LON_E=151;
+var N_BANDS=6, bump=0, compMap, compLayers=[];
+
+function initCompMap(){
+  compMap=L.map('compmap',{scrollWheelZoom:true,maxBounds:[[-44.2,139.5],[-33.8,150.8]],maxBoundsViscosity:1.0,minZoom:6}).setView([-39.0,145.6],7);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    {attribution:'&copy; OpenStreetMap, &copy; CARTO',maxZoom:18}).addTo(compMap);
+}
+function bandURL(ds,hi,lo){
+  var h=Math.max(40,Math.round(520*(hi-lo)/(LAT_TOP-LAT_BOT)));
+  return BASE+ds+'.transparentPng?chlor_a%5Blast%5D%5B0%5D%5B('+hi.toFixed(4)+'):('+lo.toFixed(4)+')%5D%5B('+LON_W+'):('+LON_E+')%5D'+
+    '&.draw=surface&.vars=longitude%7Clatitude%7Cchlor_a&.colorBar=%7C%7C%7C%7C%7C&.size=700%7C'+(h+bump);
+}
+function clearLayers(){ compLayers.forEach(function(l){compMap.removeLayer(l);}); compLayers=[]; }
+function showMsg(t){ var m=document.getElementById('mapmsg'); if(m){ m.style.display='block'; m.textContent=t; } }
+function hideMsg(){ var m=document.getElementById('mapmsg'); if(m) m.style.display='none'; }
+function loadComposite(){
+  if(!compMap) return;
+  clearLayers(); showMsg('Loading chlorophyll…');
+  var span=LAT_TOP-LAT_BOT, total=N_BANDS*2, done=0;
+  function tick(){ done++; if(done>=total) hideMsg(); }
+  for(var i=0;i<N_BANDS;i++){
+    var hi=LAT_TOP-(i/N_BANDS)*span;        // north edge of band (e.g. -37.50)
+    var lo=LAT_TOP-((i+1)/N_BANDS)*span;    // south edge of band
+    var bnd=[[lo,LON_W],[hi,LON_E]];        // [S,W],[N,E] -> placed at true Mercator position
+    var wk=L.imageOverlay(bandURL('nesdisVHNchlaWeekly',hi,lo),bnd,{opacity:0.92}).addTo(compMap);
+    var dy=L.imageOverlay(bandURL('nesdisVHNchlaDaily', hi,lo),bnd,{opacity:0.55}).addTo(compMap);
+    wk.on('load',tick); wk.on('error',tick); dy.on('load',tick); dy.on('error',tick);
+    compLayers.push(wk,dy);
+  }
+}
+function jsonp(url,cb,param){
+  var fn='__erd_cb_'+(jsonp._n=(jsonp._n||0)+1);
+  var s=document.createElement('script'); var done=false;
+  function cleanup(){ try{delete window[fn];}catch(e){window[fn]=undefined;} if(s&&s.parentNode) s.parentNode.removeChild(s); }
+  window[fn]=function(data){ done=true; try{cb(data);}catch(e){cb(null);} cleanup(); };
+  s.onerror=function(){ if(!done){ cb(null); cleanup(); } };
+  setTimeout(function(){ if(!done){ cb(null); cleanup(); } },12000);
+  s.src=url+(url.indexOf('?')>=0?'&':'?')+(param||'.jsonp')+'='+fn;
+  document.head.appendChild(s);
+}
+function fetchLastTime(ds,cb){
+  jsonp(BASE+ds+'.json?time%5B(last)%5D',function(j){
+    var t=(j&&j.table&&j.table.rows&&j.table.rows[0])?j.table.rows[0][0]:null; cb(t);
+  });
+}
+function fmtDataDate(t){ if(!t) return 'unavailable'; var d=new Date(t); return d.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}); }
+function loadDataStamps(){
+  fetchLastTime('nesdisVHNchlaDaily',function(t){ var e=document.getElementById('chl-date'); if(e) e.textContent=fmtDataDate(t); });
+  fetchLastTime('nesdisVHNchlaWeekly',function(t){ var e=document.getElementById('chlw-date'); if(e) e.textContent=fmtDataDate(t); });
+}
+function setTheme(on){ document.body.classList.toggle('dark',on); }
+function reloadComposite(){
+  bump++; loadComposite(); loadDataStamps();
+  document.getElementById('stamp').textContent='Updated '+new Date().toLocaleString();
+}
+initCompMap(); loadComposite(); loadDataStamps();
+</script>
+</body>
+</html>
