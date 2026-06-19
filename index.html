@@ -736,7 +736,7 @@ var LAT='(-44):(-37.5)', LAT_DESC='(-37.5):(-44)', LON='(140):(151)';
 var bump=0, sstMin=null, sstMax=null;
 function sstURL(){
   var cb=(sstMin!=null&&sstMax!=null) ? 'Rainbow%7C%7C%7C'+sstMin+'%7C'+sstMax+'%7C' : 'Rainbow%7C%7C%7C%7C%7C';
-  return BASE+'jplMURSST41.png?analysed_sst%5B(last)%5D%5B(-39.7):(-37.1)%5D%5B(140.8):(150.2)%5D&.draw=surface&.vars=longitude%7Clatitude%7Canalysed_sst&.colorBar='+cb+'&.land=over&.size=1040%7C'+(360+bump);
+  return BASE+'jplMURSST41.png?analysed_sst%5B(last)%5D%5B(-39.7):(-37.1)%5D%5B(143.0):(148.0)%5D&.draw=surface&.vars=longitude%7Clatitude%7Canalysed_sst&.colorBar='+cb+'&.land=over&.size=880%7C'+(470+bump);
 }
 function chlURL(){return BASE+'nesdisVHNchlaDaily.png?chlor_a%5B(last)%5D%5B(0.0)%5D%5B'+LAT_DESC+'%5D%5B'+LON+'%5D&.draw=surface&.vars=longitude%7Clatitude%7Cchlor_a&.colorBar=%7C%7C%7C%7C%7C&.land=over&.size=720%7C'+(600+bump);}
 function wireImg(id,url){
