@@ -41,6 +41,10 @@
   #geomap .leaflet-container{cursor:pointer}
   #bathymap{height:520px;border-radius:14px;border:1px solid var(--line);box-shadow:0 8px 24px rgba(13,27,42,.06);z-index:0;margin-top:4px}
   .compmask{filter:brightness(0) invert(0.92) sepia(0.35);}
+  .gmpin{background:none;border:none}
+  .pinpop{font-size:12.5px;line-height:1.55}
+  .pincoord{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .pinpop a{color:var(--accent);font-size:12px;text-decoration:none}
   .geoinfo{position:absolute;left:10px;bottom:22px;z-index:1000;max-width:300px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.25);padding:10px 12px;font-size:12.5px;line-height:1.45}
   .geoinfo .gi-hint{color:var(--muted)}
   .geowrap{display:flex;gap:16px;align-items:flex-start}
@@ -865,6 +869,20 @@ function renderFish(){
 }
 /* ---- underwater geography map (CoastKit seabed-habitat data + bathymetry) ---- */
 var geoMap, bathyMap, habitatLayer, bathyLayer, contourLayer, LEGEND_COLORS=null, geoInfoEl=null;
+var geoPin=null, bathyPin=null;
+function gmPinIcon(){ return L.divIcon({className:'gmpin',html:'<svg width="26" height="38" viewBox="0 0 26 38" xmlns="http://www.w3.org/2000/svg"><path d="M13 1C6.4 1 1 6.4 1 13c0 8.7 12 24 12 24s12-15.3 12-24C25 6.4 19.6 1 13 1z" fill="#ea4335" stroke="#ffffff" stroke-width="1.4"/><circle cx="13" cy="13" r="4.4" fill="#8b1a0e"/></svg>',iconSize:[26,38],iconAnchor:[13,37],popupAnchor:[0,-34]}); }
+// Drop a single Google-Maps-style pin where the user clicks, with the coordinates. Clicking again moves it; the popup has Copy / Remove.
+function dropPin(map, latlng, key){
+  var prev=(key==='geo')?geoPin:bathyPin; if(prev){ try{map.removeLayer(prev);}catch(e){} }
+  var c=latlng.lat.toFixed(5)+', '+latlng.lng.toFixed(5);
+  var m=L.marker(latlng,{icon:gmPinIcon(),keyboard:false}).addTo(map);
+  m.bindPopup('<div class="pinpop"><b>Dropped pin</b><br><span class="pincoord">'+c+'</span><br><a href="#" class="pincopy">Copy</a> &middot; <a href="#" class="pindel">Remove</a></div>',{autoClose:false,closeOnClick:false}).openPopup();
+  m.on('popupopen',function(ev){ var r=ev.popup.getElement();
+    var cp=r.querySelector('.pincopy'); if(cp) cp.onclick=function(){ try{navigator.clipboard.writeText(c);}catch(e){} this.textContent='Copied ✓'; return false; };
+    var dl=r.querySelector('.pindel'); if(dl) dl.onclick=function(){ try{map.removeLayer(m);}catch(e){} if(key==='geo')geoPin=null; else bathyPin=null; return false; };
+  });
+  if(key==='geo') geoPin=m; else bathyPin=m;
+}
 // Minimal ArcGIS dynamic-export layer: requests a reprojected PNG per map tile (works for services without WMS/tile cache, any source CRS)
 var EsriExport=L.TileLayer.extend({
   getTileUrl:function(coords){
@@ -901,6 +919,7 @@ function initGeoMap(){
   L.control.layers(null,{'Seabed habitat (Seamap Australia)':habitatLayer,'Depth contours (DEECA)':contourLayer},{collapsed:false}).addTo(geoMap);// removed coloured (DEECA 5 m)':bathyLayer},{collapsed:false}).addTo(geoMap);
   buildLegendColors();
   geoMap.on('click', geoClick);
+  geoMap.on('click', function(e){ dropPin(geoMap, e.latlng, 'geo'); });
   geoInfoEl=L.DomUtil.create('div','geoinfo',geoMap.getContainer());
   geoInfoEl.innerHTML='<div class="gi-hover gi-hint">Hover the seabed to identify it &middot; click for detail</div><div class="gi-detail" hidden></div>';
   L.DomEvent.disableClickPropagation(geoInfoEl);
@@ -924,6 +943,7 @@ function initBathyMap(){
   var bcon=esriExport({baseUrl:'https://biod-gis.mapshare.vic.gov.au/arcgis/rest/services/CoastKit/BathyContours/MapServer',layerIds:'1,2,4,5,7,8,10,11,13,14,15,17,18',opacity:0.95,attribution:'Depth contours &copy; DEECA Victoria (CoastKit)'});
   bcon.setZIndex(500); bcon.addTo(bathyMap);
   L.control.layers(null,{'Coloured depth (DEECA 5m)':bathyLayer,'Depth contours (DEECA)':bcon},{collapsed:false}).addTo(bathyMap);
+  bathyMap.on('click', function(e){ dropPin(bathyMap, e.latlng, 'bathy'); });
   // Defer this (below-the-fold) map's tile loading until it's scrolled into view, so the top habitat map loads first without competing for the same servers.
   if('IntersectionObserver' in window){
     var bio2=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ try{bathyMap.invalidateSize();}catch(err){} addGeoBase(bathyMap,'depth.png',bathyLayer,0.85,250); addGeoBase(bathyMap,'contours.png',bcon,0.95,255); bio2.disconnect(); } }); },{threshold:0.01});
