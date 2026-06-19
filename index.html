@@ -874,13 +874,8 @@ function gmPinIcon(){ return L.divIcon({className:'gmpin',html:'<svg width="26" 
 // Drop a single Google-Maps-style pin where the user clicks, with the coordinates. Clicking again moves it; the popup has Copy / Remove.
 function dropPin(map, latlng, key){
   var prev=(key==='geo')?geoPin:bathyPin; if(prev){ try{map.removeLayer(prev);}catch(e){} }
-  var c=latlng.lat.toFixed(5)+', '+latlng.lng.toFixed(5);
   var m=L.marker(latlng,{icon:gmPinIcon(),keyboard:false}).addTo(map);
-  m.bindPopup('<div class="pinpop"><b>Dropped pin</b><br><span class="pincoord">'+c+'</span><br><a href="#" class="pincopy">Copy</a> &middot; <a href="#" class="pindel">Remove</a></div>',{autoClose:false,closeOnClick:false}).openPopup();
-  m.on('popupopen',function(ev){ var r=ev.popup.getElement();
-    var cp=r.querySelector('.pincopy'); if(cp) cp.onclick=function(){ try{navigator.clipboard.writeText(c);}catch(e){} this.textContent='Copied ✓'; return false; };
-    var dl=r.querySelector('.pindel'); if(dl) dl.onclick=function(){ try{map.removeLayer(m);}catch(e){} if(key==='geo')geoPin=null; else bathyPin=null; return false; };
-  });
+  m.on('click', function(){ try{map.removeLayer(m);}catch(e){} if(key==='geo')geoPin=null; else bathyPin=null; });
   if(key==='geo') geoPin=m; else bathyPin=m;
 }
 // Minimal ArcGIS dynamic-export layer: requests a reprojected PNG per map tile (works for services without WMS/tile cache, any source CRS)
