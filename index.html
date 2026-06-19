@@ -718,6 +718,17 @@ function loadLiveTab(){
   loadComposite();
   loadDataStamps();
 }
+// On phones, render the Ports Victoria dashboard at its desktop width and scale it down to fit, so it keeps the multi-column desktop layout instead of stacking one panel per row.
+function fitLiveEmbed(){
+  var c=document.querySelector('.liveframe'); if(!c) return;
+  var ifr=c.querySelector('iframe'); if(!ifr) return;
+  var cw=c.clientWidth;
+  if(window.innerWidth>560 || cw===0){ ifr.style.width='100%'; ifr.style.height='1500px'; ifr.style.transform=''; c.style.height='820px'; return; }
+  var DW=1060, CROP=820, s=cw/DW;
+  ifr.style.width=DW+'px'; ifr.style.height='1500px'; ifr.style.transformOrigin='top left'; ifr.style.transform='scale('+s+')';
+  c.style.height=Math.round(CROP*s)+'px';
+}
+window.addEventListener('resize',fitLiveEmbed);
 
 /* ---- SST / Chl images ---- */
 var BASE='https://coastwatch.pfeg.noaa.gov/erddap/griddap/';
@@ -1051,7 +1062,7 @@ function showTab(t){
   document.getElementById('btn-about').classList.toggle('active',t==='about');
   document.getElementById('btn-feedback').classList.toggle('active',t==='feedback');
   if(t==='conditions'){ setTimeout(function(){ try{map.invalidateSize();}catch(e){} },60); }
-  if(t==='live'){ loadLiveTab(); setTimeout(function(){ try{compMap.invalidateSize();}catch(e){} },60); }
+  if(t==='live'){ loadLiveTab(); setTimeout(function(){ try{compMap.invalidateSize();}catch(e){} fitLiveEmbed(); },60); }
   if(t==='geo'){ setTimeout(function(){ try{geoMap.invalidateSize();}catch(e){} try{bathyMap.invalidateSize();}catch(e){} },60); }
 }
 
