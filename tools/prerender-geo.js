@@ -18,9 +18,12 @@ const path = require('path');
 const OUT = path.join(__dirname, '..', 'assets', 'geo');
 fs.mkdirSync(OUT, { recursive: true });
 
-// Map maxBounds [[-44.2,139.5],[-33.8,150.8]] expressed in EPSG:3857 (Web Mercator) metres.
-const BBOX = '15529069,-5496679,16786978,-4001005';
-const W = 1600, H = 1902; // matches the bbox aspect ratio (no distortion)
+// Extent the base images cover — southern Port Phillip Bay. MUST match GEO_BASE_BOUNDS in index.html.
+function merc(lon, lat){ const R = 6378137; return [lon * Math.PI / 180 * R, Math.log(Math.tan((90 + lat) * Math.PI / 360)) * R]; }
+const SW = [144.35, -38.60], NE = [145.15, -38.10]; // [lon, lat]  -> GEO_BASE_BOUNDS [[-38.60,144.35],[-38.10,145.15]]
+const p0 = merc(SW[0], SW[1]), p1 = merc(NE[0], NE[1]);
+const BBOX = [p0[0], p0[1], p1[0], p1[1]].join(',');
+const W = 2048, H = Math.round(W * (p1[1] - p0[1]) / (p1[0] - p0[0])); // match bbox aspect (no distortion)
 
 const DEECA = 'https://biod-gis.mapshare.vic.gov.au/arcgis/rest/services/CoastKit';
 const layers = {
