@@ -130,6 +130,7 @@
   .card .desc{padding:2px 16px 12px;color:var(--muted);font-size:12.5px;line-height:1.5}
   .imgbox{position:relative;background:#0d1b2a08;min-height:280px;display:flex;align-items:center;justify-content:center}
   .imgbox img{width:100%;height:auto;display:block}
+  .sstlegend{display:block;max-width:300px;width:100%;height:auto;margin:8px 0 0;border-radius:6px}
   .imgbox .ph{position:absolute;color:var(--muted);font-size:13px;text-align:center;padding:20px}
   .foot{padding:11px 16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
   .foot a{color:var(--accent);text-decoration:none;font-weight:600}
@@ -253,6 +254,7 @@
       <h3><span class="dot" style="background:var(--warm)"></span>Sea Surface Temperature <span id="sst-range" class="sm" style="font-weight:400;color:var(--muted)"></span></h3>
       <div class="desc">MUR SST (NASA JPL, ~1&nbsp;km), colour-stretched to the local average &plusmn;1&deg;C so small temperature breaks pop.</div>
       <div class="imgbox"><div class="ph">Loading SST&hellip;</div><img id="sst" alt="SST map"></div>
+      <img id="sstlegend" class="sstlegend" alt="SST colour scale">
       <div class="foot"><span>NASA JPL MUR &middot; data: <span id="sst-date">…</span></span><a id="sstlink" target="_blank" rel="noopener">Open data &#8599;</a></div>
     </div>
   </div><!-- /tab-live -->
@@ -558,7 +560,7 @@ function renderSidePanel(){
 function refreshStretch(){
   var sv=[], mx=null;
   for(var id in selected){ var r=selected[id].rows; if(r&&r[0]&&r[0].sst!=null){ sv.push(r[0].sst); if(mx==null||r[0].sst>mx) mx=r[0].sst; } }
-  if(sv.length){ var a=sv.reduce(function(x,y){return x+y;},0)/sv.length; sstMin=(a-1).toFixed(1); sstMax=(a+1).toFixed(1); wireImg('sst',sstURL()); var e=document.getElementById('sst-range'); if(e) e.textContent='('+sstMin+'–'+sstMax+'°C)'; }
+  if(sv.length){ var a=sv.reduce(function(x,y){return x+y;},0)/sv.length; sstMin=(a-1).toFixed(1); sstMax=(a+1).toFixed(1); setSSTImages(); var e=document.getElementById('sst-range'); if(e) e.textContent='('+sstMin+'–'+sstMax+'°C)'; }
   kfSST=mx; if(document.getElementById('fishcards')) renderFish();
 }
 function refreshSelected(){
@@ -713,7 +715,7 @@ function loadComposite(){
 var liveLoaded=false;
 function loadLiveTab(){
   if(liveLoaded) return; liveLoaded=true;
-  wireImg('sst',sstURL());
+  setSSTImages();
   var sl=document.getElementById('sstlink'); if(sl) sl.href=BASE+'jplMURSST41.graph';
   loadComposite();
   loadDataStamps();
@@ -736,8 +738,14 @@ var LAT='(-44):(-37.5)', LAT_DESC='(-37.5):(-44)', LON='(140):(151)';
 var bump=0, sstMin=null, sstMax=null;
 function sstURL(){
   var cb=(sstMin!=null&&sstMax!=null) ? 'Rainbow%7C%7C%7C'+sstMin+'%7C'+sstMax+'%7C' : 'Rainbow%7C%7C%7C%7C%7C';
-  return BASE+'jplMURSST41.png?analysed_sst%5B(last)%5D%5B(-39.7):(-37.1)%5D%5B(143.0):(148.0)%5D&.draw=surface&.vars=longitude%7Clatitude%7Canalysed_sst&.colorBar='+cb+'&.land=over&.size=880%7C'+(470+bump);
+  // transparentPng = just the data grid (no axes, margins or legend) so the map fills the full width with no white blank space on the sides.
+  return BASE+'jplMURSST41.transparentPng?analysed_sst%5B(last)%5D%5B(-39.7):(-37.1)%5D%5B(140.8):(150.2)%5D&.draw=surface&.vars=longitude%7Clatitude%7Canalysed_sst&.colorBar='+cb+'&.land=over&.size=1560%7C'+(432+bump);
 }
+function sstLegendURL(){
+  var cb=(sstMin!=null&&sstMax!=null) ? 'Rainbow%7C%7C%7C'+sstMin+'%7C'+sstMax+'%7C' : 'Rainbow%7C%7C%7C%7C%7C';
+  return BASE+'jplMURSST41.png?analysed_sst%5B(last)%5D%5B(-39.7):(-37.1)%5D%5B(140.8):(150.2)%5D&.draw=surface&.vars=longitude%7Clatitude%7Canalysed_sst&.colorBar='+cb+'&.legend=Only';
+}
+function setSSTImages(){ wireImg('sst', sstURL()); var lg=document.getElementById('sstlegend'); if(lg) lg.src=sstLegendURL(); }
 function chlURL(){return BASE+'nesdisVHNchlaDaily.png?chlor_a%5B(last)%5D%5B(0.0)%5D%5B'+LAT_DESC+'%5D%5B'+LON+'%5D&.draw=surface&.vars=longitude%7Clatitude%7Cchlor_a&.colorBar=%7C%7C%7C%7C%7C&.land=over&.size=720%7C'+(600+bump);}
 function wireImg(id,url){
   var img=document.getElementById(id), ph=img.parentElement.querySelector('.ph');
@@ -769,7 +777,7 @@ function loadDataStamps(){
 }
 function reloadAll(){
   bump++;
-  wireImg('sst',sstURL());
+  setSSTImages();
   document.getElementById('sstlink').href=BASE+'jplMURSST41.graph';
   document.getElementById('stamp').textContent='Updated '+new Date().toLocaleString();
   refreshSelected();
