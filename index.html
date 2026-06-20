@@ -43,6 +43,11 @@
   .compmask{filter:brightness(0) invert(0.92) sepia(0.35);}
   .gmpin{background:none;border:none}
   .windybox{height:460px;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:14px;box-shadow:0 8px 24px rgba(13,27,42,.06);background:var(--panel)}
+  .surfbox{margin:14px 0 4px}
+  .surfhd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .surflink{font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;white-space:nowrap}
+  .surflink:hover{text-decoration:underline}
+  .surfframe{height:560px;border:1px solid var(--line);border-radius:12px;overflow:auto;box-shadow:0 8px 24px rgba(13,27,42,.06);background:#fff}
   .pinpop{font-size:12.5px;line-height:1.55}
   .pincoord{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
   .pinpop a{color:var(--accent);font-size:12px;text-decoration:none}
@@ -64,6 +69,7 @@
     #bathymap{height:340px}
     #compmap{height:320px!important}
     .windybox{height:380px}
+    .surfframe{height:620px}
     .geolegendbox{max-height:none}
     .geoinfo{max-width:calc(100% - 20px)}
   }
@@ -217,6 +223,14 @@
   </div>
   <div id="map"></div>
   <div class="sidepanel" id="sidepanel"></div>
+  <div id="surfbox" class="surfbox" hidden>
+    <div class="surfhd">
+      <h2 class="sec" style="margin:0"><span class="dot" style="background:var(--accent)"></span>Surf outlook &mdash; <span id="surfName">&mdash;</span></h2>
+      <a id="surfLink" href="#" target="_blank" rel="noopener" class="surflink">Full forecast &#8599;</a>
+    </div>
+    <div class="sub" style="margin:4px 0 8px">48-hour swell, wind, period &amp; weather for your most recently selected spot, from Surf-Forecast.com.</div>
+    <div class="surfframe"><iframe id="surfFrame" src="about:blank" loading="lazy" title="Surf-Forecast outlook" style="width:100%;height:100%;border:0;display:block"></iframe></div>
+  </div>
   <div class="legend">
     <span><i class="chip" style="background:var(--amazing)"></i>Amazing</span>
     <span><i class="chip" style="background:var(--good)"></i>Good</span>
@@ -376,6 +390,23 @@ var SPOTS={};
 REGIONS.forEach(function(rg){ rg.spots.forEach(function(s){ s.region=rg.region; if(s.onshore==null) s.onshore=rg.onshore; if(s.sheltered==null) s.sheltered=false; SPOTS[s.id]=s; }); });
 var DEFAULTS=['pointnepean','bells','woolamai','schanck'];
 var selected={}, kfSST=null;
+/* Surf-Forecast.com break slug for each spot (from surf-forecast.com/provinces/Victoria/breaks).
+   Spots without their own page map to the nearest listed break. */
+var SF_BREAK={
+  bells:'Bells-Beach', winki:'Winki-Pop-V-I-C', janjuc:'Jan-Juc', torquay:'Torquay-Point-and-Beach',
+  roadknight:'Point-Roadnight', anglesea:'Anglesea', lorne:'Lorne-Point', apollo:'Apollo-Bay',
+  '13th':'Thirteenth-Beach_The-Beacon', barwon:'Thirteenth-Beach_The-Bluff', oceangrove:'Bancoora', lonsdale:'Point-Lonsdale',
+  pointnepean:'Quarantine', portsea:'Portsea-Back-Beach', sorrento:'St-Andrews-Beach', rye:'Rye-Ocean-Beach',
+  gunnamatta:'Gunnamatta-Beach', schanck:'Cape-Schanck', flinders:'Gunnery', pointleo:'Point-Leo',
+  woolamai:'Woolamai', smiths:'Smiths-Beach', surfbeach:'Surf-Beach', pyramid:'Pyramid-Rock_1',
+  express:'Express-Point', summerland:'Summerland-Bay', ycw:'Cat-Bay',
+  capepat:'Cape-Patterson', inverloch:'Eagles-Nest', venus:'Cape-Liptrap', waratah:'Walkerville',
+  sandypt:'Sandy-Point', walkerville:'Walkerville',
+  portcampbell:'Gibson-Steps', princetown:'Point-Ronald', warrnambool:'Warnambool-Surf-Beach',
+  portfairy:'Port-Fairy', portland:'Portland',
+  fort:'Portsea-Back-Beach', blairgowrie:'Pearses-Beach'
+};
+var surfSel=null;
 
 /* ---- thresholds (easy to tweak) ---- */
 var TH = {SWELL_GREAT:1.0, SWELL_MARG:1.5, PERIOD_GOOD:13, PERIOD_VHIGH:14, WIND_LIGHT:15, WIND_STRONG:22, RAIN_HEAVY:15};
@@ -523,8 +554,22 @@ function fitMarkers(){
   else if(pts.length>1) map.fitBounds(L.latLngBounds(pts),{padding:[30,30]});
 }
 function addFromSelect(el){ var id=el.value; el.value=''; if(id) addSpot(id); }
+function renderSurf(){
+  var box=document.getElementById('surfbox'); if(!box) return;
+  if(!surfSel||!SPOTS[surfSel]||!SF_BREAK[surfSel]){ box.hidden=true; return; }
+  var s=SPOTS[surfSel], slug=SF_BREAK[surfSel];
+  box.hidden=false;
+  document.getElementById('surfName').textContent=s.name;
+  document.getElementById('surfLink').href='https://www.surf-forecast.com/breaks/'+slug+'/forecasts/latest/six_day';
+  var fr=document.getElementById('surfFrame');
+  if(fr.getAttribute('data-slug')!==slug){
+    fr.setAttribute('data-slug',slug);
+    fr.src='https://www.surf-forecast.com/breaks/'+slug+'/forecasts/widget/a';
+  }
+}
 function addSpot(id){
   var s=SPOTS[id]; if(!s) return;
+  surfSel=id; renderSurf();
   if(selected[id]){ if(selected[id].marker) map.panTo(selected[id].marker.getLatLng()); return; }
   var st={rows:null,marker:null,expanded:false,loading:true};
   st.marker=L.marker([s.lat,s.lon],{icon:dotIcon('#1b6ca8')}).addTo(map).bindPopup(popupHTML(s,null));
@@ -540,6 +585,7 @@ function removeSpot(id){
   if(!selected[id]) return;
   if(selected[id].marker) map.removeLayer(selected[id].marker);
   delete selected[id];
+  if(surfSel===id){ var k=Object.keys(selected); surfSel=k.length?k[k.length-1]:null; renderSurf(); }
   renderSidePanel(); refreshStretch();
 }
 function toggleExpand(id){ if(selected[id]){ selected[id].expanded=!selected[id].expanded; renderSidePanel(); } }
