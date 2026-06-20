@@ -41,7 +41,6 @@
   #geomap .leaflet-container{cursor:pointer}
   #bathymap{height:520px;border-radius:14px;border:1px solid var(--line);box-shadow:0 8px 24px rgba(13,27,42,.06);z-index:0;margin-top:4px}
   .compmask{filter:brightness(0) invert(0.92) sepia(0.35);}
-  .reliefblend{mix-blend-mode:multiply}
   .gmpin{background:none;border:none}
   .pinpop{font-size:12.5px;line-height:1.55}
   .pincoord{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
@@ -938,10 +937,7 @@ function initBathyMap(){
   bathyLayer.setZIndex(300); bathyLayer.addTo(bathyMap);
   var bcon=esriExport({baseUrl:'https://biod-gis.mapshare.vic.gov.au/arcgis/rest/services/CoastKit/BathyContours/MapServer',layerIds:'1,2,4,5,7,8,10,11,13,14,15,17,18',opacity:0.95,attribution:'Depth contours &copy; DEECA Victoria (CoastKit)'});
   bcon.setZIndex(500); bcon.addTo(bathyMap);
-  // DEECA shaded-relief (hillshade) of the same 5 m bathymetry, multiplied over the coloured depth for a Navionics-like 3-D seabed look.
-  var brelief=esriExport({baseUrl:'https://biod-gis.mapshare.vic.gov.au/arcgis/rest/services/CoastKit/Bathymetry/MapServer',layerIds:'0,1,2,3,4,5,6,7,8,9',opacity:0.5,className:'reliefblend',attribution:'Seabed relief &copy; DEECA Victoria (CoastKit)'});
-  brelief.setZIndex(350); brelief.addTo(bathyMap);
-  L.control.layers(null,{'Coloured depth (DEECA 5m)':bathyLayer,'Seabed relief (hillshade)':brelief,'Depth contours (DEECA)':bcon},{collapsed:false}).addTo(bathyMap);
+  L.control.layers(null,{'Coloured depth (DEECA 5m)':bathyLayer,'Depth contours (DEECA)':bcon},{collapsed:false}).addTo(bathyMap);
   bathyMap.on('click', function(e){ dropPin(bathyMap, e.latlng, 'bathy'); });
   // Defer this (below-the-fold) map's tile loading until it's scrolled into view, so the top habitat map loads first without competing for the same servers.
   if('IntersectionObserver' in window){
