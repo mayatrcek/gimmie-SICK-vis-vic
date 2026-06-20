@@ -42,6 +42,7 @@
   #bathymap{height:520px;border-radius:14px;border:1px solid var(--line);box-shadow:0 8px 24px rgba(13,27,42,.06);z-index:0;margin-top:4px}
   .compmask{filter:brightness(0) invert(0.92) sepia(0.35);}
   .gmpin{background:none;border:none}
+  .windybox{height:460px;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:14px;box-shadow:0 8px 24px rgba(13,27,42,.06);background:var(--panel)}
   .pinpop{font-size:12.5px;line-height:1.55}
   .pincoord{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
   .pinpop a{color:var(--accent);font-size:12px;text-decoration:none}
@@ -62,6 +63,7 @@
     #geomap{height:380px}
     #bathymap{height:340px}
     #compmap{height:320px!important}
+    .windybox{height:380px}
     .geolegendbox{max-height:none}
     .geoinfo{max-width:calc(100% - 20px)}
   }
@@ -211,6 +213,11 @@
     <span style="color:var(--muted);font-size:12px">Grouped by region (Surf-Forecast VIC). Click a card to expand its 7-day outlook.</span>
   </div>
   <div id="map"></div>
+  <h2 class="sec" style="margin-top:16px"><span class="dot" style="background:var(--accent)"></span>Wind &amp; weather (Windy)</h2>
+  <div class="sub" style="margin-bottom:8px">Live animated wind over the Victorian dive coast, from Windy.com. Pan, zoom, or switch the overlay (waves, swell, rain, temperature) inside the map.</div>
+  <div class="windybox">
+    <iframe src="https://embed.windy.com/embed2.html?lat=-38.5&lon=145.1&zoom=8&level=surface&overlay=wind&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=km%2Fh&metricTemp=default&radarRange=-1" loading="lazy" title="Windy wind map for the Victorian coast" style="width:100%;height:100%;border:0;display:block"></iframe>
+  </div>
   <div class="sidepanel" id="sidepanel"></div>
   <div class="legend">
     <span><i class="chip" style="background:var(--amazing)"></i>Amazing</span>
