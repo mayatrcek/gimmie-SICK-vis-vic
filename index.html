@@ -930,19 +930,25 @@ function initGeoMap(){
   loadGeoLegend();
 }
 var bathyInfoEl=null;
-// Read the nearest depth contour(s) at a clicked point — fast vector query against the DEECA contour layers via JSONP (the raster point-query is too slow).
+function segDist(px,py,ax,ay,bx,by){ var dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy,t=l2?((px-ax)*dx+(py-ay)*dy)/l2:0; t=t<0?0:t>1?1:t; var cx=ax+t*dx,cy=ay+t*dy; return Math.sqrt((px-cx)*(px-cx)+(py-cy)*(py-cy)); }
+// Read depth at a clicked point from the DEECA contour layers (vector, via JSONP — the raster point-query is too slow). Returns each nearby contour with its distance so we can show the two nearest distinct depths (the bracket the point sits between).
 function bathyDepthAt(latlng, cb){
   var P=L.CRS.EPSG3857, p=P.project(latlng), b=bathyMap.getBounds(),
       sw=P.project(b.getSouthWest()), ne=P.project(b.getNorthEast()), sz=bathyMap.getSize();
   var url='https://biod-gis.mapshare.vic.gov.au/arcgis/rest/services/CoastKit/BathyContours/MapServer/identify'
-    +'?f=json&geometryType=esriGeometryPoint&sr=3857&returnGeometry=false&tolerance=8'
+    +'?f=json&geometryType=esriGeometryPoint&sr=3857&returnGeometry=true&tolerance=200'
     +'&geometry='+Math.round(p.x)+','+Math.round(p.y)
     +'&mapExtent='+[Math.round(sw.x),Math.round(sw.y),Math.round(ne.x),Math.round(ne.y)].join(',')
     +'&imageDisplay='+sz.x+','+sz.y+',96&layers=all';
   jsonp(url,function(j){
-    var ds=[];
-    if(j&&j.results){ j.results.forEach(function(r){ var a=r.attributes||{}; var n=parseFloat(a.DEPTH); if(!isNaN(n)) ds.push(Math.abs(n)); }); }
-    cb(ds);
+    var arr=[], mpp=(ne.x-sw.x)/sz.x;
+    if(j&&j.results){ j.results.forEach(function(r){
+      var n=parseFloat((r.attributes||{}).DEPTH); if(isNaN(n)) return;
+      var g=r.geometry, best=Infinity;
+      if(g&&g.paths){ g.paths.forEach(function(path){ for(var i=0;i<path.length-1;i++){ var d=segDist(p.x,p.y,path[i][0],path[i][1],path[i+1][0],path[i+1][1]); if(d<best)best=d; } }); }
+      arr.push({d:Math.abs(n),dist:best});
+    }); }
+    cb(arr, mpp);
   },'callback');
 }
 function initBathyMap(){
@@ -961,11 +967,15 @@ function initBathyMap(){
   bathyMap.on('click', function(e){
     bathyInfoEl.innerHTML='<b>Depth</b> &middot; reading…';
     var done=false, to=setTimeout(function(){ if(!done){done=true; bathyInfoEl.innerHTML='<b>Depth</b><br><span class="gi-hint">server slow — try again</span>'; } },9000);
-    bathyDepthAt(e.latlng, function(ds){
+    bathyDepthAt(e.latlng, function(arr, mpp){
       if(done) return; done=true; clearTimeout(to);
-      if(!ds.length){ bathyInfoEl.innerHTML='<b>Depth</b><br><span class="gi-hint">no depth contour nearby — click closer to a line</span>'; return; }
-      var u=Array.from(new Set(ds)).sort(function(a,b){return a-b;});
-      bathyInfoEl.innerHTML='<b>Depth</b> <span class="gi-hint">(nearest contour'+(u.length>1?'s':'')+')</span><br>'+(u.length===1?('≈ <b>'+u[0]+' m</b>'):('between <b>'+u[0]+' &amp; '+u[u.length-1]+' m</b>'));
+      if(!arr.length){ bathyInfoEl.innerHTML='<b>Depth</b><br><span class="gi-hint">no depth contour near here</span>'; return; }
+      arr.sort(function(a,b){return a.dist-b.dist;});
+      var html;
+      if(arr[0].dist < mpp*4){ html='&asymp; <b>'+arr[0].d+' m</b> <span class="gi-hint">(on contour)</span>'; }
+      else { var ds=[]; for(var i=0;i<arr.length&&ds.length<2;i++){ if(ds.indexOf(arr[i].d)<0) ds.push(arr[i].d); } ds.sort(function(a,b){return a-b;});
+        html=(ds.length<2)?('&asymp; <b>'+ds[0]+' m</b>'):('between <b>'+ds[0]+' &amp; '+ds[1]+' m</b>'); }
+      bathyInfoEl.innerHTML='<b>Depth</b><br>'+html;
     });
   });
   // Defer this (below-the-fold) map's tile loading until it's scrolled into view, so the top habitat map loads first without competing for the same servers.
