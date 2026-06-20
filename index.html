@@ -929,6 +929,22 @@ function initGeoMap(){
   });
   loadGeoLegend();
 }
+var bathyInfoEl=null;
+// Read the nearest depth contour(s) at a clicked point — fast vector query against the DEECA contour layers via JSONP (the raster point-query is too slow).
+function bathyDepthAt(latlng, cb){
+  var P=L.CRS.EPSG3857, p=P.project(latlng), b=bathyMap.getBounds(),
+      sw=P.project(b.getSouthWest()), ne=P.project(b.getNorthEast()), sz=bathyMap.getSize();
+  var url='https://biod-gis.mapshare.vic.gov.au/arcgis/rest/services/CoastKit/BathyContours/MapServer/identify'
+    +'?f=json&geometryType=esriGeometryPoint&sr=3857&returnGeometry=false&tolerance=8'
+    +'&geometry='+Math.round(p.x)+','+Math.round(p.y)
+    +'&mapExtent='+[Math.round(sw.x),Math.round(sw.y),Math.round(ne.x),Math.round(ne.y)].join(',')
+    +'&imageDisplay='+sz.x+','+sz.y+',96&layers=all';
+  jsonp(url,function(j){
+    var ds=[];
+    if(j&&j.results){ j.results.forEach(function(r){ var a=r.attributes||{}; var n=parseFloat(a.DEPTH); if(!isNaN(n)) ds.push(Math.abs(n)); }); }
+    cb(ds);
+  },'callback');
+}
 function initBathyMap(){
   bathyMap=L.map('bathymap',{scrollWheelZoom:true,maxBounds:[[-44.2,139.5],[-33.8,150.8]],maxBoundsViscosity:1.0,minZoom:6}).setView([-38.29,144.66],12);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Imagery &copy; Esri, Maxar; Depth &copy; DEECA Victoria (CoastKit)',maxZoom:19}).addTo(bathyMap);
@@ -939,6 +955,19 @@ function initBathyMap(){
   bcon.setZIndex(500); bcon.addTo(bathyMap);
   L.control.layers(null,{'Coloured depth (DEECA 5m)':bathyLayer,'Depth contours (DEECA)':bcon},{collapsed:false}).addTo(bathyMap);
   bathyMap.on('click', function(e){ dropPin(bathyMap, e.latlng, 'bathy'); });
+  bathyInfoEl=L.DomUtil.create('div','geoinfo',bathyMap.getContainer());
+  bathyInfoEl.innerHTML='<div class="gi-hint">Click the map to read the depth here</div>';
+  L.DomEvent.disableClickPropagation(bathyInfoEl);
+  bathyMap.on('click', function(e){
+    bathyInfoEl.innerHTML='<b>Depth</b> &middot; reading…';
+    var done=false, to=setTimeout(function(){ if(!done){done=true; bathyInfoEl.innerHTML='<b>Depth</b><br><span class="gi-hint">server slow — try again</span>'; } },9000);
+    bathyDepthAt(e.latlng, function(ds){
+      if(done) return; done=true; clearTimeout(to);
+      if(!ds.length){ bathyInfoEl.innerHTML='<b>Depth</b><br><span class="gi-hint">no depth contour nearby — click closer to a line</span>'; return; }
+      var u=Array.from(new Set(ds)).sort(function(a,b){return a-b;});
+      bathyInfoEl.innerHTML='<b>Depth</b> <span class="gi-hint">(nearest contour'+(u.length>1?'s':'')+')</span><br>'+(u.length===1?('≈ <b>'+u[0]+' m</b>'):('between <b>'+u[0]+' &amp; '+u[u.length-1]+' m</b>'));
+    });
+  });
   // Defer this (below-the-fold) map's tile loading until it's scrolled into view, so the top habitat map loads first without competing for the same servers.
   if('IntersectionObserver' in window){
     var bio2=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ try{bathyMap.invalidateSize();}catch(err){} addGeoBase(bathyMap,'depth.png',bathyLayer,0.85,250); addGeoBase(bathyMap,'contours.png',bcon,0.95,255); bio2.disconnect(); } }); },{threshold:0.01});
