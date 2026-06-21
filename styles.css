@@ -198,7 +198,7 @@
   @media(max-width:560px){
     /* keep the photo zoomed (360px tall) but show only the bottom 2/3 in a 240px
        window — i.e. cut the top third (sky). */
-    .titlebanner{min-height:240px;background-size:auto 400px;background-position:center 58%}
+    .titlebanner{min-height:240px;background-size:auto 400px;background-position:45% 64%}
     .titlebanner .tb-inner{padding:22px 18px}
   }
 
