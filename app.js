@@ -398,6 +398,214 @@ function initMap(){
   /* markers are added dynamically as the user picks locations */
 }
 
+/* ---- Custom wind / swell / wave map (replaces the Windy embed) ----
+   Samples a lattice of points over the dive coast from Open-Meteo, converts each
+   magnitude+direction to U/V components, and animates particles with leaflet-velocity.
+   Three switchable fields (Wind, Swell, Waves); only the active one is on the map. */
+var WINDMAP={lonMin:143.3, lonMax:146.6, latMin:-39.3, latMax:-38.0, step:0.22};
+var DIVE_SCORE={Amazing:5, Good:4, Marginal:2, Poor:1};
+var FIELDS={
+  wind:{label:'Wind', unit:'km/h', maxVelocity:65, velocityScale:0.007,
+        colorScale:['#4a7fb5','#5cc6c9','#7ed957','#f4e04d','#f0a93b','#e8553a','#b23aa8'],
+        legend:['0','15','30','45','60+'],
+        api:'weather', mag:'wind_speed_10m', dir:'wind_direction_10m'},
+  swell:{label:'Swell', unit:'m', maxVelocity:4, velocityScale:0.06,
+         colorScale:['#3b6fb0','#4aa9d8','#5cc6a8','#a8d96b','#f4d24d','#f0923b'],
+         legend:['0','1','2','3','4+'],
+         api:'marine', mag:'swell_wave_height', dir:'swell_wave_direction'},
+  waves:{label:'Waves', unit:'m', maxVelocity:5, velocityScale:0.05,
+         colorScale:['#2c7fb8','#41b6c4','#7fcdbb','#c7e9b4','#f4e04d','#f0a93b','#e8553a'],
+         legend:['0','1','2','3','4','5+'],
+         api:'marine', mag:'wave_height', dir:'wave_direction'}};
+var windMap, wmInfoEl, wmLayers={}, wmData={}, wmGridCache=null, wmActive='wind', wmReady=false;
+function wmGrid(){
+  var W=WINDMAP, nx=Math.round((W.lonMax-W.lonMin)/W.step)+1, ny=Math.round((W.latMax-W.latMin)/W.step)+1, pts=[];
+  for(var r=0;r<ny;r++){ var lat=+(W.latMax-r*W.step).toFixed(4); for(var c=0;c<nx;c++){ pts.push([lat, +(W.lonMin+c*W.step).toFixed(4)]); } }
+  return {nx:nx, ny:ny, pts:pts};
+}
+function wmAsArr(x){ return Array.isArray(x)?x:[x]; }
+function wmJson(r){ return r.json(); }
+function setWmStatus(t){ if(wmInfoEl) wmInfoEl.innerHTML='<div class="gi-hint">'+t+'</div>'; }
+function setWmStatusHTML(h){ if(wmInfoEl) wmInfoEl.innerHTML=h; }
+function initWindMap(){
+  if(!document.getElementById('windmap')) return;
+  windMap=L.map('windmap',{scrollWheelZoom:true,maxBounds:[[-44.2,139.5],[-33.8,150.8]],maxBoundsViscosity:1.0,minZoom:6}).setView([-38.6,145.0],7);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    {attribution:'Imagery &copy; Esri, Maxar, Earthstar Geographics; Wind/wave data: Open-Meteo',maxZoom:19}).addTo(windMap);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+    {maxZoom:19,opacity:0.9}).addTo(windMap).setZIndex(650);
+  wmInfoEl=L.DomUtil.create('div','geoinfo wm-readout',windMap.getContainer());
+  setWmStatus('Loading the wind field…');
+  L.DomEvent.disableClickPropagation(wmInfoEl);
+  windMap.on('click', function(e){ wmShowReadout(e.latlng); openWmForecast(e.latlng); });
+  renderWmLegend();
+  loadWindFields();
+}
+function loadWindFields(){
+  if(!windMap) return;
+  if(typeof L.velocityLayer!=='function'){ setWmStatus('Wind animation couldn’t load — check your connection and Reload.'); return; }
+  var g=wmGrid(); wmGridCache=g;
+  var lats=[], lons=[]; g.pts.forEach(function(p){ lats.push(p[0]); lons.push(p[1]); });
+  var wUrl=WEATHER+'?latitude='+lats.join(',')+'&longitude='+lons.join(',')+'&current=wind_speed_10m,wind_direction_10m&timezone='+TZ;
+  var mUrl=MARINE+'?latitude='+lats.join(',')+'&longitude='+lons.join(',')+'&current=wave_height,wave_direction,swell_wave_height,swell_wave_direction&timezone='+TZ;
+  Promise.all([fetch(wUrl).then(wmJson), fetch(mUrl).then(wmJson)]).then(function(res){
+    var wArr=wmAsArr(res[0]), mArr=wmAsArr(res[1]);
+    wmData.wind =buildField(wArr,'wind_speed_10m','wind_direction_10m');
+    wmData.swell=buildField(mArr,'swell_wave_height','swell_wave_direction');
+    wmData.waves=buildField(mArr,'wave_height','wave_direction');
+    Object.keys(FIELDS).forEach(function(k){
+      var d=toVelocityData(wmData[k], g.nx, g.ny);
+      if(wmLayers[k]) wmLayers[k].setData(d);
+      else wmLayers[k]=makeVelocityLayer(k, d);
+    });
+    wmReady=true; setWmField(wmActive, true);
+  }).catch(function(){ setWmStatus('Couldn’t load the wind field — try Reload.'); });
+}
+function buildField(arr, magKey, dirKey){
+  return arr.map(function(el){
+    var c=(el&&el.current)?el.current:((el&&el.hourly)?{}:{});
+    var m=c[magKey], d=c[dirKey];
+    if(m==null && el&&el.hourly&&el.hourly[magKey]&&el.hourly[magKey].length){ m=el.hourly[magKey][0]; d=el.hourly[dirKey]?el.hourly[dirKey][0]:null; }
+    return {mag:m, dir:d};
+  });
+}
+// magnitude + meteorological "from" direction -> U/V components. Null cells become 0 (no particle).
+function toVelocityData(samples, nx, ny){
+  var W=WINDMAP, u=[], v=[], i, m, d, rad;
+  for(i=0;i<samples.length;i++){
+    m=samples[i].mag; d=samples[i].dir;
+    if(m==null||d==null||isNaN(m)||isNaN(d)){ u.push(0); v.push(0); }
+    else { rad=d*Math.PI/180; u.push(-m*Math.sin(rad)); v.push(-m*Math.cos(rad)); }
+  }
+  var la2=+(W.latMax-(ny-1)*W.step).toFixed(4), lo2=+(W.lonMin+(nx-1)*W.step).toFixed(4);
+  function rec(num, data){ return {header:{parameterCategory:2, parameterNumber:num, parameterUnit:'m.s-1',
+    nx:nx, ny:ny, lo1:W.lonMin, la1:W.latMax, lo2:lo2, la2:la2, dx:W.step, dy:W.step,
+    refTime:new Date().toISOString(), forecastTime:0}, data:data}; }
+  return [rec(2,u), rec(3,v)]; // 2 = U component, 3 = V component
+}
+function makeVelocityLayer(key, data){
+  var f=FIELDS[key];
+  return L.velocityLayer({
+    displayValues:false, data:data, maxVelocity:f.maxVelocity, velocityScale:f.velocityScale,
+    colorScale:f.colorScale, particleAge:90, lineWidth:1.4, particleMultiplier:1/300, frameRate:18
+  });
+}
+function setWmField(key, force){
+  if(!FIELDS[key]) return;
+  wmActive=key;
+  Object.keys(FIELDS).forEach(function(k){
+    var b=document.getElementById('wmtab-'+k); if(b) b.classList.toggle('active', k===key);
+    if(wmLayers[k] && windMap.hasLayer(wmLayers[k]) && (k!==key)) windMap.removeLayer(wmLayers[k]);
+  });
+  if(wmReady && wmLayers[key] && !windMap.hasLayer(wmLayers[key])) wmLayers[key].addTo(windMap);
+  renderWmLegend();
+  if(force || wmReady) setWmStatus('Click an open-water cell for its 48-hour point forecast.');
+}
+function renderWmLegend(){
+  var el=document.getElementById('wmlegend'); if(!el) return; var f=FIELDS[wmActive];
+  var grad='linear-gradient(90deg,'+f.colorScale.join(',')+')';
+  var ticks=f.legend.map(function(t){ return '<span>'+t+'</span>'; }).join('');
+  el.innerHTML='<div class="wm-leg-label">'+f.label+' ('+f.unit+')</div>'+
+    '<div class="wm-leg-bar" style="background:'+grad+'"></div>'+
+    '<div class="wm-leg-ticks">'+ticks+'</div>';
+}
+function wmNearestIdx(ll){
+  var g=wmGridCache; if(!g) return -1; var W=WINDMAP;
+  var c=Math.round((ll.lng-W.lonMin)/W.step), r=Math.round((W.latMax-ll.lat)/W.step);
+  c=Math.max(0,Math.min(g.nx-1,c)); r=Math.max(0,Math.min(g.ny-1,r));
+  return r*g.nx+c;
+}
+function wmShowReadout(ll){
+  if(!wmReady){ return; }
+  var idx=wmNearestIdx(ll); if(idx<0) return;
+  var w=wmData.wind[idx]||{}, sw=wmData.swell[idx]||{}, wv=wmData.waves[idx]||{};
+  setWmStatusHTML(
+    '<div class="wm-ro-ttl">'+ll.lat.toFixed(2)+', '+ll.lng.toFixed(2)+'</div>'+
+    '<div>'+ICON.wind+'wind '+fmt(w.mag,0)+' km/h'+(w.dir!=null?' '+compass(w.dir):'')+'</div>'+
+    '<div>'+ICON.wave+'swell '+fmt(sw.mag,1)+' m'+(sw.dir!=null?' '+compass(sw.dir):'')+'</div>'+
+    '<div style="padding-left:2px">waves '+fmt(wv.mag,1)+' m'+(wv.dir!=null?' '+compass(wv.dir):'')+'</div>');
+}
+// nearest known dive site -> borrow its onshore bearing so the off-spot dive rating is sensible
+function nearestSpot(lat,lon){
+  var best=null, bd=1e9;
+  for(var id in SPOTS){ var s=SPOTS[id], dx=s.lat-lat, dy=s.lon-lon, d=dx*dx+dy*dy; if(d<bd){ bd=d; best=s; } }
+  return best;
+}
+// WMO weather code -> glyph
+function weatherIcon(c){
+  if(c==null||isNaN(c)) return '·';
+  if(c===0) return '☀️'; if(c<=2) return '🌤️'; if(c===3) return '☁️';
+  if(c<=48) return '🌫️'; if(c<=57) return '🌧️'; if(c<=67) return '🌧️';
+  if(c<=77) return '🌨️'; if(c<=82) return '🌦️'; if(c<=86) return '🌨️'; return '⛈️';
+}
+function fetchPointForecast(lat,lon){
+  var w=WEATHER+'?latitude='+lat+'&longitude='+lon+'&hourly=weather_code,wind_speed_10m,wind_direction_10m&timezone='+TZ+'&forecast_days=3';
+  var m=MARINE+'?latitude='+lat+'&longitude='+lon+'&hourly=wave_height,wave_period,swell_wave_height,swell_wave_period,sea_level_height_msl&timezone='+TZ+'&forecast_days=3';
+  return Promise.all([fetch(w).then(wmJson), fetch(m).then(wmJson)]);
+}
+var wmfReq=0;
+function openWmForecast(ll){
+  var box=document.getElementById('wmforecast'); if(!box) return;
+  box.hidden=false;
+  document.getElementById('wmfName').textContent='Loading…';
+  document.getElementById('wmfCoord').textContent=ll.lat.toFixed(3)+', '+ll.lng.toFixed(3)+' · 48-hour outlook, 3-hourly';
+  document.getElementById('wmfBody').innerHTML='<div class="pad" style="padding:14px;color:var(--muted);font-size:13px">Loading point forecast…</div>';
+  var rid=++wmfReq;
+  jsonp('https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&addressdetails=1&lat='+ll.lat+'&lon='+ll.lng, function(d){
+    if(rid!==wmfReq) return; var nm=null;
+    if(d){ var a=d.address||{}; nm=a.hamlet||a.village||a.town||a.suburb||a.city||a.county||a.state||null; }
+    var e=document.getElementById('wmfName'); if(e) e.textContent=nm||'Offshore Victoria';
+  }, 'json_callback');
+  fetchPointForecast(ll.lat, ll.lng).then(function(res){
+    if(rid!==wmfReq) return; renderWmForecast(ll, res[0], res[1]);
+  }).catch(function(){
+    if(rid!==wmfReq) return;
+    document.getElementById('wmfBody').innerHTML='<div class="pad" style="padding:14px;color:var(--muted);font-size:13px">Couldn’t load the forecast for this point — try another cell.</div>';
+  });
+  setTimeout(function(){ try{ box.scrollIntoView({behavior:'smooth',block:'nearest'}); }catch(e){} }, 40);
+}
+function closeWmForecast(){ var b=document.getElementById('wmforecast'); if(b) b.hidden=true; wmfReq++; }
+function wmHourCell(d, showDay){
+  var h=d.getHours(), ap=h<12?'a':'p', h12=h%12; if(h12===0) h12=12;
+  var day=showDay?('<span class="wmf-d">'+d.toLocaleDateString(undefined,{weekday:'short'})+'</span>'):'';
+  return day+h12+ap;
+}
+function renderWmForecast(ll, wRes, mRes){
+  var wh=wRes.hourly||{}, mh=mRes.hourly||{}, times=wh.time||[];
+  if(!times.length){ document.getElementById('wmfBody').innerHTML='<div class="pad" style="padding:14px;color:var(--muted);font-size:13px">No forecast available here.</div>'; return; }
+  var mIdx={}; (mh.time||[]).forEach(function(t,k){ mIdx[t]=k; });
+  var now=Date.now(), start=0, i;
+  for(i=0;i<times.length;i++){ if(new Date(times[i]).getTime()>=now-3600000){ start=i; break; } }
+  var cols=[]; for(i=start;i<times.length && cols.length<16;i+=3){ cols.push(i); }
+  var spot=nearestSpot(ll.lat, ll.lng), onshore=spot?spot.onshore:200;
+  function row(label, fn){ return '<tr><th>'+label+'</th>'+cols.map(fn).join('')+'</tr>'; }
+  var prevDay=null;
+  var timeRow='<tr class="wmf-time"><th>Time</th>'+cols.map(function(k){
+    var d=new Date(times[k]), dk=d.getDate(), show=(dk!==prevDay); prevDay=dk; return '<td>'+wmHourCell(d, show)+'</td>';
+  }).join('')+'</tr>';
+  var cell=function(get,suffix,dec){ return function(k){ var t=times[k], mk=mIdx[t], v=get(k,mk); return '<td>'+(v==null||isNaN(v)?'—':(fmt(v,dec)+(suffix||'')))+'</td>'; }; };
+  var H='<table class="wmf-table"><tbody>';
+  H+=timeRow;
+  H+=row('Dive', function(k){
+    var t=times[k], mk=mIdx[t];
+    var swH=(mk!=null)?mh.swell_wave_height[mk]:null, swP=(mk!=null)?mh.swell_wave_period[mk]:null;
+    var wind=wh.wind_speed_10m?wh.wind_speed_10m[k]:null, wdir=wh.wind_direction_10m?wh.wind_direction_10m[k]:null;
+    var rt=classify(swH, swP, wind, wdir, onshore, null, false), sc=DIVE_SCORE[rt.label]||0;
+    return '<td><span class="wmf-rate" style="background:'+rt.col+'" title="'+rt.label+'">'+sc+'</span></td>';
+  });
+  H+=row('Sky', function(k){ return '<td class="wmf-sky">'+weatherIcon(wh.weather_code?wh.weather_code[k]:null)+'</td>'; });
+  H+=row('Wind', function(k){
+    var w=wh.wind_speed_10m?wh.wind_speed_10m[k]:null, dr=wh.wind_direction_10m?wh.wind_direction_10m[k]:null;
+    return '<td>'+(w==null?'—':fmt(w,0))+(dr!=null?'<span class="wmf-d">'+compass(dr)+'</span>':'')+'</td>';
+  });
+  H+=row('Waves', cell(function(k,mk){ return (mk!=null)?mh.wave_height[mk]:null; }, ' m', 1));
+  H+=row('Period', cell(function(k,mk){ return (mk!=null)?mh.wave_period[mk]:null; }, ' s', 0));
+  H+=row('Swell', cell(function(k,mk){ return (mk!=null)?mh.swell_wave_height[mk]:null; }, ' m', 1));
+  H+=row('Tide', cell(function(k,mk){ return (mk!=null)?mh.sea_level_height_msl[mk]:null; }, ' m', 1));
+  H+='</tbody></table>';
+  document.getElementById('wmfBody').innerHTML=H;
+}
+
 /* ---- 2-day chlorophyll composite (stacked image overlays) ---- */
 var compMap, compLayers=[];
 function initCompMap(){
@@ -514,6 +722,7 @@ function reloadAll(){
   refreshSelected();
   loadComposite();
   loadDataStamps();
+  if(windMap) loadWindFields();
 }
 /* ---- Fish guide ---- */
 var MONTH_LBL=['J','F','M','A','M','J','J','A','S','O','N','D'];
@@ -865,12 +1074,13 @@ function showTab(t){
   document.getElementById('btn-geo').classList.toggle('active',t==='geo');
   document.getElementById('btn-about').classList.toggle('active',t==='about');
   document.getElementById('btn-feedback').classList.toggle('active',t==='feedback');
-  if(t==='conditions'){ setTimeout(function(){ try{map.invalidateSize();}catch(e){} },60); }
+  if(t==='conditions'){ setTimeout(function(){ try{map.invalidateSize();}catch(e){} try{windMap.invalidateSize();}catch(e){} },60); }
   if(t==='live'){ loadLiveTab(); setTimeout(function(){ try{compMap.invalidateSize();}catch(e){} fitLiveEmbed(); },60); }
   if(t==='geo'){ setTimeout(function(){ try{geoMap.invalidateSize();}catch(e){} if(!geoBasesAdded){geoBasesAdded=true; addGeoBase(geoMap,'habitat.png',habitatLayer,0.62,250); addGeoBase(geoMap,'contours.png',contourLayer,0.95,255);} if(!('IntersectionObserver' in window)){ try{bathyMap.invalidateSize();}catch(e){} } },60); }
 }
 
 initMap();
+initWindMap();
 initCompMap();
 initGeoMap();
 initBathyMap();
