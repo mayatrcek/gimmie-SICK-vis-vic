@@ -196,8 +196,9 @@
   .titlebanner .themeswitch{color:rgba(255,255,255,.85)}
   .titlebanner .ts-track{background:rgba(255,255,255,.3)}
   @media(max-width:560px){
-    /* keep the photo zoomed as large as the 360px version, but show a shorter window */
-    .titlebanner{min-height:240px;background-size:auto 360px}
+    /* keep the photo zoomed (360px tall) but show only the bottom 2/3 in a 240px
+       window — i.e. cut the top third (sky). */
+    .titlebanner{min-height:240px;background-size:auto 470px;background-position:center bottom}
     .titlebanner .tb-inner{padding:22px 18px}
   }
 
