@@ -214,32 +214,3 @@
   .panel-bd.flush{padding:0}
   /* maps/iframes inside a panel shed their own chrome to avoid a box-in-a-box */
   .panel-bd #map,.panel-bd .windybox{margin:0;border:0;border-radius:0;box-shadow:none}
-
-  /* ===== Live-status hero (Conditions) ===== */
-  .hero{display:flex;flex-wrap:wrap;gap:18px;align-items:stretch;justify-content:space-between;
-    background:linear-gradient(135deg,#ffffff,#eef4f9);border:1px solid var(--line);border-radius:16px;
-    padding:16px 18px;margin:6px 0 18px;box-shadow:0 8px 24px rgba(13,27,42,.06)}
-  body.dark .hero{background:linear-gradient(135deg,#1b212b,#161b22)}
-  .hero-lead{display:flex;flex-direction:column;justify-content:center;gap:4px;min-width:200px}
-  .hero-kicker{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;
-    text-transform:uppercase;letter-spacing:.06em;color:var(--green)}
-  .hero-empty .hero-kicker{color:var(--muted)}
-  .hero-spot{font-size:22px;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
-  .hero-updated{font-size:12.5px;color:var(--muted)}
-  .hero-stats{display:flex;flex-wrap:wrap;gap:10px;flex:1;justify-content:flex-end}
-  .stat{flex:1 1 100px;min-width:100px;max-width:150px;background:var(--panel);border:1px solid var(--line);
-    border-top:3px solid var(--accent);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
-  .stat-rating{border-top-color:var(--c,var(--accent))}
-  .stat-val{font-size:24px;font-weight:700;line-height:1.1;color:var(--ink)}
-  .stat-u{font-size:12px;font-weight:600;color:var(--muted);margin-left:2px}
-  .stat-flat{font-size:15px;font-weight:600;color:var(--muted)}
-  .stat-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
-  .stat-sub{font-size:11px;color:var(--muted)}
-  .stat-badge{display:inline-block;font-size:16px;font-weight:700;color:#fff;background:var(--c,var(--accent));
-    padding:3px 12px;border-radius:999px}
-  @media(max-width:640px){
-    .hero{flex-direction:column;gap:12px}
-    .hero-stats{justify-content:flex-start}
-    .stat{flex:1 1 86px;min-width:86px;max-width:none}
-    .hero-spot{font-size:19px}
-  }

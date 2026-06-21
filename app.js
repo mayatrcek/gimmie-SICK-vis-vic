@@ -260,41 +260,7 @@ function removeSpot(id){
   renderSidePanel(); refreshStretch();
 }
 function toggleExpand(id){ if(selected[id]){ selected[id].expanded=!selected[id].expanded; renderSidePanel(); } }
-/* ---- live-status hero: headline stats for the focused spot ---- */
-function focusedId(){ if(surfSel && selected[surfSel]) return surfSel; var k=Object.keys(selected); return k.length?k[k.length-1]:null; }
-function renderHero(){
-  var el=document.getElementById('condHero'); if(!el) return;
-  var id=focusedId();
-  if(!id){ el.className='hero hero-empty';
-    el.innerHTML='<div class="hero-lead"><div class="hero-kicker">Conditions now</div>'+
-      '<div class="hero-spot">No spot selected</div>'+
-      '<div class="hero-updated">Add a Victorian spot below to see live swell, wind &amp; temperature.</div></div>';
-    return; }
-  var s=SPOTS[id], st=selected[id]; el.className='hero';
-  if(st.loading||!st.rows){
-    el.innerHTML='<div class="hero-lead"><div class="hero-kicker"><span class="livedot"></span>Conditions now</div>'+
-      '<div class="hero-spot">'+s.name+'</div><div class="hero-updated">Loading live forecast…</div></div>';
-    return; }
-  var td=todayRow(st.rows), tr=td.rating;
-  var swell=s.sheltered?'<span class="stat-flat">sheltered</span>':fmt(td.h,1)+'<span class="stat-u">m</span>';
-  var period=s.sheltered?'<span class="stat-flat">—</span>':fmt(td.p,0)+'<span class="stat-u">s</span>';
-  var windsub=(td.wdir!=null)?compass(td.wdir)+(td.rel&&td.rel.kind?' · '+td.rel.kind:''):'';
-  el.innerHTML=
-    '<div class="hero-lead">'+
-      '<div class="hero-kicker"><span class="livedot"></span>Conditions now</div>'+
-      '<div class="hero-spot">'+s.name+'</div>'+
-      '<div class="hero-updated">'+s.region+(s.sheltered?' · sheltered':'')+' · today</div>'+
-    '</div>'+
-    '<div class="hero-stats">'+
-      '<div class="stat stat-rating" style="--c:'+tr.col+'"><div class="stat-val"><span class="stat-badge">'+tr.label+'</span></div><div class="stat-lbl">Rating today</div></div>'+
-      '<div class="stat"><div class="stat-val">'+swell+'</div><div class="stat-lbl">Swell</div></div>'+
-      '<div class="stat"><div class="stat-val">'+period+'</div><div class="stat-lbl">Period</div></div>'+
-      '<div class="stat"><div class="stat-val">'+fmt(td.wind,0)+'<span class="stat-u">km/h</span></div><div class="stat-lbl">Wind</div>'+(windsub?'<div class="stat-sub">'+windsub+'</div>':'')+'</div>'+
-      '<div class="stat"><div class="stat-val">'+fmt(td.sst,1)+'<span class="stat-u">°C</span></div><div class="stat-lbl">Sea temp</div></div>'+
-    '</div>';
-}
 function renderSidePanel(){
-  renderHero();
   var el=document.getElementById('sidepanel'); if(!el) return;
   var ids=Object.keys(selected);
   if(!ids.length){ destroyCharts(); el.innerHTML='<div class="empty">Pick a Victorian spot from the menu above to add it below. Each card shows today at a glance — click to expand wind, swell &amp; tide graphs and the week ahead.</div>'; return; }
