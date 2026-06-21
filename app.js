@@ -417,7 +417,7 @@ var FIELDS={
          colorScale:['#2c7fb8','#41b6c4','#7fcdbb','#c7e9b4','#f4e04d','#f0a93b','#e8553a'],
          legend:['0','1','2','3','4','5+'],
          api:'marine', mag:'wave_height', dir:'wave_direction'}};
-var windMap, wmInfoEl, wmLayers={}, wmData={}, wmGridCache=null, wmActive='wind', wmReady=false;
+var windMap, wmInfoEl, wmLayers={}, wmColorLayers={}, wmData={}, wmGridCache=null, wmActive='wind', wmReady=false;
 function wmGrid(){
   var W=WINDMAP, nx=Math.round((W.lonMax-W.lonMin)/W.step)+1, ny=Math.round((W.latMax-W.latMin)/W.step)+1, pts=[];
   for(var r=0;r<ny;r++){ var lat=+(W.latMax-r*W.step).toFixed(4); for(var c=0;c<nx;c++){ pts.push([lat, +(W.lonMin+c*W.step).toFixed(4)]); } }
@@ -453,10 +453,16 @@ function loadWindFields(){
     wmData.wind =buildField(wArr,'wind_speed_10m','wind_direction_10m');
     wmData.swell=buildField(mArr,'swell_wave_height','swell_wave_direction');
     wmData.waves=buildField(mArr,'wave_height','wave_direction');
+    var bounds=wmFieldBounds();
     Object.keys(FIELDS).forEach(function(k){
       var d=toVelocityData(wmData[k], g.nx, g.ny);
       if(wmLayers[k]) wmLayers[k].setData(d);
       else wmLayers[k]=makeVelocityLayer(k, d);
+      var url=buildFieldImage(k);
+      if(url){
+        if(wmColorLayers[k]){ wmColorLayers[k].setBounds(L.latLngBounds(bounds)); wmColorLayers[k].setUrl(url); }
+        else { wmColorLayers[k]=L.imageOverlay(url, bounds, {opacity:0.6, pane:'tilePane', interactive:false}); wmColorLayers[k].setZIndex(200); }
+      }
     });
     wmReady=true; setWmField(wmActive, true);
   }).catch(function(){ setWmStatus('Couldn’t load the wind field — try Reload.'); });
@@ -490,14 +496,51 @@ function makeVelocityLayer(key, data){
     colorScale:f.colorScale, particleAge:90, lineWidth:1.4, particleMultiplier:1/300, frameRate:18
   });
 }
+// interpolate a hex colorScale at t in [0,1] -> [r,g,b]
+function colorAt(scale, t){
+  if(t<0) t=0; if(t>1) t=1;
+  var n=scale.length-1, f=t*n, i=Math.floor(f), frac=f-i;
+  if(i>=n) return hexToRgb(scale[n]);
+  var a=hexToRgb(scale[i]), b=hexToRgb(scale[i+1]);
+  return [Math.round(a[0]+(b[0]-a[0])*frac), Math.round(a[1]+(b[1]-a[1])*frac), Math.round(a[2]+(b[2]-a[2])*frac)];
+}
+// bounds expanded by a 1-cell transparent ring + half a cell, so the padded image's
+// data pixels still centre on the sample points and the field fades out at the edges.
+function wmFieldBounds(){
+  var W=WINDMAP, g=wmGridCache, hb=W.step*1.5;
+  var la2=W.latMax-(g.ny-1)*W.step, lo2=W.lonMin+(g.nx-1)*W.step;
+  return [[W.latMax+hb, W.lonMin-hb],[la2-hb, lo2+hb]];
+}
+// paint an (nx+2)-by-(ny+2) image coloured by magnitude, with a transparent border ring
+// and transparent null cells; the browser smooths it across the bounds, giving a
+// Windy-style shaded field that feathers out at the edges, under the particles.
+function buildFieldImage(key){
+  var f=FIELDS[key], g=wmGridCache, data=wmData[key]; if(!g||!data) return null;
+  var w=g.nx+2, h=g.ny+2;
+  var cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+  var ctx=cv.getContext('2d'), im=ctx.createImageData(w, h), px=im.data;
+  for(var r=0;r<g.ny;r++){ for(var c=0;c<g.nx;c++){
+    var m=data[r*g.nx+c].mag; if(m==null||isNaN(m)) continue;
+    var rgb=colorAt(f.colorScale, m/f.maxVelocity), o=((r+1)*w+(c+1))*4;
+    px[o]=rgb[0]; px[o+1]=rgb[1]; px[o+2]=rgb[2]; px[o+3]=255;
+  } }
+  ctx.putImageData(im, 0, 0);
+  return cv.toDataURL('image/png');
+}
 function setWmField(key, force){
   if(!FIELDS[key]) return;
   wmActive=key;
   Object.keys(FIELDS).forEach(function(k){
     var b=document.getElementById('wmtab-'+k); if(b) b.classList.toggle('active', k===key);
-    if(wmLayers[k] && windMap.hasLayer(wmLayers[k]) && (k!==key)) windMap.removeLayer(wmLayers[k]);
+    if(k!==key){
+      if(wmLayers[k] && windMap.hasLayer(wmLayers[k])) windMap.removeLayer(wmLayers[k]);
+      if(wmColorLayers[k] && windMap.hasLayer(wmColorLayers[k])) windMap.removeLayer(wmColorLayers[k]);
+    }
   });
-  if(wmReady && wmLayers[key] && !windMap.hasLayer(wmLayers[key])) wmLayers[key].addTo(windMap);
+  if(wmReady){
+    if(wmColorLayers[key] && !windMap.hasLayer(wmColorLayers[key])){ wmColorLayers[key].addTo(windMap); wmColorLayers[key].setZIndex(200); }
+    if(wmLayers[key] && !windMap.hasLayer(wmLayers[key])) wmLayers[key].addTo(windMap);
+  }
   renderWmLegend();
   if(force || wmReady) setWmStatus('Click an open-water cell for its 48-hour point forecast.');
 }
@@ -562,7 +605,6 @@ function openWmForecast(ll){
     if(rid!==wmfReq) return;
     document.getElementById('wmfBody').innerHTML='<div class="pad" style="padding:14px;color:var(--muted);font-size:13px">Couldn’t load the forecast for this point — try another cell.</div>';
   });
-  setTimeout(function(){ try{ box.scrollIntoView({behavior:'smooth',block:'nearest'}); }catch(e){} }, 40);
 }
 function closeWmForecast(){ var b=document.getElementById('wmforecast'); if(b) b.hidden=true; wmfReq++; }
 function wmHourCell(d, showDay){

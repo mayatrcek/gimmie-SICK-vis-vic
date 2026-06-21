@@ -43,10 +43,19 @@
   .wm-leg-label{font-size:12px;font-weight:600;color:var(--muted)}
   .wm-leg-bar{height:10px;border-radius:5px;border:1px solid var(--line)}
   .wm-leg-ticks{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
-  .wm-readout{min-width:150px}
+  .wm-readout{min-width:150px;top:10px;bottom:auto}
   .wm-readout svg{vertical-align:-2px;margin-right:3px}
   .wm-ro-ttl{font-weight:700;margin-bottom:3px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-  .wmf-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+  .wm-mapwrap{position:relative}
+  #wmforecast{position:absolute;left:10px;right:10px;bottom:10px;z-index:1000;max-height:62%;display:flex;flex-direction:column;
+    background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(13,27,42,.32);overflow:hidden}
+  body.dark #wmforecast{background:rgba(27,33,43,.97)}
+  .wmf-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:9px 12px 8px;border-bottom:1px solid var(--line)}
+  .wmf-title{font-size:14px;font-weight:700;color:var(--ink)}
+  .wmf-coord{font-size:11px;color:var(--muted);margin-top:1px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .wmf-close{border:none;background:none;color:var(--muted);font-size:22px;line-height:1;cursor:pointer;padding:0 4px;flex-shrink:0}
+  .wmf-close:hover{color:var(--poor)}
+  .wmf-wrap{overflow:auto;flex:1}
   .wmf-table{width:100%;border-collapse:collapse;font-size:12px;min-width:680px}
   .wmf-table th{position:sticky;left:0;background:var(--panel);text-align:left;color:var(--muted);font-weight:600;font-size:11px;text-transform:none;letter-spacing:0;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
   .wmf-table td{padding:6px 8px;text-align:center;border-bottom:1px solid #eef2f6;white-space:nowrap;color:var(--ink)}
