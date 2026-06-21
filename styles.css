@@ -195,7 +195,10 @@
   .titlebanner .region{color:#8fd0f6}
   .titlebanner .themeswitch{color:rgba(255,255,255,.85)}
   .titlebanner .ts-track{background:rgba(255,255,255,.3)}
-  @media(max-width:560px){.titlebanner .tb-inner{padding:22px 18px}}
+  @media(max-width:560px){
+    .titlebanner{min-height:280px}
+    .titlebanner .tb-inner{padding:22px 18px}
+  }
 
   /* ===== Dashboard panels ===== */
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;
