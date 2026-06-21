@@ -1003,7 +1003,7 @@ function geoClick(e){
     det.innerHTML=h;
   }
   render();
-  jsonp('https://nominatim.openstreetmap.org/reverse?format=jsonp&zoom=12&addressdetails=1&lat='+ll.lat+'&lon='+ll.lng, function(d){
+  jsonp('https://nominatim.openstreetmap.org/reverse?format=json&zoom=12&addressdetails=1&lat='+ll.lat+'&lon='+ll.lng, function(d){
     if(d){ var a=d.address||{}; st.name=a.hamlet||a.village||a.town||a.suburb||a.city||a.county||a.state||(d.display_name?d.display_name.split(',')[0]:null); }
     if(!st.name) st.name='Offshore Victoria'; render();
   }, 'json_callback');
