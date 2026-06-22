@@ -434,6 +434,7 @@ function initWindMap(){
     {attribution:'Imagery &copy; Esri, Maxar, Earthstar Geographics; Wind/wave data: Open-Meteo',maxZoom:19}).addTo(windMap);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
     {maxZoom:19,opacity:0.9}).addTo(windMap).setZIndex(650);
+  L.control.scale({metric:true, imperial:false, position:'bottomleft'}).addTo(windMap);
   wmInfoEl=L.DomUtil.create('div','geoinfo wm-readout',windMap.getContainer());
   setWmStatus('Loading the wind field…');
   L.DomEvent.disableClickPropagation(wmInfoEl);
