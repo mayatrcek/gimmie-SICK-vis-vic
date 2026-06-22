@@ -402,7 +402,10 @@ function initMap(){
    Samples a lattice of points over the dive coast from Open-Meteo, converts each
    magnitude+direction to U/V components, and animates particles with leaflet-velocity.
    Three switchable fields (Wind, Swell, Waves); only the active one is on the map. */
-var WINDMAP={lonMin:140.8, lonMax:150.2, latMin:-41.5, latMax:-34.0, step:0.6};
+// Sampling grid runs wide (W of SA to the Tasman) so the particle field reaches the
+// map's left/right edges; the visible/pannable area is locked to WM_BOUNDS below.
+var WINDMAP={lonMin:132.0, lonMax:159.0, latMin:-42.9, latMax:-33.0, step:0.9};
+var WM_BOUNDS=[[-41.7,140.6],[-34.0,150.4]]; // lock: Victoria + northern Tasmania
 var DIVE_SCORE={Amazing:5, Good:4, Marginal:2, Poor:1};
 var FIELDS={
   wind:{label:'Wind', unit:'km/h', maxVelocity:65, velocityScale:0.0035,
@@ -429,7 +432,7 @@ function setWmStatus(t){ if(wmInfoEl) wmInfoEl.innerHTML='<div class="gi-hint">'
 function setWmStatusHTML(h){ if(wmInfoEl) wmInfoEl.innerHTML=h; }
 function initWindMap(){
   if(!document.getElementById('windmap')) return;
-  windMap=L.map('windmap',{scrollWheelZoom:true,maxBounds:[[-44.2,139.5],[-33.8,150.8]],maxBoundsViscosity:1.0,minZoom:6}).setView([-37.9,145.6],6);
+  windMap=L.map('windmap',{scrollWheelZoom:true,maxBounds:WM_BOUNDS,maxBoundsViscosity:1.0,minZoom:6,maxZoom:9}).fitBounds(WM_BOUNDS);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     {attribution:'Imagery &copy; Esri, Maxar, Earthstar Geographics; Wind/wave data: Open-Meteo',maxZoom:19}).addTo(windMap);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
