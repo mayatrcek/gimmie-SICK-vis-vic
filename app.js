@@ -420,7 +420,7 @@ var FIELDS={
          colorScale:['#2c7fb8','#41b6c4','#7fcdbb','#c7e9b4','#f4e04d','#f0a93b','#e8553a'],
          legend:['0','1','2','3','4','5+'],
          api:'marine', mag:'wave_height', dir:'wave_direction'}};
-var windMap, wmInfoEl, wmLayers={}, wmColorLayers={}, wmData={}, wmGridCache=null, wmActive='wind', wmReady=false, wmShown=false;
+var windMap, wmLayers={}, wmColorLayers={}, wmData={}, wmGridCache=null, wmActive='wind', wmReady=false, wmShown=false;
 function wmGrid(){
   var W=WINDMAP, nx=Math.round((W.lonMax-W.lonMin)/W.step)+1, ny=Math.round((W.latMax-W.latMin)/W.step)+1, pts=[];
   for(var r=0;r<ny;r++){ var lat=+(W.latMax-r*W.step).toFixed(4); for(var c=0;c<nx;c++){ pts.push([lat, +(W.lonMin+c*W.step).toFixed(4)]); } }
@@ -428,8 +428,7 @@ function wmGrid(){
 }
 function wmAsArr(x){ return Array.isArray(x)?x:[x]; }
 function wmJson(r){ return r.json(); }
-function setWmStatus(t){ if(wmInfoEl) wmInfoEl.innerHTML='<div class="gi-hint">'+t+'</div>'; }
-function setWmStatusHTML(h){ if(wmInfoEl) wmInfoEl.innerHTML=h; }
+function wmNote(msg){ if(windMap) L.popup({closeButton:true,autoPan:true,className:'wm-popup'}).setLatLng(windMap.getCenter()).setContent('<div class="wm-pop">'+msg+'</div>').openOn(windMap); }
 function initWindMap(){
   if(!document.getElementById('windmap')) return;
   windMap=L.map('windmap',{scrollWheelZoom:true,maxBounds:WM_BOUNDS,maxBoundsViscosity:1.0,minZoom:6,maxZoom:9}).fitBounds(WM_BOUNDS);
@@ -438,16 +437,13 @@ function initWindMap(){
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
     {maxZoom:19,opacity:0.9}).addTo(windMap).setZIndex(650);
   L.control.scale({metric:true, imperial:false, position:'bottomright'}).addTo(windMap);
-  wmInfoEl=L.DomUtil.create('div','geoinfo wm-readout',windMap.getContainer());
-  setWmStatus('Loading the wind field…');
-  L.DomEvent.disableClickPropagation(wmInfoEl);
   windMap.on('click', function(e){ wmShowReadout(e.latlng); openWmForecast(e.latlng); });
   renderWmLegend();
   loadWindFields();
 }
 function loadWindFields(){
   if(!windMap) return;
-  if(typeof L.velocityLayer!=='function'){ setWmStatus('Wind animation couldn’t load — check your connection and Reload.'); return; }
+  if(typeof L.velocityLayer!=='function'){ wmNote('Wind animation couldn’t load — check your connection and Reload.'); return; }
   var g=wmGrid(); wmGridCache=g;
   var lats=[], lons=[]; g.pts.forEach(function(p){ lats.push(p[0]); lons.push(p[1]); });
   var wUrl=WEATHER+'?latitude='+lats.join(',')+'&longitude='+lons.join(',')+'&current=wind_speed_10m,wind_direction_10m&timezone='+TZ;
@@ -469,7 +465,7 @@ function loadWindFields(){
       }
     });
     wmReady=true; setWmField(wmActive, true);
-  }).catch(function(){ setWmStatus('Couldn’t load the wind field — try Reload.'); });
+  }).catch(function(){ wmNote('Couldn’t load the wind field — try Reload.'); });
 }
 function buildField(arr, magKey, dirKey){
   return arr.map(function(el){
@@ -546,7 +542,6 @@ function setWmField(key, force){
     if(wmLayers[key] && !windMap.hasLayer(wmLayers[key])) wmLayers[key].addTo(windMap);
   }
   renderWmLegend();
-  if(force || wmReady) setWmStatus('Click an open-water cell for its 48-hour point forecast.');
 }
 function renderWmLegend(){
   var el=document.getElementById('wmlegend'); if(!el) return; var f=FIELDS[wmActive];
@@ -562,15 +557,18 @@ function wmNearestIdx(ll){
   c=Math.max(0,Math.min(g.nx-1,c)); r=Math.max(0,Math.min(g.ny-1,r));
   return r*g.nx+c;
 }
+// open a small popup right at the clicked point with the nearest cell's wind (+ swell/waves)
 function wmShowReadout(ll){
-  if(!wmReady){ return; }
+  if(!wmReady) return;
   var idx=wmNearestIdx(ll); if(idx<0) return;
   var w=wmData.wind[idx]||{}, sw=wmData.swell[idx]||{}, wv=wmData.waves[idx]||{};
-  setWmStatusHTML(
-    '<div class="wm-ro-ttl">'+ll.lat.toFixed(2)+', '+ll.lng.toFixed(2)+'</div>'+
-    '<div>'+ICON.wind+'wind '+fmt(w.mag,0)+' km/h'+(w.dir!=null?' '+compass(w.dir):'')+'</div>'+
+  var html='<div class="wm-pop">'+
+    '<div class="wm-pop-ttl">'+ll.lat.toFixed(2)+', '+ll.lng.toFixed(2)+'</div>'+
+    '<div class="wm-pop-wind">'+ICON.wind+'wind <b>'+fmt(w.mag,0)+' km/h</b>'+(w.dir!=null?' '+compass(w.dir):'')+'</div>'+
     '<div>'+ICON.wave+'swell '+fmt(sw.mag,1)+' m'+(sw.dir!=null?' '+compass(sw.dir):'')+'</div>'+
-    '<div style="padding-left:2px">waves '+fmt(wv.mag,1)+' m'+(wv.dir!=null?' '+compass(wv.dir):'')+'</div>');
+    '<div style="padding-left:2px">waves '+fmt(wv.mag,1)+' m'+(wv.dir!=null?' '+compass(wv.dir):'')+'</div>'+
+    '</div>';
+  L.popup({closeButton:false, autoPan:false, className:'wm-popup', offset:[0,2]}).setLatLng(ll).setContent(html).openOn(windMap);
 }
 // nearest known dive site -> borrow its onshore bearing so the off-spot dive rating is sensible
 function nearestSpot(lat,lon){

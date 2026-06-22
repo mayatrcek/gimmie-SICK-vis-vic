@@ -44,9 +44,13 @@
   .wm-leg-label{font-size:12px;font-weight:600;color:var(--muted)}
   .wm-leg-bar{height:10px;border-radius:5px;border:1px solid var(--line)}
   .wm-leg-ticks{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
-  .wm-readout{min-width:150px;top:10px;bottom:auto}
-  .wm-readout svg{vertical-align:-2px;margin-right:3px}
-  .wm-ro-ttl{font-weight:700;margin-bottom:3px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .wm-popup .leaflet-popup-content-wrap{border-radius:10px;box-shadow:0 4px 16px rgba(13,27,42,.3)}
+  .wm-popup .leaflet-popup-content{margin:8px 12px}
+  .wm-pop{font-size:12.5px;line-height:1.5;color:var(--ink)}
+  .wm-pop-ttl{font-weight:700;margin-bottom:3px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .wm-pop-wind{margin-bottom:1px}
+  .wm-pop svg{vertical-align:-2px;margin-right:3px}
+  body.dark .wm-popup .leaflet-popup-content-wrap,body.dark .wm-popup .leaflet-popup-tip{background:var(--panel);color:var(--ink)}
   .wm-mapwrap{position:relative}
   /* fullscreen wind-map tab: map fills the viewport height, legend floats over it */
   .wm-full #windmap{height:calc(100vh - 170px);min-height:500px}
