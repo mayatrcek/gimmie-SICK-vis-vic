@@ -402,18 +402,18 @@ function initMap(){
    Samples a lattice of points over the dive coast from Open-Meteo, converts each
    magnitude+direction to U/V components, and animates particles with leaflet-velocity.
    Three switchable fields (Wind, Swell, Waves); only the active one is on the map. */
-var WINDMAP={lonMin:143.3, lonMax:146.6, latMin:-39.3, latMax:-38.0, step:0.22};
+var WINDMAP={lonMin:140.8, lonMax:150.2, latMin:-41.5, latMax:-34.0, step:0.6};
 var DIVE_SCORE={Amazing:5, Good:4, Marginal:2, Poor:1};
 var FIELDS={
-  wind:{label:'Wind', unit:'km/h', maxVelocity:65, velocityScale:0.007,
+  wind:{label:'Wind', unit:'km/h', maxVelocity:65, velocityScale:0.0035,
         colorScale:['#4a7fb5','#5cc6c9','#7ed957','#f4e04d','#f0a93b','#e8553a','#b23aa8'],
         legend:['0','15','30','45','60+'],
         api:'weather', mag:'wind_speed_10m', dir:'wind_direction_10m'},
-  swell:{label:'Swell', unit:'m', maxVelocity:4, velocityScale:0.06,
+  swell:{label:'Swell', unit:'m', maxVelocity:4, velocityScale:0.03,
          colorScale:['#3b6fb0','#4aa9d8','#5cc6a8','#a8d96b','#f4d24d','#f0923b'],
          legend:['0','1','2','3','4+'],
          api:'marine', mag:'swell_wave_height', dir:'swell_wave_direction'},
-  waves:{label:'Waves', unit:'m', maxVelocity:5, velocityScale:0.05,
+  waves:{label:'Waves', unit:'m', maxVelocity:5, velocityScale:0.025,
          colorScale:['#2c7fb8','#41b6c4','#7fcdbb','#c7e9b4','#f4e04d','#f0a93b','#e8553a'],
          legend:['0','1','2','3','4','5+'],
          api:'marine', mag:'wave_height', dir:'wave_direction'}};
@@ -429,7 +429,7 @@ function setWmStatus(t){ if(wmInfoEl) wmInfoEl.innerHTML='<div class="gi-hint">'
 function setWmStatusHTML(h){ if(wmInfoEl) wmInfoEl.innerHTML=h; }
 function initWindMap(){
   if(!document.getElementById('windmap')) return;
-  windMap=L.map('windmap',{scrollWheelZoom:true,maxBounds:[[-44.2,139.5],[-33.8,150.8]],maxBoundsViscosity:1.0,minZoom:6}).setView([-38.6,145.0],7);
+  windMap=L.map('windmap',{scrollWheelZoom:true,maxBounds:[[-44.2,139.5],[-33.8,150.8]],maxBoundsViscosity:1.0,minZoom:6}).setView([-37.9,145.6],6);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     {attribution:'Imagery &copy; Esri, Maxar, Earthstar Geographics; Wind/wave data: Open-Meteo',maxZoom:19}).addTo(windMap);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
@@ -494,7 +494,7 @@ function makeVelocityLayer(key, data){
   var f=FIELDS[key];
   return L.velocityLayer({
     displayValues:false, data:data, maxVelocity:f.maxVelocity, velocityScale:f.velocityScale,
-    colorScale:f.colorScale, particleAge:90, lineWidth:1.4, particleMultiplier:1/300, frameRate:18
+    colorScale:f.colorScale, particleAge:90, lineWidth:1.4, particleMultiplier:1/600, frameRate:18
   });
 }
 // interpolate a hex colorScale at t in [0,1] -> [r,g,b]
