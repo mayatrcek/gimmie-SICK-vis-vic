@@ -51,6 +51,8 @@
   .wm-pop-wind{margin-bottom:1px}
   .wm-pop svg{vertical-align:-2px;margin-right:3px}
   body.dark .wm-popup .leaflet-popup-content-wrap,body.dark .wm-popup .leaflet-popup-tip{background:var(--panel);color:var(--ink)}
+  .wm-seldot-wrap{background:none;border:none}
+  .wm-seldot{display:block;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.55)}
   .wm-mapwrap{position:relative}
   /* fullscreen wind-map tab: map fills the viewport height, legend floats over it */
   .wm-full #windmap{height:calc(100vh - 170px);min-height:500px}

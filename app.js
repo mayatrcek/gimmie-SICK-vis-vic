@@ -557,7 +557,9 @@ function wmNearestIdx(ll){
   c=Math.max(0,Math.min(g.nx-1,c)); r=Math.max(0,Math.min(g.ny-1,r));
   return r*g.nx+c;
 }
-// open a small popup right at the clicked point with the nearest cell's wind (+ swell/waves)
+var wmSelDot=null;
+function wmDotIcon(){ return L.divIcon({className:'wm-seldot-wrap',html:'<span class="wm-seldot"></span>',iconSize:[14,14],iconAnchor:[7,7]}); }
+// drop/move a dot at the clicked point and float a small popup just above it
 function wmShowReadout(ll){
   if(!wmReady) return;
   var idx=wmNearestIdx(ll); if(idx<0) return;
@@ -568,7 +570,9 @@ function wmShowReadout(ll){
     '<div>'+ICON.wave+'swell '+fmt(sw.mag,1)+' m'+(sw.dir!=null?' '+compass(sw.dir):'')+'</div>'+
     '<div style="padding-left:2px">waves '+fmt(wv.mag,1)+' m'+(wv.dir!=null?' '+compass(wv.dir):'')+'</div>'+
     '</div>';
-  L.popup({closeButton:false, autoPan:false, className:'wm-popup', offset:[0,2]}).setLatLng(ll).setContent(html).openOn(windMap);
+  if(!wmSelDot) wmSelDot=L.marker(ll,{icon:wmDotIcon(),interactive:false,keyboard:false,zIndexOffset:1000}).addTo(windMap);
+  else wmSelDot.setLatLng(ll);
+  L.popup({closeButton:false, autoPan:false, className:'wm-popup', offset:[0,-8]}).setLatLng(ll).setContent(html).openOn(windMap);
 }
 // nearest known dive site -> borrow its onshore bearing so the off-spot dive rating is sensible
 function nearestSpot(lat,lon){
