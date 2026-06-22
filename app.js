@@ -404,25 +404,26 @@ function initMap(){
    Three switchable fields (Wind, Swell, Waves); only the active one is on the map. */
 // Sampling grid runs wide (W of SA to the Tasman) so the particle field reaches the
 // map's left/right edges; the visible/pannable area is locked to WM_BOUNDS below.
-var WINDMAP={lonMin:132.0, lonMax:159.0, latMin:-42.9, latMax:-33.0, step:0.9};
+var WINDMAP={lonMin:132.0, lonMax:159.0, latMin:-42.9, latMax:-33.0, step:1.5};
 var WM_BOUNDS=[[-41.7,140.6],[-34.0,150.4]]; // lock: Victoria + northern Tasmania
 var DIVE_SCORE={Amazing:5, Good:4, Marginal:2, Poor:1};
 var FIELDS={
-  wind:{label:'Wind', unit:'km/h', maxVelocity:65, velocityScale:0.0035, spreadHi:10, src:'GFS · ECMWF · ICON · GEM',
+  wind:{label:'Wind', unit:'km/h', maxVelocity:65, velocityScale:0.0035, spreadHi:8, src:'GFS · ECMWF',
         colorScale:['#4a7fb5','#5cc6c9','#7ed957','#f4e04d','#f0a93b','#e8553a','#b23aa8'],
         legend:['0','15','30','45','60+'],
         api:'weather', mag:'wind_speed_10m', dir:'wind_direction_10m'},
-  swell:{label:'Swell', unit:'m', maxVelocity:4, velocityScale:0.03, spreadHi:0.6, src:'gwam · Météo-France · ECMWF',
+  swell:{label:'Swell', unit:'m', maxVelocity:4, velocityScale:0.03, spreadHi:0.6, src:'gwam · Météo-France',
          colorScale:['#3b6fb0','#4aa9d8','#5cc6a8','#a8d96b','#f4d24d','#f0923b'],
          legend:['0','1','2','3','4+'],
          api:'marine', mag:'swell_wave_height', dir:'swell_wave_direction'},
-  waves:{label:'Waves', unit:'m', maxVelocity:5, velocityScale:0.025, spreadHi:0.7, src:'gwam · Météo-France · ECMWF',
+  waves:{label:'Waves', unit:'m', maxVelocity:5, velocityScale:0.025, spreadHi:0.7, src:'gwam · Météo-France',
          colorScale:['#2c7fb8','#41b6c4','#7fcdbb','#c7e9b4','#f4e04d','#f0a93b','#e8553a'],
          legend:['0','1','2','3','4','5+'],
          api:'marine', mag:'wave_height', dir:'wave_direction'}};
-// each field is averaged across several forecast models (a multi-source ensemble)
-var WIND_MODELS=['gfs_seamless','ecmwf_ifs025','icon_seamless','gem_seamless'];   // NOAA, ECMWF, DWD, Canada
-var MARINE_MODELS=['gwam','meteofrance_wave','ecmwf_wam025'];                      // DWD, Meteo-France, ECMWF (ecmwf has no swell partition)
+// each field is averaged across a couple of forecast models (a multi-source ensemble).
+// kept to 2 models + a coarse grid to stay within Open-Meteo's free daily call budget.
+var WIND_MODELS=['gfs_seamless','ecmwf_ifs025'];        // NOAA + ECMWF
+var MARINE_MODELS=['gwam','meteofrance_wave'];          // DWD + Meteo-France
 var windMap, wmLayers={}, wmColorLayers={}, wmSpreadLayers={}, wmData={}, wmGridCache=null, wmActive='wind', wmReady=false, wmShown=false;
 function wmGrid(){
   var W=WINDMAP, nx=Math.round((W.lonMax-W.lonMin)/W.step)+1, ny=Math.round((W.latMax-W.latMin)/W.step)+1, pts=[];
@@ -442,7 +443,7 @@ function initWindMap(){
   L.control.scale({metric:true, imperial:false, position:'bottomright'}).addTo(windMap);
   windMap.on('click', function(e){ wmShowReadout(e.latlng); openWmForecast(e.latlng); });
   renderWmLegend();
-  loadWindFields();
+  // data is fetched lazily the first time the Wind map tab is opened (see showTab)
 }
 function loadWindFields(){
   if(!windMap) return;
@@ -815,7 +816,7 @@ function reloadAll(){
   refreshSelected();
   loadComposite();
   loadDataStamps();
-  if(windMap) loadWindFields();
+  if(windMap && wmShown) loadWindFields();
 }
 /* ---- Fish guide ---- */
 var MONTH_LBL=['J','F','M','A','M','J','J','A','S','O','N','D'];
@@ -1170,7 +1171,7 @@ function showTab(t){
   document.getElementById('btn-about').classList.toggle('active',t==='about');
   document.getElementById('btn-feedback').classList.toggle('active',t==='feedback');
   if(t==='conditions'){ setTimeout(function(){ try{map.invalidateSize();}catch(e){} },60); }
-  if(t==='windmap'){ setTimeout(function(){ try{ windMap.invalidateSize(); if(!wmShown){ wmShown=true; windMap.fitBounds(WM_BOUNDS); } }catch(e){} },80); }
+  if(t==='windmap'){ setTimeout(function(){ try{ windMap.invalidateSize(); if(!wmShown){ wmShown=true; windMap.fitBounds(WM_BOUNDS); loadWindFields(); } }catch(e){} },80); }
   if(t==='live'){ loadLiveTab(); setTimeout(function(){ try{compMap.invalidateSize();}catch(e){} fitLiveEmbed(); },60); }
   if(t==='geo'){ setTimeout(function(){ try{geoMap.invalidateSize();}catch(e){} if(!geoBasesAdded){geoBasesAdded=true; addGeoBase(geoMap,'habitat.png',habitatLayer,0.62,250); addGeoBase(geoMap,'contours.png',contourLayer,0.95,255);} if(!('IntersectionObserver' in window)){ try{bathyMap.invalidateSize();}catch(e){} } },60); }
 }
