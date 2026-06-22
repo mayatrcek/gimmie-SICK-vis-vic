@@ -408,19 +408,22 @@ var WINDMAP={lonMin:132.0, lonMax:159.0, latMin:-42.9, latMax:-33.0, step:0.9};
 var WM_BOUNDS=[[-41.7,140.6],[-34.0,150.4]]; // lock: Victoria + northern Tasmania
 var DIVE_SCORE={Amazing:5, Good:4, Marginal:2, Poor:1};
 var FIELDS={
-  wind:{label:'Wind', unit:'km/h', maxVelocity:65, velocityScale:0.0035,
+  wind:{label:'Wind', unit:'km/h', maxVelocity:65, velocityScale:0.0035, spreadHi:10, src:'GFS · ECMWF · ICON · GEM',
         colorScale:['#4a7fb5','#5cc6c9','#7ed957','#f4e04d','#f0a93b','#e8553a','#b23aa8'],
         legend:['0','15','30','45','60+'],
         api:'weather', mag:'wind_speed_10m', dir:'wind_direction_10m'},
-  swell:{label:'Swell', unit:'m', maxVelocity:4, velocityScale:0.03,
+  swell:{label:'Swell', unit:'m', maxVelocity:4, velocityScale:0.03, spreadHi:0.6, src:'gwam · Météo-France · ECMWF',
          colorScale:['#3b6fb0','#4aa9d8','#5cc6a8','#a8d96b','#f4d24d','#f0923b'],
          legend:['0','1','2','3','4+'],
          api:'marine', mag:'swell_wave_height', dir:'swell_wave_direction'},
-  waves:{label:'Waves', unit:'m', maxVelocity:5, velocityScale:0.025,
+  waves:{label:'Waves', unit:'m', maxVelocity:5, velocityScale:0.025, spreadHi:0.7, src:'gwam · Météo-France · ECMWF',
          colorScale:['#2c7fb8','#41b6c4','#7fcdbb','#c7e9b4','#f4e04d','#f0a93b','#e8553a'],
          legend:['0','1','2','3','4','5+'],
          api:'marine', mag:'wave_height', dir:'wave_direction'}};
-var windMap, wmLayers={}, wmColorLayers={}, wmData={}, wmGridCache=null, wmActive='wind', wmReady=false, wmShown=false;
+// each field is averaged across several forecast models (a multi-source ensemble)
+var WIND_MODELS=['gfs_seamless','ecmwf_ifs025','icon_seamless','gem_seamless'];   // NOAA, ECMWF, DWD, Canada
+var MARINE_MODELS=['gwam','meteofrance_wave','ecmwf_wam025'];                      // DWD, Meteo-France, ECMWF (ecmwf has no swell partition)
+var windMap, wmLayers={}, wmColorLayers={}, wmSpreadLayers={}, wmData={}, wmGridCache=null, wmActive='wind', wmReady=false, wmShown=false;
 function wmGrid(){
   var W=WINDMAP, nx=Math.round((W.lonMax-W.lonMin)/W.step)+1, ny=Math.round((W.latMax-W.latMin)/W.step)+1, pts=[];
   for(var r=0;r<ny;r++){ var lat=+(W.latMax-r*W.step).toFixed(4); for(var c=0;c<nx;c++){ pts.push([lat, +(W.lonMin+c*W.step).toFixed(4)]); } }
@@ -446,13 +449,19 @@ function loadWindFields(){
   if(typeof L.velocityLayer!=='function'){ wmNote('Wind animation couldn’t load — check your connection and Reload.'); return; }
   var g=wmGrid(); wmGridCache=g;
   var lats=[], lons=[]; g.pts.forEach(function(p){ lats.push(p[0]); lons.push(p[1]); });
-  var wUrl=WEATHER+'?latitude='+lats.join(',')+'&longitude='+lons.join(',')+'&current=wind_speed_10m,wind_direction_10m&timezone='+TZ;
-  var mUrl=MARINE+'?latitude='+lats.join(',')+'&longitude='+lons.join(',')+'&current=wave_height,wave_direction,swell_wave_height,swell_wave_direction&timezone='+TZ;
-  Promise.all([fetch(wUrl).then(wmJson), fetch(mUrl).then(wmJson)]).then(function(res){
-    var wArr=wmAsArr(res[0]), mArr=wmAsArr(res[1]);
-    wmData.wind =buildField(wArr,'wind_speed_10m','wind_direction_10m');
-    wmData.swell=buildField(mArr,'swell_wave_height','swell_wave_direction');
-    wmData.waves=buildField(mArr,'wave_height','wave_direction');
+  var ll='latitude='+lats.join(',')+'&longitude='+lons.join(',');
+  function getJson(url){ return fetch(url).then(wmJson).catch(function(){ return null; }); }
+  var windReqs=WIND_MODELS.map(function(m){ return getJson(WEATHER+'?'+ll+'&current=wind_speed_10m,wind_direction_10m&models='+m+'&timezone='+TZ); });
+  var marineReqs=MARINE_MODELS.map(function(m){ return getJson(MARINE+'?'+ll+'&current=wave_height,wave_direction,swell_wave_height,swell_wave_direction&models='+m+'&timezone='+TZ); });
+  Promise.all([Promise.all(windReqs), Promise.all(marineReqs)]).then(function(res){
+    // one sample array per model; average them per cell on the U/V vectors
+    var windModels  =res[0].filter(Boolean).map(function(r){ return buildField(wmAsArr(r),'wind_speed_10m','wind_direction_10m'); });
+    var wavesModels =res[1].filter(Boolean).map(function(r){ return buildField(wmAsArr(r),'wave_height','wave_direction'); });
+    var swellModels =res[1].filter(Boolean).map(function(r){ return buildField(wmAsArr(r),'swell_wave_height','swell_wave_direction'); });
+    if(!windModels.length){ wmNote('Couldn’t load the wind field — try Reload.'); return; }
+    wmData.wind =averageModels(windModels);
+    wmData.waves=averageModels(wavesModels);
+    wmData.swell=averageModels(swellModels);
     var bounds=wmFieldBounds();
     Object.keys(FIELDS).forEach(function(k){
       var d=toVelocityData(wmData[k], g.nx, g.ny);
@@ -463,9 +472,44 @@ function loadWindFields(){
         if(wmColorLayers[k]){ wmColorLayers[k].setBounds(L.latLngBounds(bounds)); wmColorLayers[k].setUrl(url); }
         else { wmColorLayers[k]=L.imageOverlay(url, bounds, {opacity:0.6, pane:'tilePane', interactive:false}); wmColorLayers[k].setZIndex(200); }
       }
+      if(wmSpreadLayers[k] && windMap.hasLayer(wmSpreadLayers[k])) windMap.removeLayer(wmSpreadLayers[k]);
+      wmSpreadLayers[k]=buildSpreadLayer(k);
     });
     wmReady=true; setWmField(wmActive, true);
   }).catch(function(){ wmNote('Couldn’t load the wind field — try Reload.'); });
+}
+// average several models per cell on the U/V vectors (handles direction wrap-around),
+// and measure disagreement as the RMS vector spread between models.
+function averageModels(modelLists){
+  var valid=modelLists.filter(function(a){ return a && a.length; });
+  var ncells=valid.length ? valid[0].length : 0, out=new Array(ncells), i, m, k;
+  for(i=0;i<ncells;i++){
+    var us=[], vs=[];
+    for(m=0;m<valid.length;m++){
+      var s=valid[m][i]; if(!s) continue;
+      var mag=s.mag, dir=s.dir;
+      if(mag==null||dir==null||isNaN(mag)||isNaN(dir)) continue;
+      var rad=dir*Math.PI/180; us.push(-mag*Math.sin(rad)); vs.push(-mag*Math.cos(rad));
+    }
+    var n=us.length;
+    if(!n){ out[i]={u:0,v:0,mag:null,dir:null,n:0,spread:0}; continue; }
+    var ub=0,vb=0; for(k=0;k<n;k++){ ub+=us[k]; vb+=vs[k]; } ub/=n; vb/=n;
+    var sd=0; for(k=0;k<n;k++){ var du=us[k]-ub, dv=vs[k]-vb; sd+=du*du+dv*dv; }
+    out[i]={u:ub, v:vb, mag:Math.sqrt(ub*ub+vb*vb), dir:(Math.atan2(-ub,-vb)*180/Math.PI+360)%360, n:n, spread:Math.sqrt(sd/n)};
+  }
+  return out;
+}
+// subtle hollow rings at cells where the models disagree (spread over the field's threshold)
+function buildSpreadLayer(key){
+  var g=wmGridCache, data=wmData[key], f=FIELDS[key]; if(!g||!data) return null;
+  var hi=f.spreadHi||1, grp=L.layerGroup();
+  for(var r=0;r<g.ny;r++){ for(var c=0;c<g.nx;c++){
+    var i=r*g.nx+c, cell=data[i];
+    if(!cell || cell.mag==null || cell.n<2 || cell.spread<hi) continue;
+    var rad=Math.min(9, 4+(cell.spread/hi-1)*4);
+    L.circleMarker(g.pts[i],{radius:rad,color:'#ffffff',weight:1.4,opacity:0.75,fillColor:'#0d1b2a',fillOpacity:0.12,interactive:false}).addTo(grp);
+  } }
+  return grp;
 }
 function buildField(arr, magKey, dirKey){
   return arr.map(function(el){
@@ -475,14 +519,10 @@ function buildField(arr, magKey, dirKey){
     return {mag:m, dir:d};
   });
 }
-// magnitude + meteorological "from" direction -> U/V components. Null cells become 0 (no particle).
-function toVelocityData(samples, nx, ny){
-  var W=WINDMAP, u=[], v=[], i, m, d, rad;
-  for(i=0;i<samples.length;i++){
-    m=samples[i].mag; d=samples[i].dir;
-    if(m==null||d==null||isNaN(m)||isNaN(d)){ u.push(0); v.push(0); }
-    else { rad=d*Math.PI/180; u.push(-m*Math.sin(rad)); v.push(-m*Math.cos(rad)); }
-  }
+// averaged U/V components per cell straight into the velocity grid (null cells -> 0, no particle).
+function toVelocityData(cells, nx, ny){
+  var W=WINDMAP, u=[], v=[], i;
+  for(i=0;i<cells.length;i++){ var c=cells[i]||{}; u.push(c.u||0); v.push(c.v||0); }
   var la2=+(W.latMax-(ny-1)*W.step).toFixed(4), lo2=+(W.lonMin+(nx-1)*W.step).toFixed(4);
   function rec(num, data){ return {header:{parameterCategory:2, parameterNumber:num, parameterUnit:'m.s-1',
     nx:nx, ny:ny, lo1:W.lonMin, la1:W.latMax, lo2:lo2, la2:la2, dx:W.step, dy:W.step,
@@ -535,11 +575,13 @@ function setWmField(key, force){
     if(k!==key){
       if(wmLayers[k] && windMap.hasLayer(wmLayers[k])) windMap.removeLayer(wmLayers[k]);
       if(wmColorLayers[k] && windMap.hasLayer(wmColorLayers[k])) windMap.removeLayer(wmColorLayers[k]);
+      if(wmSpreadLayers[k] && windMap.hasLayer(wmSpreadLayers[k])) windMap.removeLayer(wmSpreadLayers[k]);
     }
   });
   if(wmReady){
     if(wmColorLayers[key] && !windMap.hasLayer(wmColorLayers[key])){ wmColorLayers[key].addTo(windMap); wmColorLayers[key].setZIndex(200); }
     if(wmLayers[key] && !windMap.hasLayer(wmLayers[key])) wmLayers[key].addTo(windMap);
+    if(wmSpreadLayers[key] && !windMap.hasLayer(wmSpreadLayers[key])) wmSpreadLayers[key].addTo(windMap);
   }
   renderWmLegend();
 }
@@ -549,7 +591,8 @@ function renderWmLegend(){
   var ticks=f.legend.map(function(t){ return '<span>'+t+'</span>'; }).join('');
   el.innerHTML='<div class="wm-leg-label">'+f.label+' ('+f.unit+')</div>'+
     '<div class="wm-leg-bar" style="background:'+grad+'"></div>'+
-    '<div class="wm-leg-ticks">'+ticks+'</div>';
+    '<div class="wm-leg-ticks">'+ticks+'</div>'+
+    '<div class="wm-leg-note"><span class="wm-leg-ring"></span> models disagree &middot; avg of '+f.src+'</div>';
 }
 function wmNearestIdx(ll){
   var g=wmGridCache; if(!g) return -1; var W=WINDMAP;
@@ -564,11 +607,13 @@ function wmShowReadout(ll){
   if(!wmReady) return;
   var idx=wmNearestIdx(ll); if(idx<0) return;
   var w=wmData.wind[idx]||{}, sw=wmData.swell[idx]||{}, wv=wmData.waves[idx]||{};
+  var agree=w.n?('<div class="wm-pop-agree">avg of '+w.n+' models &middot; spread &plusmn;'+fmt(w.spread,0)+' km/h</div>'):'';
   var html='<div class="wm-pop">'+
     '<div class="wm-pop-ttl">'+ll.lat.toFixed(2)+', '+ll.lng.toFixed(2)+'</div>'+
     '<div class="wm-pop-wind">'+ICON.wind+'wind <b>'+fmt(w.mag,0)+' km/h</b>'+(w.dir!=null?' '+compass(w.dir):'')+'</div>'+
     '<div>'+ICON.wave+'swell '+fmt(sw.mag,1)+' m'+(sw.dir!=null?' '+compass(sw.dir):'')+'</div>'+
     '<div style="padding-left:2px">waves '+fmt(wv.mag,1)+' m'+(wv.dir!=null?' '+compass(wv.dir):'')+'</div>'+
+    agree+
     '</div>';
   if(!wmSelDot) wmSelDot=L.marker(ll,{icon:wmDotIcon(),interactive:false,keyboard:false,zIndexOffset:1000}).addTo(windMap);
   else wmSelDot.setLatLng(ll);
