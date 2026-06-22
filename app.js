@@ -420,7 +420,7 @@ var FIELDS={
          colorScale:['#2c7fb8','#41b6c4','#7fcdbb','#c7e9b4','#f4e04d','#f0a93b','#e8553a'],
          legend:['0','1','2','3','4','5+'],
          api:'marine', mag:'wave_height', dir:'wave_direction'}};
-var windMap, wmInfoEl, wmLayers={}, wmColorLayers={}, wmData={}, wmGridCache=null, wmActive='wind', wmReady=false;
+var windMap, wmInfoEl, wmLayers={}, wmColorLayers={}, wmData={}, wmGridCache=null, wmActive='wind', wmReady=false, wmShown=false;
 function wmGrid(){
   var W=WINDMAP, nx=Math.round((W.lonMax-W.lonMin)/W.step)+1, ny=Math.round((W.latMax-W.latMin)/W.step)+1, pts=[];
   for(var r=0;r<ny;r++){ var lat=+(W.latMax-r*W.step).toFixed(4); for(var c=0;c<nx;c++){ pts.push([lat, +(W.lonMin+c*W.step).toFixed(4)]); } }
@@ -437,7 +437,7 @@ function initWindMap(){
     {attribution:'Imagery &copy; Esri, Maxar, Earthstar Geographics; Wind/wave data: Open-Meteo',maxZoom:19}).addTo(windMap);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
     {maxZoom:19,opacity:0.9}).addTo(windMap).setZIndex(650);
-  L.control.scale({metric:true, imperial:false, position:'bottomleft'}).addTo(windMap);
+  L.control.scale({metric:true, imperial:false, position:'bottomright'}).addTo(windMap);
   wmInfoEl=L.DomUtil.create('div','geoinfo wm-readout',windMap.getContainer());
   setWmStatus('Loading the wind field…');
   L.DomEvent.disableClickPropagation(wmInfoEl);
@@ -1109,18 +1109,21 @@ function restoreTheme(){
 }
 function showTab(t){
   document.getElementById('tab-conditions').hidden=(t!=='conditions');
+  document.getElementById('tab-windmap').hidden=(t!=='windmap');
   document.getElementById('tab-fish').hidden=(t!=='fish');
   document.getElementById('tab-live').hidden=(t!=='live');
   document.getElementById('tab-geo').hidden=(t!=='geo');
   document.getElementById('tab-about').hidden=(t!=='about');
   document.getElementById('tab-feedback').hidden=(t!=='feedback');
   document.getElementById('btn-conditions').classList.toggle('active',t==='conditions');
+  document.getElementById('btn-windmap').classList.toggle('active',t==='windmap');
   document.getElementById('btn-fish').classList.toggle('active',t==='fish');
   document.getElementById('btn-live').classList.toggle('active',t==='live');
   document.getElementById('btn-geo').classList.toggle('active',t==='geo');
   document.getElementById('btn-about').classList.toggle('active',t==='about');
   document.getElementById('btn-feedback').classList.toggle('active',t==='feedback');
-  if(t==='conditions'){ setTimeout(function(){ try{map.invalidateSize();}catch(e){} try{windMap.invalidateSize();}catch(e){} },60); }
+  if(t==='conditions'){ setTimeout(function(){ try{map.invalidateSize();}catch(e){} },60); }
+  if(t==='windmap'){ setTimeout(function(){ try{ windMap.invalidateSize(); if(!wmShown){ wmShown=true; windMap.fitBounds(WM_BOUNDS); } }catch(e){} },80); }
   if(t==='live'){ loadLiveTab(); setTimeout(function(){ try{compMap.invalidateSize();}catch(e){} fitLiveEmbed(); },60); }
   if(t==='geo'){ setTimeout(function(){ try{geoMap.invalidateSize();}catch(e){} if(!geoBasesAdded){geoBasesAdded=true; addGeoBase(geoMap,'habitat.png',habitatLayer,0.62,250); addGeoBase(geoMap,'contours.png',contourLayer,0.95,255);} if(!('IntersectionObserver' in window)){ try{bathyMap.invalidateSize();}catch(e){} } },60); }
 }
