@@ -58,8 +58,9 @@
   .wm-seldot-wrap{background:none;border:none}
   .wm-seldot{display:block;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.55)}
   .wm-mapwrap{position:relative}
-  /* fullscreen wind-map tab: map fills the viewport height, legend floats over it */
-  .wm-full #windmap{height:calc(100vh - 170px);min-height:500px}
+  /* fullscreen wind-map tab: the map fills the whole viewport below the fixed tab bar */
+  .wm-full{position:fixed;top:var(--tabh);left:0;right:0;bottom:0;z-index:400}
+  .wm-full #windmap{height:100%;width:100%;border-radius:0;border:0;box-shadow:none}
   .wm-full .wm-legend{position:absolute;left:10px;bottom:10px;z-index:1000;max-width:230px;
     background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:10px;padding:8px 10px;box-shadow:0 2px 10px rgba(13,27,42,.25)}
   body.dark .wm-full .wm-legend{background:rgba(27,33,43,.94)}
