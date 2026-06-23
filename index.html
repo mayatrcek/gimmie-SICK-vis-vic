@@ -92,6 +92,11 @@
         <button id="wmtab-waves" class="wm-tab" onclick="setWmField('waves')">Waves</button>
       </div>
       <div class="wm-legend" id="wmlegend"></div>
+      <div class="wm-timebar">
+        <button class="wm-time-now" onclick="wmJumpNow()" title="Jump back to now">Now</button>
+        <input type="range" id="wmTime" class="wm-time-range" min="0" max="1" value="0" step="1" oninput="wmSetStep(this.value)" aria-label="Forecast time">
+        <span class="wm-timelabel" id="wmTimeLabel">&mdash;</span>
+      </div>
       <div id="wmforecast" hidden>
         <div class="wmf-head">
           <div class="wmf-htext">

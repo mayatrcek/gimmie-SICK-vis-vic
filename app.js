@@ -425,6 +425,8 @@ var FIELDS={
 var WIND_MODELS=['gfs_seamless','ecmwf_ifs025'];        // NOAA + ECMWF
 var MARINE_MODELS=['gwam','meteofrance_wave'];          // DWD + Meteo-France
 var windMap, wmLayers={}, wmColorLayers={}, wmSpreadLayers={}, wmData={}, wmGridCache=null, wmActive='wind', wmReady=false, wmShown=false;
+// time slider: raw per-model hourly data is fetched once, then scrubbed client-side
+var wmRaw={}, wmTimes=[], wmStep=0, wmCurHour=0, wmStepHours=3, wmStepCount=1, wmBuiltHour={}, wmStepTimer=null;
 function wmGrid(){
   var W=WINDMAP, nx=Math.round((W.lonMax-W.lonMin)/W.step)+1, ny=Math.round((W.latMax-W.latMin)/W.step)+1, pts=[];
   for(var r=0;r<ny;r++){ var lat=+(W.latMax-r*W.step).toFixed(4); for(var c=0;c<nx;c++){ pts.push([lat, +(W.lonMin+c*W.step).toFixed(4)]); } }
@@ -452,32 +454,80 @@ function loadWindFields(){
   var lats=[], lons=[]; g.pts.forEach(function(p){ lats.push(p[0]); lons.push(p[1]); });
   var ll='latitude='+lats.join(',')+'&longitude='+lons.join(',');
   function getJson(url){ return fetch(url).then(wmJson).catch(function(){ return null; }); }
-  var windReqs=WIND_MODELS.map(function(m){ return getJson(WEATHER+'?'+ll+'&current=wind_speed_10m,wind_direction_10m&models='+m+'&timezone='+TZ); });
-  var marineReqs=MARINE_MODELS.map(function(m){ return getJson(MARINE+'?'+ll+'&current=wave_height,wave_direction,swell_wave_height,swell_wave_direction&models='+m+'&timezone='+TZ); });
-  Promise.all([Promise.all(windReqs), Promise.all(marineReqs)]).then(function(res){
-    // one sample array per model; average them per cell on the U/V vectors
-    var windModels  =res[0].filter(Boolean).map(function(r){ return buildField(wmAsArr(r),'wind_speed_10m','wind_direction_10m'); });
-    var wavesModels =res[1].filter(Boolean).map(function(r){ return buildField(wmAsArr(r),'wave_height','wave_direction'); });
-    var swellModels =res[1].filter(Boolean).map(function(r){ return buildField(wmAsArr(r),'swell_wave_height','swell_wave_direction'); });
-    if(!windModels.length){ wmNote('Couldn’t load the wind field — try Reload.'); return; }
-    wmData.wind =averageModels(windModels);
-    wmData.waves=averageModels(wavesModels);
-    wmData.swell=averageModels(swellModels);
-    var bounds=wmFieldBounds();
-    Object.keys(FIELDS).forEach(function(k){
-      var d=toVelocityData(wmData[k], g.nx, g.ny);
-      if(wmLayers[k]) wmLayers[k].setData(d);
-      else wmLayers[k]=makeVelocityLayer(k, d);
-      var url=buildFieldImage(k);
-      if(url){
-        if(wmColorLayers[k]){ wmColorLayers[k].setBounds(L.latLngBounds(bounds)); wmColorLayers[k].setUrl(url); }
-        else { wmColorLayers[k]=L.imageOverlay(url, bounds, {opacity:0.6, pane:'tilePane', interactive:false}); wmColorLayers[k].setZIndex(200); }
-      }
-      if(wmSpreadLayers[k] && windMap.hasLayer(wmSpreadLayers[k])) windMap.removeLayer(wmSpreadLayers[k]);
-      wmSpreadLayers[k]=buildSpreadLayer(k);
-    });
+  // one request per API, both models in it (hourly + models=); 7 forecast days stays in the cheap call tier
+  var wUrl=WEATHER+'?'+ll+'&hourly=wind_speed_10m,wind_direction_10m&models='+WIND_MODELS.join(',')+'&forecast_days=7&timezone='+TZ;
+  var mUrl=MARINE+'?'+ll+'&hourly=wave_height,wave_direction,swell_wave_height,swell_wave_direction&models='+MARINE_MODELS.join(',')+'&forecast_days=7&timezone='+TZ;
+  Promise.all([getJson(wUrl), getJson(mUrl)]).then(function(res){
+    var wArr=res[0]&&wmAsArr(res[0]), mArr=res[1]&&wmAsArr(res[1]);
+    if(!wArr||!wArr.length||!wArr[0].hourly){ wmNote('Couldn’t load the wind field — try again later.'); return; }
+    wmRaw.wind = buildHourly(wArr, WIND_MODELS, 'wind_speed_10m', 'wind_direction_10m');
+    if(mArr && mArr.length && mArr[0].hourly){
+      wmRaw.waves = buildHourly(mArr, MARINE_MODELS, 'wave_height', 'wave_direction');
+      wmRaw.swell = buildHourly(mArr, MARINE_MODELS, 'swell_wave_height', 'swell_wave_direction');
+    } else { wmRaw.waves=null; wmRaw.swell=null; }
+    wmTimes = wArr[0].hourly.time || [];
+    wmInitSlider();
+    Object.keys(FIELDS).forEach(function(k){ if(wmRaw[k]) wmRebuildField(k); });
     wmReady=true; setWmField(wmActive, true);
-  }).catch(function(){ wmNote('Couldn’t load the wind field — try Reload.'); });
+  }).catch(function(){ wmNote('Couldn’t load the wind field — try again later.'); });
+}
+// reshape a multi-model hourly response into [model][cell]{mag:[hourly], dir:[hourly]}
+function buildHourly(arr, models, magKey, dirKey){
+  return models.map(function(m){
+    return arr.map(function(el){
+      var h=(el&&el.hourly)||{};
+      return { mag: h[magKey+'_'+m]||[], dir: h[dirKey+'_'+m]||[] };
+    });
+  });
+}
+// per-model {mag,dir} samples for one timestep, ready for averageModels()
+function modelsAtStep(key, hourIdx){
+  return (wmRaw[key]||[]).map(function(modelCells){
+    return modelCells.map(function(cell){ return {mag: cell.mag[hourIdx], dir: cell.dir[hourIdx]}; });
+  });
+}
+// (re)build one field's averaged data + layers at the currently selected hour
+function wmRebuildField(key){
+  var g=wmGridCache; if(!g||!wmRaw[key]) return;
+  wmData[key]=averageModels(modelsAtStep(key, wmCurHour));
+  var d=toVelocityData(wmData[key], g.nx, g.ny);
+  if(wmLayers[key]) wmLayers[key].setData(d); else wmLayers[key]=makeVelocityLayer(key, d);
+  var url=buildFieldImage(key), bounds=wmFieldBounds();
+  if(url){
+    if(wmColorLayers[key]){ wmColorLayers[key].setBounds(L.latLngBounds(bounds)); wmColorLayers[key].setUrl(url); }
+    else { wmColorLayers[key]=L.imageOverlay(url, bounds, {opacity:0.6, pane:'tilePane', interactive:false}); wmColorLayers[key].setZIndex(200); }
+  }
+  var wasOn = wmSpreadLayers[key] && windMap.hasLayer(wmSpreadLayers[key]);
+  if(wasOn) windMap.removeLayer(wmSpreadLayers[key]);
+  wmSpreadLayers[key]=buildSpreadLayer(key);
+  if(wasOn && wmSpreadLayers[key]) wmSpreadLayers[key].addTo(windMap);
+  wmBuiltHour[key]=wmCurHour;
+}
+function wmInitSlider(){
+  var n=wmTimes.length; if(!n) return;
+  wmStepCount=Math.floor((n-1)/wmStepHours)+1;
+  var now=Date.now(), best=0, bd=Infinity;
+  for(var s=0;s<wmStepCount;s++){ var t=new Date(wmTimes[s*wmStepHours]).getTime(); var dd=Math.abs(t-now); if(dd<bd){ bd=dd; best=s; } }
+  wmStep=best; wmCurHour=best*wmStepHours;
+  var sl=document.getElementById('wmTime'); if(sl){ sl.min=0; sl.max=wmStepCount-1; sl.value=wmStep; }
+  updateWmTimeLabel();
+}
+function wmSetStep(v){
+  wmStep=+v; wmCurHour=Math.min(wmTimes.length-1, wmStep*wmStepHours);
+  updateWmTimeLabel();
+  clearTimeout(wmStepTimer);
+  wmStepTimer=setTimeout(function(){ if(wmReady) wmRebuildField(wmActive); }, 50);
+}
+function wmJumpNow(){ wmInitSlider(); if(wmReady) wmRebuildField(wmActive); }
+function updateWmTimeLabel(){ var el=document.getElementById('wmTimeLabel'); if(el) el.textContent=wmStepLabel(wmCurHour); }
+function wmStepLabel(hourIdx){
+  var t=wmTimes[hourIdx]; if(!t) return '—';
+  var d=new Date(t), today=new Date(); today.setHours(0,0,0,0);
+  var dd=new Date(d); dd.setHours(0,0,0,0);
+  var diff=Math.round((dd-today)/86400000);
+  var day = diff===0?'Today':(diff===1?'Tomorrow':d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'}));
+  var h=d.getHours(), ap=h<12?'am':'pm', h12=h%12; if(h12===0) h12=12;
+  return day+' · '+h12+' '+ap;
 }
 // average several models per cell on the U/V vectors (handles direction wrap-around),
 // and measure disagreement as the RMS vector spread between models.
@@ -580,6 +630,7 @@ function setWmField(key, force){
     }
   });
   if(wmReady){
+    if(wmRaw[key] && wmBuiltHour[key]!==wmCurHour) wmRebuildField(key); // refresh if the slider moved while another field was shown
     if(wmColorLayers[key] && !windMap.hasLayer(wmColorLayers[key])){ wmColorLayers[key].addTo(windMap); wmColorLayers[key].setZIndex(200); }
     if(wmLayers[key] && !windMap.hasLayer(wmLayers[key])) wmLayers[key].addTo(windMap);
     if(wmSpreadLayers[key] && !windMap.hasLayer(wmSpreadLayers[key])) wmSpreadLayers[key].addTo(windMap);
