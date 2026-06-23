@@ -426,7 +426,7 @@ var WIND_MODELS=['gfs_seamless','ecmwf_ifs025'];        // NOAA + ECMWF
 var MARINE_MODELS=['gwam','meteofrance_wave'];          // DWD + Meteo-France
 var windMap, wmLayers={}, wmColorLayers={}, wmSpreadLayers={}, wmData={}, wmGridCache=null, wmActive='wind', wmReady=false, wmShown=false;
 // time slider: raw per-model hourly data is fetched once, then scrubbed client-side
-var wmRaw={}, wmTimes=[], wmStep=0, wmCurHour=0, wmStepHours=3, wmStepCount=1, wmBuiltHour={}, wmStepTimer=null;
+var wmRaw={}, wmTimes=[], wmStep=0, wmCurHour=0, wmStepHours=1, wmStepCount=1, wmBuiltHour={}, wmStepTimer=null;
 function wmGrid(){
   var W=WINDMAP, nx=Math.round((W.lonMax-W.lonMin)/W.step)+1, ny=Math.round((W.latMax-W.latMin)/W.step)+1, pts=[];
   for(var r=0;r<ny;r++){ var lat=+(W.latMax-r*W.step).toFixed(4); for(var c=0;c<nx;c++){ pts.push([lat, +(W.lonMin+c*W.step).toFixed(4)]); } }
@@ -510,7 +510,20 @@ function wmInitSlider(){
   for(var s=0;s<wmStepCount;s++){ var t=new Date(wmTimes[s*wmStepHours]).getTime(); var dd=Math.abs(t-now); if(dd<bd){ bd=dd; best=s; } }
   wmStep=best; wmCurHour=best*wmStepHours;
   var sl=document.getElementById('wmTime'); if(sl){ sl.min=0; sl.max=wmStepCount-1; sl.value=wmStep; }
+  wmBuildDayLabels();
   updateWmTimeLabel();
+}
+// a label per forecast day under the slider, each cell spanning that day's 24h
+function wmBuildDayLabels(){
+  var el=document.getElementById('wmTimeDays'); if(!el||!wmTimes.length) return;
+  var nDays=Math.ceil(wmTimes.length/24), html='', today=new Date(); today.setHours(0,0,0,0);
+  for(var d=0;d<nDays;d++){
+    var dt=new Date(wmTimes[Math.min(d*24, wmTimes.length-1)]); var dd=new Date(dt); dd.setHours(0,0,0,0);
+    var diff=Math.round((dd-today)/86400000);
+    var lbl = diff===0 ? 'Today' : (diff===1 ? 'Tmrw' : dt.toLocaleDateString(undefined,{weekday:'short'})+' '+dt.getDate());
+    html+='<span class="wm-day">'+lbl+'</span>';
+  }
+  el.innerHTML=html;
 }
 function wmSetStep(v){
   wmStep=+v; wmCurHour=Math.min(wmTimes.length-1, wmStep*wmStepHours);

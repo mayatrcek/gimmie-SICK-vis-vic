@@ -94,7 +94,10 @@
       <div class="wm-legend" id="wmlegend"></div>
       <div class="wm-timebar">
         <button class="wm-time-now" onclick="wmJumpNow()" title="Jump back to now">Now</button>
-        <input type="range" id="wmTime" class="wm-time-range" min="0" max="1" value="0" step="1" oninput="wmSetStep(this.value)" aria-label="Forecast time">
+        <div class="wm-time-track">
+          <input type="range" id="wmTime" class="wm-time-range" min="0" max="1" value="0" step="1" oninput="wmSetStep(this.value)" aria-label="Forecast time">
+          <div class="wm-time-days" id="wmTimeDays"></div>
+        </div>
         <span class="wm-timelabel" id="wmTimeLabel">&mdash;</span>
       </div>
       <div id="wmforecast" hidden>
