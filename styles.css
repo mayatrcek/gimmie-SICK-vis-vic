@@ -90,7 +90,8 @@
   .wmf-coord{font-size:11px;color:var(--muted);margin-top:1px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
   .wmf-close{border:none;background:none;color:var(--muted);font-size:22px;line-height:1;cursor:pointer;padding:0 4px;flex-shrink:0}
   .wmf-close:hover{color:var(--poor)}
-  .wmf-wrap{overflow:auto;flex:1}
+  .wmf-wrap{overflow-y:auto;overflow-x:hidden;flex:1}
+  .wmf-tablewrap{overflow-x:auto}
   .wmf-table{width:100%;border-collapse:collapse;font-size:12px;min-width:680px}
   .wmf-table th{position:sticky;left:0;background:var(--panel);text-align:left;color:var(--muted);font-weight:600;font-size:11px;text-transform:none;letter-spacing:0;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
   .wmf-table td{padding:6px 8px;text-align:center;border-bottom:1px solid #eef2f6;white-space:nowrap;color:var(--ink)}
@@ -99,6 +100,15 @@
   .wmf-d{font-size:10px;color:var(--muted);display:block}
   .wmf-rate{display:inline-block;min-width:22px;color:#fff;font-weight:700;border-radius:6px;padding:2px 7px}
   .wmf-sky{font-size:15px}
+  .wmf-windrow td{padding:3px 8px}
+  .wmf-windcell{display:flex;flex-direction:column;align-items:center;gap:0}
+  .wmf-arrow{width:17px;height:17px;display:block;transform-origin:center center}
+  .wmf-ws{font-size:10px;color:var(--muted);line-height:1.1}
+  .wmf-chart{padding:9px 12px 2px}
+  .wmf-ctitle{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:3px}
+  .wmf-chart canvas{width:100%!important;height:104px!important}
+  .wmf-hl-h{color:#1b6ca8;margin-left:4px}
+  .wmf-hl-l{color:#c47f2e;margin-left:6px}
   .surfbox{margin:14px 0 4px}
   .surfhd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
   .surflink{font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;white-space:nowrap}

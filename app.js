@@ -752,13 +752,13 @@ function openWmForecast(ll){
     document.getElementById('wmfBody').innerHTML='<div class="pad" style="padding:14px;color:var(--muted);font-size:13px">Couldn’t load the forecast for this point — try another cell.</div>';
   });
 }
-function closeWmForecast(){ var b=document.getElementById('wmforecast'); if(b) b.hidden=true; wmfReq++; wmRestoreLock(); }
+function closeWmForecast(){ var b=document.getElementById('wmforecast'); if(b) b.hidden=true; wmfReq++; destroyWmCharts(); wmRestoreLock(); }
 // pan so the clicked point rises to the centre of the area above the forecast panel,
 // keeping it (and its popup) clear of the table. Relaxes the region lock for the pan.
 function wmCenterSelected(ll){
   if(!windMap) return;
   var size=windMap.getSize();
-  var panelFootprint=384;                 // forecast panel: ~320px table + 62px bottom offset
+  var panelFootprint=524;                 // forecast panel: ~460px (table + 2 charts) + 62px bottom offset
   var desiredY=Math.max(50,(size.y-panelFootprint)/2);
   var z=windMap.getZoom();
   windMap.setMaxBounds(null);             // relax the lock so the upward pan isn't clamped back
@@ -773,7 +773,67 @@ function wmHourCell(d, showDay){
   var day=showDay?('<span class="wmf-d">'+d.toLocaleDateString(undefined,{weekday:'short'})+'</span>'):'';
   return day+h12+ap;
 }
+// forecast-panel charts live in their own registry so they don't collide with the Conditions tab's
+var wmFcCharts={};
+function destroyWmCharts(){ for(var k in wmFcCharts){ try{wmFcCharts[k].destroy();}catch(e){} } wmFcCharts={}; }
+function hourLabel(t){ var d=new Date(t), h=d.getHours(), ap=h<12?'a':'p', h12=h%12; if(h12===0) h12=12; return h12+ap; }
+// a colour-coded arrow (colour = speed on the wind scale, pointing the way the wind blows) + the speed
+function windArrowCell(speed, dir){
+  if(speed==null||isNaN(speed)) return '<td>—</td>';
+  var rgb=colorAt(FIELDS.wind.colorScale, speed/FIELDS.wind.maxVelocity), col='rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
+  var rot=(dir!=null&&!isNaN(dir))?(dir+180)%360:0; // met dir is "from"; arrow points downwind
+  return '<td><div class="wmf-windcell">'+
+    '<svg class="wmf-arrow" viewBox="0 0 24 24" style="transform:rotate('+rot+'deg);color:'+col+'">'+
+    '<path d="M12 21 V4 M6 10 L12 3 L18 10" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+    '<span class="wmf-ws">'+fmt(speed,0)+'</span></div></td>';
+}
+// local maxima/minima of the tide series -> labelled high/low points
+function tidePeaks(times, vals){
+  var peaks=[];
+  for(var i=1;i<vals.length-1;i++){
+    if(vals[i]==null||vals[i-1]==null||vals[i+1]==null) continue;
+    if(vals[i]>vals[i-1] && vals[i]>=vals[i+1]) peaks.push({idx:i,type:'H',time:hourLabel(times[i])});
+    else if(vals[i]<vals[i-1] && vals[i]<=vals[i+1]) peaks.push({idx:i,type:'L',time:hourLabel(times[i])});
+  }
+  return peaks;
+}
+var wmTidePeaks={ id:'wmTidePeaks', afterDatasetsDraw:function(chart){
+  var peaks=chart.$peaks; if(!peaks||!peaks.length) return; var meta=chart.getDatasetMeta(0), ctx=chart.ctx, area=chart.chartArea;
+  ctx.save(); ctx.textAlign='center'; ctx.font='bold 9px sans-serif';
+  peaks.forEach(function(p){ var pt=meta.data[p.idx]; if(!pt) return; var isH=p.type==='H', c=isH?'#1b6ca8':'#c47f2e';
+    ctx.fillStyle=c; ctx.beginPath(); ctx.arc(pt.x,pt.y,3,0,2*Math.PI); ctx.fill();
+    var ly=isH?Math.max(area.top+8,pt.y-6):Math.min(area.bottom-3,pt.y+13);
+    ctx.fillText((isH?'H ':'L ')+p.time, pt.x, ly);
+  });
+  ctx.restore();
+}};
+function buildWmCharts(times, wh, mh, mIdx, start){
+  if(typeof Chart==='undefined') return;
+  var end=Math.min(times.length, start+49), L=[], swH=[], wvH=[], swP=[], wvP=[], tide=[], k;
+  for(k=start;k<end;k++){ var t=times[k], mk=mIdx[t]; L.push(t);
+    swH.push(mk!=null?mh.swell_wave_height[mk]:null); wvH.push(mk!=null?mh.wave_height[mk]:null);
+    swP.push(mk!=null?mh.swell_wave_period[mk]:null); wvP.push(mk!=null?mh.wave_period[mk]:null);
+    tide.push(mk!=null?mh.sea_level_height_msl[mk]:null);
+  }
+  var c1=document.getElementById('wmf-sw');
+  if(c1){ var o=baseOpts(); o.plugins.legend={display:true,labels:{boxWidth:10,font:{size:10}}};
+    o.plugins.tooltip.callbacks.afterLabel=function(ctx){ var p=(ctx.datasetIndex===0?swP:wvP)[ctx.dataIndex]; return (p==null)?'':('period '+fmt(p,0)+' s'); };
+    var ch=new Chart(c1.getContext('2d'),{type:'line',data:{labels:L,datasets:[
+      {label:'Swell',data:swH,borderColor:'#3b6fb0',backgroundColor:'#3b6fb022',borderWidth:2,pointRadius:0,tension:0.3,fill:true},
+      {label:'Waves',data:wvH,borderColor:'#2e7d6b',borderWidth:2,pointRadius:0,tension:0.3,fill:false}
+    ]},options:o,plugins:[axisExtras]});
+    ch.$times=L; ch.update('none'); wmFcCharts['sw']=ch;
+  }
+  var c2=document.getElementById('wmf-tide');
+  if(c2){ var o2=baseOpts();
+    var ch2=new Chart(c2.getContext('2d'),{type:'line',data:{labels:L,datasets:[
+      {label:'Tide',data:tide,borderColor:'#6a9bcc',backgroundColor:'#6a9bcc22',borderWidth:2,pointRadius:0,tension:0.4,fill:true}
+    ]},options:o2,plugins:[axisExtras,wmTidePeaks]});
+    ch2.$times=L; ch2.$peaks=tidePeaks(L,tide); ch2.update('none'); wmFcCharts['tide']=ch2;
+  }
+}
 function renderWmForecast(ll, wRes, mRes){
+  destroyWmCharts();
   var wh=wRes.hourly||{}, mh=mRes.hourly||{}, times=wh.time||[];
   if(!times.length){ document.getElementById('wmfBody').innerHTML='<div class="pad" style="padding:14px;color:var(--muted);font-size:13px">No forecast available here.</div>'; return; }
   var mIdx={}; (mh.time||[]).forEach(function(t,k){ mIdx[t]=k; });
@@ -781,32 +841,27 @@ function renderWmForecast(ll, wRes, mRes){
   for(i=0;i<times.length;i++){ if(new Date(times[i]).getTime()>=now-3600000){ start=i; break; } }
   var cols=[]; for(i=start;i<times.length && cols.length<16;i+=3){ cols.push(i); }
   var spot=nearestSpot(ll.lat, ll.lng), onshore=spot?spot.onshore:200;
-  function row(label, fn){ return '<tr><th>'+label+'</th>'+cols.map(fn).join('')+'</tr>'; }
+  function row(label, cls, fn){ return '<tr'+(cls?' class="'+cls+'"':'')+'><th>'+label+'</th>'+cols.map(fn).join('')+'</tr>'; }
   var prevDay=null;
   var timeRow='<tr class="wmf-time"><th>Time</th>'+cols.map(function(k){
     var d=new Date(times[k]), dk=d.getDate(), show=(dk!==prevDay); prevDay=dk; return '<td>'+wmHourCell(d, show)+'</td>';
   }).join('')+'</tr>';
-  var cell=function(get,suffix,dec){ return function(k){ var t=times[k], mk=mIdx[t], v=get(k,mk); return '<td>'+(v==null||isNaN(v)?'—':(fmt(v,dec)+(suffix||'')))+'</td>'; }; };
-  var H='<table class="wmf-table"><tbody>';
+  var H='<div class="wmf-tablewrap"><table class="wmf-table"><tbody>';
   H+=timeRow;
-  H+=row('Dive', function(k){
+  H+=row('Dive','',function(k){
     var t=times[k], mk=mIdx[t];
     var swH=(mk!=null)?mh.swell_wave_height[mk]:null, swP=(mk!=null)?mh.swell_wave_period[mk]:null;
     var wind=wh.wind_speed_10m?wh.wind_speed_10m[k]:null, wdir=wh.wind_direction_10m?wh.wind_direction_10m[k]:null;
     var rt=classify(swH, swP, wind, wdir, onshore, null, false), sc=DIVE_SCORE[rt.label]||0;
     return '<td><span class="wmf-rate" style="background:'+rt.col+'" title="'+rt.label+'">'+sc+'</span></td>';
   });
-  H+=row('Sky', function(k){ return '<td class="wmf-sky">'+weatherIcon(wh.weather_code?wh.weather_code[k]:null)+'</td>'; });
-  H+=row('Wind', function(k){
-    var w=wh.wind_speed_10m?wh.wind_speed_10m[k]:null, dr=wh.wind_direction_10m?wh.wind_direction_10m[k]:null;
-    return '<td>'+(w==null?'—':fmt(w,0))+(dr!=null?'<span class="wmf-d">'+compass(dr)+'</span>':'')+'</td>';
-  });
-  H+=row('Waves', cell(function(k,mk){ return (mk!=null)?mh.wave_height[mk]:null; }, ' m', 1));
-  H+=row('Period', cell(function(k,mk){ return (mk!=null)?mh.wave_period[mk]:null; }, ' s', 0));
-  H+=row('Swell', cell(function(k,mk){ return (mk!=null)?mh.swell_wave_height[mk]:null; }, ' m', 1));
-  H+=row('Tide', cell(function(k,mk){ return (mk!=null)?mh.sea_level_height_msl[mk]:null; }, ' m', 1));
-  H+='</tbody></table>';
+  H+=row('Sky','',function(k){ return '<td class="wmf-sky">'+weatherIcon(wh.weather_code?wh.weather_code[k]:null)+'</td>'; });
+  H+=row('Wind','wmf-windrow',function(k){ return windArrowCell(wh.wind_speed_10m?wh.wind_speed_10m[k]:null, wh.wind_direction_10m?wh.wind_direction_10m[k]:null); });
+  H+='</tbody></table></div>';
+  H+='<div class="wmf-chart"><div class="wmf-ctitle">Swell &amp; wave height (m)</div><canvas id="wmf-sw"></canvas></div>';
+  H+='<div class="wmf-chart"><div class="wmf-ctitle">Tide (m) &middot; <span class="wmf-hl-h">&#9679; high</span> <span class="wmf-hl-l">&#9679; low</span></div><canvas id="wmf-tide"></canvas></div>';
   document.getElementById('wmfBody').innerHTML=H;
+  buildWmCharts(times, wh, mh, mIdx, start);
 }
 
 /* ---- 2-day chlorophyll composite (stacked image overlays) ---- */
