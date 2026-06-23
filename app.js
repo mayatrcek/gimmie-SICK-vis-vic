@@ -425,7 +425,7 @@ var FIELDS={
 // kept to 2 models + a coarse grid to stay within Open-Meteo's free daily call budget.
 var WIND_MODELS=['gfs_seamless','ecmwf_ifs025'];        // NOAA + ECMWF
 var MARINE_MODELS=['gwam','meteofrance_wave'];          // DWD + Meteo-France
-var windMap, wmLayers={}, wmColorLayers={}, wmSpreadLayers={}, wmData={}, wmGridCache=null, wmActive='wind', wmReady=false, wmShown=false;
+var windMap, wmLayers={}, wmColorLayers={}, wmSpreadLayers={}, wmData={}, wmGridCache=null, wmActive='wind', wmReady=false, wmShown=false, wmLandMask=null;
 // time slider: raw per-model hourly data is fetched once, then scrubbed client-side
 var wmRaw={}, wmTimes=[], wmStep=0, wmCurHour=0, wmStepHours=1, wmStepCount=1, wmBuiltHour={}, wmStepTimer=null;
 function wmGrid(){
@@ -445,10 +445,15 @@ function initWindMap(){
     {attribution:'Basemap &copy; Esri; Wind/wave data: Open-Meteo',maxZoom:16}).addTo(windMap);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
     {maxZoom:19,opacity:0.9}).addTo(windMap).setZIndex(650);
-  // subtle land geography over the colour field: multiply leaves the (near-white) ocean colours
-  // untouched but greys the land, so coastlines/landforms show through for orientation
+  // land geography over the colour field: multiply leaves the (near-white) ocean colours untouched
+  // but greys the land, so coastlines/landforms show through for orientation (used for Wind)
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
-    {maxZoom:16, opacity:0.85, className:'wm-landshade'}).addTo(windMap).setZIndex(300);
+    {maxZoom:16, opacity:1, className:'wm-landshade'}).addTo(windMap).setZIndex(300);
+  // opaque grey land mask (transparent over ocean) shown only for Swell/Waves, so the colour can be
+  // extended to the coastline and land stays clean. Toggled per field in setWmField.
+  wmLandMask=L.tileLayer.wms('https://gibs.earthdata.nasa.gov/wms/epsg3857/best/wms.cgi',
+    {layers:'OSM_Land_Mask', format:'image/png', transparent:true, version:'1.3.0', opacity:0, className:'wm-landmask', attribution:''});
+  wmLandMask.addTo(windMap).setZIndex(400);
   L.control.scale({metric:true, imperial:false, position:'bottomright'}).addTo(windMap);
   windMap.on('click', function(e){ wmShowReadout(e.latlng); openWmForecast(e.latlng); wmCenterSelected(e.latlng); });
   renderWmLegend();
@@ -627,16 +632,33 @@ function wmFieldBounds(){
 // Windy-style shaded field that feathers out at the edges, under the particles.
 function buildFieldImage(key){
   var f=FIELDS[key], g=wmGridCache, data=wmData[key]; if(!g||!data) return null;
+  var mags=new Array(data.length), i;
+  for(i=0;i<data.length;i++){ var d=data[i]; mags[i]=(d&&d.mag!=null&&!isNaN(d.mag))?d.mag:null; }
+  // marine: extend colour over null (nearshore/land) cells so it reaches the coast; land is hidden by the mask
+  if(f.api==='marine') mags=fillNulls(mags, g.nx, g.ny);
   var w=g.nx+2, h=g.ny+2;
   var cv=document.createElement('canvas'); cv.width=w; cv.height=h;
   var ctx=cv.getContext('2d'), im=ctx.createImageData(w, h), px=im.data;
   for(var r=0;r<g.ny;r++){ for(var c=0;c<g.nx;c++){
-    var m=data[r*g.nx+c].mag; if(m==null||isNaN(m)) continue;
+    var m=mags[r*g.nx+c]; if(m==null) continue;
     var rgb=colorAt(f.colorScale, m/f.maxVelocity), o=((r+1)*w+(c+1))*4;
     px[o]=rgb[0]; px[o+1]=rgb[1]; px[o+2]=rgb[2]; px[o+3]=255;
   } }
   ctx.putImageData(im, 0, 0);
   return cv.toDataURL('image/png');
+}
+// fill null grid cells with the nearest valid cell's value (so a sparse field reaches the coast)
+function fillNulls(arr, nx, ny){
+  var out=arr.slice(), valid=[], i;
+  for(i=0;i<arr.length;i++) if(arr[i]!=null) valid.push(i);
+  if(!valid.length) return out;
+  for(i=0;i<arr.length;i++){
+    if(out[i]!=null) continue;
+    var r=Math.floor(i/nx), c=i%nx, best=valid[0], bd=Infinity;
+    for(var k=0;k<valid.length;k++){ var j=valid[k], dr=Math.floor(j/nx)-r, dc=(j%nx)-c, d=dr*dr+dc*dc; if(d<bd){ bd=d; best=j; } }
+    out[i]=arr[best];
+  }
+  return out;
 }
 function setWmField(key, force){
   if(!FIELDS[key]) return;
@@ -655,6 +677,7 @@ function setWmField(key, force){
     if(wmLayers[key] && !windMap.hasLayer(wmLayers[key])) wmLayers[key].addTo(windMap);
     if(wmSpreadLayers[key] && !windMap.hasLayer(wmSpreadLayers[key])) wmSpreadLayers[key].addTo(windMap);
   }
+  if(wmLandMask) wmLandMask.setOpacity(FIELDS[key].api==='marine' ? 1 : 0); // mask land for Swell/Waves only
   renderWmLegend();
 }
 function renderWmLegend(){

@@ -59,6 +59,7 @@
   .wm-seldot{display:block;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.55)}
   .wm-mapwrap{position:relative}
   .wm-landshade{mix-blend-mode:multiply}
+  .wm-landmask{filter:brightness(0) invert(0.82)}
   /* fullscreen wind-map tab: the map fills the whole viewport below the fixed tab bar */
   .wm-full{position:fixed;top:var(--tabh);left:0;right:0;bottom:0;z-index:400}
   .wm-full #windmap{height:100%;width:100%;border-radius:0;border:0;box-shadow:none}
