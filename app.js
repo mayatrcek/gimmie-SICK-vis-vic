@@ -406,6 +406,7 @@ function initMap(){
 // map's left/right edges; the visible/pannable area is locked to WM_BOUNDS below.
 var WINDMAP={lonMin:132.0, lonMax:159.0, latMin:-42.9, latMax:-33.0, step:1.5};
 var WM_BOUNDS=[[-41.7,140.6],[-34.0,150.4]]; // lock: Victoria + northern Tasmania
+var WM_HOME=[-38.10,144.83], WM_HOME_ZOOM=8; // default view: centred on Port Phillip Bay
 var DIVE_SCORE={Amazing:5, Good:4, Marginal:2, Poor:1};
 var FIELDS={
   wind:{label:'Wind', unit:'km/h', maxVelocity:65, velocityScale:0.0035, spreadHi:8, src:'GFS · ECMWF',
@@ -437,7 +438,7 @@ function wmJson(r){ return r.json(); }
 function wmNote(msg){ if(windMap) L.popup({closeButton:true,autoPan:true,className:'wm-popup'}).setLatLng(windMap.getCenter()).setContent('<div class="wm-pop">'+msg+'</div>').openOn(windMap); }
 function initWindMap(){
   if(!document.getElementById('windmap')) return;
-  windMap=L.map('windmap',{scrollWheelZoom:true,maxBounds:WM_BOUNDS,maxBoundsViscosity:1.0,minZoom:6,maxZoom:9}).fitBounds(WM_BOUNDS);
+  windMap=L.map('windmap',{scrollWheelZoom:true,maxBounds:WM_BOUNDS,maxBoundsViscosity:1.0,minZoom:6,maxZoom:9}).setView(WM_HOME, WM_HOME_ZOOM);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     {attribution:'Imagery &copy; Esri, Maxar, Earthstar Geographics; Wind/wave data: Open-Meteo',maxZoom:19}).addTo(windMap);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
@@ -737,7 +738,7 @@ function wmCenterSelected(ll){
   windMap.panTo(newCenter,{animate:true});
 }
 // re-apply the Victoria + N Tasmania lock and snap the view back to it
-function wmRestoreLock(){ if(windMap){ windMap.setMaxBounds(WM_BOUNDS); windMap.fitBounds(WM_BOUNDS,{animate:true}); } }
+function wmRestoreLock(){ if(windMap){ windMap.setMaxBounds(WM_BOUNDS); windMap.panInsideBounds(WM_BOUNDS,{animate:true}); } }
 function wmHourCell(d, showDay){
   var h=d.getHours(), ap=h<12?'a':'p', h12=h%12; if(h12===0) h12=12;
   var day=showDay?('<span class="wmf-d">'+d.toLocaleDateString(undefined,{weekday:'short'})+'</span>'):'';
@@ -1250,7 +1251,7 @@ function showTab(t){
   document.getElementById('btn-about').classList.toggle('active',t==='about');
   document.getElementById('btn-feedback').classList.toggle('active',t==='feedback');
   if(t==='conditions'){ setTimeout(function(){ try{map.invalidateSize();}catch(e){} },60); }
-  if(t==='windmap'){ setTimeout(function(){ try{ windMap.invalidateSize(); if(!wmShown){ wmShown=true; windMap.fitBounds(WM_BOUNDS); loadWindFields(); } }catch(e){} },80); }
+  if(t==='windmap'){ setTimeout(function(){ try{ windMap.invalidateSize(); if(!wmShown){ wmShown=true; windMap.setView(WM_HOME, WM_HOME_ZOOM); loadWindFields(); } }catch(e){} },80); }
   if(t==='live'){ loadLiveTab(); setTimeout(function(){ try{compMap.invalidateSize();}catch(e){} fitLiveEmbed(); },60); }
   if(t==='geo'){ setTimeout(function(){ try{geoMap.invalidateSize();}catch(e){} if(!geoBasesAdded){geoBasesAdded=true; addGeoBase(geoMap,'habitat.png',habitatLayer,0.62,250); addGeoBase(geoMap,'contours.png',contourLayer,0.95,255);} if(!('IntersectionObserver' in window)){ try{bathyMap.invalidateSize();}catch(e){} } },60); }
 }
