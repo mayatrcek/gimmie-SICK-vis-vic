@@ -807,28 +807,45 @@ var wmTidePeaks={ id:'wmTidePeaks', afterDatasetsDraw:function(chart){
   });
   ctx.restore();
 }};
-function buildWmCharts(times, wh, mh, mIdx, start){
+// vertical "now" line + day separators, no axis labels (the table's Time row is the shared axis)
+var wmFcAxis={ id:'wmFcAxis', afterDraw:function(chart){
+  var times=chart.$times; if(!times||!times.length) return; var ctx=chart.ctx, area=chart.chartArea, pts=chart.getDatasetMeta(0).data; if(!pts||!pts.length) return;
+  ctx.save();
+  for(var i=1;i<times.length;i++){ if(new Date(times[i-1]).getDate()!==new Date(times[i]).getDate() && pts[i]){ ctx.strokeStyle='#e2e8ee'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pts[i].x,area.top); ctx.lineTo(pts[i].x,area.bottom); ctx.stroke(); } }
+  var f=nearestFrac(times);
+  if(f!=null){ var lo=Math.floor(f), hi=Math.min(lo+1,pts.length-1); var x=pts[lo].x+(f-lo)*(pts[hi].x-pts[lo].x);
+    ctx.strokeStyle='#d9534f'; ctx.lineWidth=1.4; ctx.setLineDash([4,3]); ctx.beginPath(); ctx.moveTo(x,area.top); ctx.lineTo(x,area.bottom); ctx.stroke(); }
+  ctx.restore();
+}};
+// chart options that keep the plot full-width (y labels mirrored inside) so it aligns with the table columns
+function wmFcOpts(p1, p2){
+  return {responsive:true,maintainAspectRatio:false,layout:{padding:{top:3,right:3,bottom:3,left:0}},interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{callbacks:{
+      title:function(items){ var t=items[0].chart.$times[items[0].dataIndex], d=new Date(t); return d.toLocaleDateString(undefined,{weekday:'short'})+' '+d.toLocaleTimeString(undefined,{hour:'numeric'}); },
+      afterLabel:(p1?function(ctx){ var p=(ctx.datasetIndex===0?p1:p2)[ctx.dataIndex]; return (p==null)?'':('period '+fmt(p,0)+' s'); }:undefined)
+    }}},
+    scales:{ x:{type:'category',offset:true,ticks:{display:false},grid:{display:false},border:{display:false}},
+      y:{ticks:{mirror:true,maxTicksLimit:3,font:{size:9},color:'#7a8794',padding:0,z:1},grid:{color:'#eef2f6'},border:{display:false}} }};
+}
+function buildWmCharts(times, wh, mh, mIdx, cols){
   if(typeof Chart==='undefined') return;
-  var end=Math.min(times.length, start+49), L=[], swH=[], wvH=[], swP=[], wvP=[], tide=[], k;
-  for(k=start;k<end;k++){ var t=times[k], mk=mIdx[t]; L.push(t);
+  var L=[], swH=[], wvH=[], swP=[], wvP=[], tide=[];
+  cols.forEach(function(k){ var t=times[k], mk=mIdx[t]; L.push(t);
     swH.push(mk!=null?mh.swell_wave_height[mk]:null); wvH.push(mk!=null?mh.wave_height[mk]:null);
     swP.push(mk!=null?mh.swell_wave_period[mk]:null); wvP.push(mk!=null?mh.wave_period[mk]:null);
     tide.push(mk!=null?mh.sea_level_height_msl[mk]:null);
-  }
+  });
   var c1=document.getElementById('wmf-sw');
-  if(c1){ var o=baseOpts(); o.plugins.legend={display:true,labels:{boxWidth:10,font:{size:10}}};
-    o.plugins.tooltip.callbacks.afterLabel=function(ctx){ var p=(ctx.datasetIndex===0?swP:wvP)[ctx.dataIndex]; return (p==null)?'':('period '+fmt(p,0)+' s'); };
-    var ch=new Chart(c1.getContext('2d'),{type:'line',data:{labels:L,datasets:[
-      {label:'Swell',data:swH,borderColor:'#3b6fb0',backgroundColor:'#3b6fb022',borderWidth:2,pointRadius:0,tension:0.3,fill:true},
-      {label:'Waves',data:wvH,borderColor:'#2e7d6b',borderWidth:2,pointRadius:0,tension:0.3,fill:false}
-    ]},options:o,plugins:[axisExtras]});
+  if(c1){ var ch=new Chart(c1.getContext('2d'),{type:'line',data:{labels:L,datasets:[
+      {label:'Swell',data:swH,borderColor:'#3b6fb0',backgroundColor:'#3b6fb022',borderWidth:2,pointRadius:0,tension:0.35,fill:true},
+      {label:'Waves',data:wvH,borderColor:'#2e7d6b',borderWidth:2,pointRadius:0,tension:0.35}
+    ]},options:wmFcOpts(swP,wvP),plugins:[wmFcAxis]});
     ch.$times=L; ch.update('none'); wmFcCharts['sw']=ch;
   }
   var c2=document.getElementById('wmf-tide');
-  if(c2){ var o2=baseOpts();
-    var ch2=new Chart(c2.getContext('2d'),{type:'line',data:{labels:L,datasets:[
+  if(c2){ var ch2=new Chart(c2.getContext('2d'),{type:'line',data:{labels:L,datasets:[
       {label:'Tide',data:tide,borderColor:'#6a9bcc',backgroundColor:'#6a9bcc22',borderWidth:2,pointRadius:0,tension:0.4,fill:true}
-    ]},options:o2,plugins:[axisExtras,wmTidePeaks]});
+    ]},options:wmFcOpts(),plugins:[wmFcAxis,wmTidePeaks]});
     ch2.$times=L; ch2.$peaks=tidePeaks(L,tide); ch2.update('none'); wmFcCharts['tide']=ch2;
   }
 }
@@ -846,7 +863,7 @@ function renderWmForecast(ll, wRes, mRes){
   var timeRow='<tr class="wmf-time"><th>Time</th>'+cols.map(function(k){
     var d=new Date(times[k]), dk=d.getDate(), show=(dk!==prevDay); prevDay=dk; return '<td>'+wmHourCell(d, show)+'</td>';
   }).join('')+'</tr>';
-  var H='<div class="wmf-tablewrap"><table class="wmf-table"><tbody>';
+  var H='<div class="wmf-grid"><table class="wmf-table"><tbody>';
   H+=timeRow;
   H+=row('Dive','',function(k){
     var t=times[k], mk=mIdx[t];
@@ -857,11 +874,12 @@ function renderWmForecast(ll, wRes, mRes){
   });
   H+=row('Sky','',function(k){ return '<td class="wmf-sky">'+weatherIcon(wh.weather_code?wh.weather_code[k]:null)+'</td>'; });
   H+=row('Wind','wmf-windrow',function(k){ return windArrowCell(wh.wind_speed_10m?wh.wind_speed_10m[k]:null, wh.wind_direction_10m?wh.wind_direction_10m[k]:null); });
-  H+='</tbody></table></div>';
-  H+='<div class="wmf-chart"><div class="wmf-ctitle">Swell &amp; wave height (m)</div><canvas id="wmf-sw"></canvas></div>';
-  H+='<div class="wmf-chart"><div class="wmf-ctitle">Tide (m) &middot; <span class="wmf-hl-h">&#9679; high</span> <span class="wmf-hl-l">&#9679; low</span></div><canvas id="wmf-tide"></canvas></div>';
+  H+='</tbody></table>';
+  H+='<div class="wmf-crow"><div class="wmf-clabel">Swell <i style="color:#3b6fb0">&#9679;</i><br>Waves <i style="color:#2e7d6b">&#9679;</i></div><div class="wmf-cbox"><canvas id="wmf-sw"></canvas></div></div>';
+  H+='<div class="wmf-crow"><div class="wmf-clabel">Tide</div><div class="wmf-cbox"><canvas id="wmf-tide"></canvas></div></div>';
+  H+='</div>';
   document.getElementById('wmfBody').innerHTML=H;
-  buildWmCharts(times, wh, mh, mIdx, start);
+  buildWmCharts(times, wh, mh, mIdx, cols);
 }
 
 /* ---- 2-day chlorophyll composite (stacked image overlays) ---- */
