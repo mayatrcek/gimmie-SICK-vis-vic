@@ -445,6 +445,10 @@ function initWindMap(){
     {attribution:'Basemap &copy; Esri; Wind/wave data: Open-Meteo',maxZoom:16}).addTo(windMap);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
     {maxZoom:19,opacity:0.9}).addTo(windMap).setZIndex(650);
+  // subtle land geography over the colour field: multiply leaves the (near-white) ocean colours
+  // untouched but greys the land, so coastlines/landforms show through for orientation
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    {maxZoom:16, opacity:0.85, className:'wm-landshade'}).addTo(windMap).setZIndex(300);
   L.control.scale({metric:true, imperial:false, position:'bottomright'}).addTo(windMap);
   windMap.on('click', function(e){ wmShowReadout(e.latlng); openWmForecast(e.latlng); wmCenterSelected(e.latlng); });
   renderWmLegend();
