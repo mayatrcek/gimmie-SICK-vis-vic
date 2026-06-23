@@ -439,8 +439,10 @@ function wmNote(msg){ if(windMap) L.popup({closeButton:true,autoPan:true,classNa
 function initWindMap(){
   if(!document.getElementById('windmap')) return;
   windMap=L.map('windmap',{scrollWheelZoom:true,maxBounds:WM_BOUNDS,maxBoundsViscosity:1.0,minZoom:6,maxZoom:9}).setView(WM_HOME, WM_HOME_ZOOM);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    {attribution:'Imagery &copy; Esri, Maxar, Earthstar Geographics; Wind/wave data: Open-Meteo',maxZoom:19}).addTo(windMap);
+  // flat land/ocean canvas (no satellite): land reads as grey, ocean as pale grey, so for the
+  // marine fields only the water gets colour-coded and land stays neutral underneath
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    {attribution:'Basemap &copy; Esri; Wind/wave data: Open-Meteo',maxZoom:16}).addTo(windMap);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
     {maxZoom:19,opacity:0.9}).addTo(windMap).setZIndex(650);
   L.control.scale({metric:true, imperial:false, position:'bottomright'}).addTo(windMap);
@@ -496,7 +498,7 @@ function wmRebuildField(key){
   var url=buildFieldImage(key), bounds=wmFieldBounds();
   if(url){
     if(wmColorLayers[key]){ wmColorLayers[key].setBounds(L.latLngBounds(bounds)); wmColorLayers[key].setUrl(url); }
-    else { wmColorLayers[key]=L.imageOverlay(url, bounds, {opacity:0.6, pane:'tilePane', interactive:false}); wmColorLayers[key].setZIndex(200); }
+    else { wmColorLayers[key]=L.imageOverlay(url, bounds, {opacity:1, pane:'tilePane', interactive:false}); wmColorLayers[key].setZIndex(200); }
   }
   var wasOn = wmSpreadLayers[key] && windMap.hasLayer(wmSpreadLayers[key]);
   if(wasOn) windMap.removeLayer(wmSpreadLayers[key]);
