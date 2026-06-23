@@ -443,7 +443,7 @@ function initWindMap(){
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
     {maxZoom:19,opacity:0.9}).addTo(windMap).setZIndex(650);
   L.control.scale({metric:true, imperial:false, position:'bottomright'}).addTo(windMap);
-  windMap.on('click', function(e){ wmShowReadout(e.latlng); openWmForecast(e.latlng); });
+  windMap.on('click', function(e){ wmShowReadout(e.latlng); openWmForecast(e.latlng); wmCenterSelected(e.latlng); });
   renderWmLegend();
   // data is fetched lazily the first time the Wind map tab is opened (see showTab)
 }
@@ -722,7 +722,22 @@ function openWmForecast(ll){
     document.getElementById('wmfBody').innerHTML='<div class="pad" style="padding:14px;color:var(--muted);font-size:13px">Couldn’t load the forecast for this point — try another cell.</div>';
   });
 }
-function closeWmForecast(){ var b=document.getElementById('wmforecast'); if(b) b.hidden=true; wmfReq++; }
+function closeWmForecast(){ var b=document.getElementById('wmforecast'); if(b) b.hidden=true; wmfReq++; wmRestoreLock(); }
+// pan so the clicked point rises to the centre of the area above the forecast panel,
+// keeping it (and its popup) clear of the table. Relaxes the region lock for the pan.
+function wmCenterSelected(ll){
+  if(!windMap) return;
+  var size=windMap.getSize();
+  var panelFootprint=384;                 // forecast panel: ~320px table + 62px bottom offset
+  var desiredY=Math.max(50,(size.y-panelFootprint)/2);
+  var z=windMap.getZoom();
+  windMap.setMaxBounds(null);             // relax the lock so the upward pan isn't clamped back
+  var ptPx=windMap.project(ll,z), cur=windMap.latLngToContainerPoint(ll);
+  var newCenter=windMap.unproject(ptPx.add(size.divideBy(2)).subtract(L.point(cur.x,desiredY)),z);
+  windMap.panTo(newCenter,{animate:true});
+}
+// re-apply the Victoria + N Tasmania lock and snap the view back to it
+function wmRestoreLock(){ if(windMap){ windMap.setMaxBounds(WM_BOUNDS); windMap.fitBounds(WM_BOUNDS,{animate:true}); } }
 function wmHourCell(d, showDay){
   var h=d.getHours(), ap=h<12?'a':'p', h12=h%12; if(h12===0) h12=12;
   var day=showDay?('<span class="wmf-d">'+d.toLocaleDateString(undefined,{weekday:'short'})+'</span>'):'';
