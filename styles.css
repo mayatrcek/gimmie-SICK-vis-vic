@@ -108,6 +108,9 @@
   .wmf-clabel{flex:0 0 62px;box-sizing:border-box;padding:6px 10px;font-size:11px;font-weight:600;color:var(--muted);
     display:flex;flex-direction:column;justify-content:center;line-height:1.4;white-space:nowrap}
   .wmf-clabel i{font-style:normal}
+  .wmf-leg{display:flex;align-items:center;gap:5px;font-weight:700;font-size:11px}
+  .wmf-leg+.wmf-leg{margin-top:4px}
+  .wmf-leg i{width:13px;height:3px;border-radius:2px;flex:0 0 13px}
   .wmf-cbox{flex:1;min-width:0;padding:3px 0 2px 0}
   .wmf-cbox canvas{width:100%!important;height:94px!important}
   .surfbox{margin:14px 0 4px}

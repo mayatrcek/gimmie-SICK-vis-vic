@@ -821,7 +821,7 @@ var wmFcAxis={ id:'wmFcAxis', afterDraw:function(chart){
 }};
 // chart options: y-axis hidden so the plot fills the canvas and lines up exactly with the table columns
 function wmFcOpts(p1, p2){
-  return {responsive:true,maintainAspectRatio:false,layout:{padding:{top:3,right:1,bottom:3,left:0}},interaction:{mode:'index',intersect:false},
+  return {responsive:true,maintainAspectRatio:false,layout:{padding:{top:3,right:1,bottom:3,left:9}},interaction:{mode:'index',intersect:false},
     plugins:{legend:{display:false},tooltip:{callbacks:{
       title:function(items){ var t=items[0].chart.$times[items[0].dataIndex], d=new Date(t); return d.toLocaleDateString(undefined,{weekday:'short'})+' '+d.toLocaleTimeString(undefined,{hour:'numeric'}); },
       afterLabel:(p1?function(ctx){ var p=(ctx.datasetIndex===0?p1:p2)[ctx.dataIndex]; return (p==null)?'':('period '+fmt(p,0)+' s'); }:undefined)
@@ -877,7 +877,7 @@ function renderWmForecast(ll, wRes, mRes){
   H+=row('Sky','',function(k){ return '<td class="wmf-sky">'+weatherIcon(wh.weather_code?wh.weather_code[k]:null)+'</td>'; });
   H+=row('Wind','wmf-windrow',function(k){ return windArrowCell(wh.wind_speed_10m?wh.wind_speed_10m[k]:null, wh.wind_direction_10m?wh.wind_direction_10m[k]:null); });
   H+='</tbody></table>';
-  H+='<div class="wmf-crow"><div class="wmf-clabel">Swell <i style="color:#3b6fb0">&#9679;</i><br>Waves <i style="color:#2e7d6b">&#9679;</i></div><div class="wmf-cbox"><canvas id="wmf-sw"></canvas></div></div>';
+  H+='<div class="wmf-crow"><div class="wmf-clabel"><span class="wmf-leg" style="color:#3b6fb0"><i style="background:#3b6fb0"></i>Swell</span><span class="wmf-leg" style="color:#2e7d6b"><i style="background:#2e7d6b"></i>Waves</span></div><div class="wmf-cbox"><canvas id="wmf-sw"></canvas></div></div>';
   H+='<div class="wmf-crow"><div class="wmf-clabel">Tide</div><div class="wmf-cbox"><canvas id="wmf-tide"></canvas></div></div>';
   H+='</div>';
   document.getElementById('wmfBody').innerHTML=H;
