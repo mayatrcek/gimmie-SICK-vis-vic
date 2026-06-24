@@ -696,23 +696,12 @@ function wmNearestIdx(ll){
   return r*g.nx+c;
 }
 var wmSelDot=null;
-function wmDotIcon(){ return L.divIcon({className:'wm-seldot-wrap',html:'<span class="wm-seldot"></span>',iconSize:[14,14],iconAnchor:[7,7]}); }
-// drop/move a dot at the clicked point and float a small popup just above it
+function wmDotIcon(){ return L.divIcon({className:'wm-seldot-wrap',html:'<span class="wm-seldot"></span>',iconSize:[24,24],iconAnchor:[12,12]}); }
+// drop/move the selection dot at the clicked point (the values live in the forecast panel)
 function wmShowReadout(ll){
   if(!wmReady) return;
-  var idx=wmNearestIdx(ll); if(idx<0) return;
-  var w=wmData.wind[idx]||{}, sw=wmData.swell[idx]||{}, wv=wmData.waves[idx]||{};
-  var agree=w.n?('<div class="wm-pop-agree">avg of '+w.n+' models &middot; spread &plusmn;'+fmt(w.spread,0)+' km/h</div>'):'';
-  var html='<div class="wm-pop">'+
-    '<div class="wm-pop-ttl">'+ll.lat.toFixed(2)+', '+ll.lng.toFixed(2)+'</div>'+
-    '<div class="wm-pop-wind">'+ICON.wind+'wind <b>'+fmt(w.mag,0)+' km/h</b>'+(w.dir!=null?' '+compass(w.dir):'')+'</div>'+
-    '<div>'+ICON.wave+'swell '+fmt(sw.mag,1)+' m'+(sw.dir!=null?' '+compass(sw.dir):'')+'</div>'+
-    '<div style="padding-left:2px">waves '+fmt(wv.mag,1)+' m'+(wv.dir!=null?' '+compass(wv.dir):'')+'</div>'+
-    agree+
-    '</div>';
   if(!wmSelDot) wmSelDot=L.marker(ll,{icon:wmDotIcon(),interactive:false,keyboard:false,zIndexOffset:1000}).addTo(windMap);
   else wmSelDot.setLatLng(ll);
-  L.popup({closeButton:false, autoPan:false, className:'wm-popup', offset:[0,-8]}).setLatLng(ll).setContent(html).openOn(windMap);
 }
 // nearest known dive site -> borrow its onshore bearing so the off-spot dive rating is sensible
 function nearestSpot(lat,lon){
@@ -761,9 +750,9 @@ function wmCenterSelected(ll){
   var panelFootprint=524;                 // forecast panel: ~460px (table + 2 charts) + 62px bottom offset
   var desiredY=Math.max(50,(size.y-panelFootprint)/2);
   var z=windMap.getZoom();
-  windMap.setMaxBounds(null);             // relax the lock so the upward pan isn't clamped back
-  var ptPx=windMap.project(ll,z), cur=windMap.latLngToContainerPoint(ll);
-  var newCenter=windMap.unproject(ptPx.add(size.divideBy(2)).subtract(L.point(cur.x,desiredY)),z);
+  windMap.setMaxBounds(null);             // relax the lock so the centring pan isn't clamped back
+  var ptPx=windMap.project(ll,z);
+  var newCenter=windMap.unproject(ptPx.add(size.divideBy(2)).subtract(L.point(size.x/2,desiredY)),z);
   windMap.panTo(newCenter,{animate:true});
 }
 // re-apply the Victoria + N Tasmania lock and snap the view back to it
