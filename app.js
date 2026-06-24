@@ -398,6 +398,481 @@ function initMap(){
   /* markers are added dynamically as the user picks locations */
 }
 
+/* ---- Custom wind / swell / wave map (replaces the Windy embed) ----
+   Samples a lattice of points over the dive coast from Open-Meteo, converts each
+   magnitude+direction to U/V components, and animates particles with leaflet-velocity.
+   Three switchable fields (Wind, Swell, Waves); only the active one is on the map. */
+// Sampling grid runs wide (W of SA to the Tasman) so the particle field reaches the
+// map's left/right edges; the visible/pannable area is locked to WM_BOUNDS below.
+var WINDMAP={lonMin:132.0, lonMax:159.0, latMin:-42.9, latMax:-33.0, step:1.5};
+var WM_BOUNDS=[[-41.7,140.6],[-34.0,150.4]]; // lock: Victoria + northern Tasmania
+var WM_HOME=[-38.10,144.83], WM_HOME_ZOOM=8; // default view: centred on Port Phillip Bay
+var DIVE_SCORE={Amazing:5, Good:4, Marginal:2, Poor:1};
+var FIELDS={
+  wind:{label:'Wind', unit:'km/h', maxVelocity:65, velocityScale:0.0035, spreadHi:8, src:'GFS · ECMWF',
+        colorScale:['#4a7fb5','#5cc6c9','#7ed957','#f4e04d','#f0a93b','#e8553a','#b23aa8'],
+        legend:['0','15','30','45','60+'],
+        api:'weather', mag:'wind_speed_10m', dir:'wind_direction_10m'},
+  swell:{label:'Swell', unit:'m', maxVelocity:4, velocityScale:0.03, spreadHi:0.6, src:'gwam · Météo-France',
+         colorScale:['#3b6fb0','#4aa9d8','#5cc6a8','#a8d96b','#f4d24d','#f0923b'],
+         legend:['0','1','2','3','4+'],
+         api:'marine', mag:'swell_wave_height', dir:'swell_wave_direction'},
+  waves:{label:'Waves', unit:'m', maxVelocity:5, velocityScale:0.025, spreadHi:0.7, src:'gwam · Météo-France',
+         colorScale:['#2c7fb8','#41b6c4','#7fcdbb','#c7e9b4','#f4e04d','#f0a93b','#e8553a'],
+         legend:['0','1','2','3','4','5+'],
+         api:'marine', mag:'wave_height', dir:'wave_direction'}};
+// each field is averaged across a couple of forecast models (a multi-source ensemble).
+// kept to 2 models + a coarse grid to stay within Open-Meteo's free daily call budget.
+var WIND_MODELS=['gfs_seamless','ecmwf_ifs025'];        // NOAA + ECMWF
+var MARINE_MODELS=['gwam','meteofrance_wave'];          // DWD + Meteo-France
+var windMap, wmLayers={}, wmColorLayers={}, wmSpreadLayers={}, wmData={}, wmGridCache=null, wmActive='wind', wmReady=false, wmShown=false, wmLandMask=null;
+// time slider: raw per-model hourly data is fetched once, then scrubbed client-side
+var wmRaw={}, wmTimes=[], wmStep=0, wmCurHour=0, wmStepHours=1, wmStepCount=1, wmBuiltHour={}, wmStepTimer=null;
+function wmGrid(){
+  var W=WINDMAP, nx=Math.round((W.lonMax-W.lonMin)/W.step)+1, ny=Math.round((W.latMax-W.latMin)/W.step)+1, pts=[];
+  for(var r=0;r<ny;r++){ var lat=+(W.latMax-r*W.step).toFixed(4); for(var c=0;c<nx;c++){ pts.push([lat, +(W.lonMin+c*W.step).toFixed(4)]); } }
+  return {nx:nx, ny:ny, pts:pts};
+}
+function wmAsArr(x){ return Array.isArray(x)?x:[x]; }
+function wmJson(r){ return r.json(); }
+function wmNote(msg){ if(windMap) L.popup({closeButton:true,autoPan:true,className:'wm-popup'}).setLatLng(windMap.getCenter()).setContent('<div class="wm-pop">'+msg+'</div>').openOn(windMap); }
+function initWindMap(){
+  if(!document.getElementById('windmap')) return;
+  windMap=L.map('windmap',{scrollWheelZoom:true,maxBounds:WM_BOUNDS,maxBoundsViscosity:1.0,minZoom:6,maxZoom:9}).setView(WM_HOME, WM_HOME_ZOOM);
+  // flat land/ocean canvas (no satellite): land reads as grey, ocean as pale grey, so for the
+  // marine fields only the water gets colour-coded and land stays neutral underneath
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    {attribution:'Basemap &copy; Esri; Wind/wave data: Open-Meteo',maxZoom:16}).addTo(windMap);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+    {maxZoom:19,opacity:0.9}).addTo(windMap).setZIndex(650);
+  // land geography over the colour field: multiply leaves the (near-white) ocean colours untouched
+  // but greys the land, so coastlines/landforms show through for orientation (used for Wind)
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    {maxZoom:16, opacity:1, className:'wm-landshade'}).addTo(windMap).setZIndex(300);
+  // opaque grey land mask (transparent over ocean) shown only for Swell/Waves, so the colour can be
+  // extended to the coastline and land stays clean. Toggled per field in setWmField.
+  wmLandMask=L.tileLayer.wms('https://gibs.earthdata.nasa.gov/wms/epsg3857/best/wms.cgi',
+    {layers:'OSM_Land_Mask', format:'image/png', transparent:true, version:'1.3.0', opacity:0, className:'wm-landmask', attribution:''});
+  wmLandMask.addTo(windMap).setZIndex(400);
+  L.control.scale({metric:true, imperial:false, position:'bottomright'}).addTo(windMap);
+  windMap.on('click', function(e){ wmShowReadout(e.latlng); openWmForecast(e.latlng); wmCenterSelected(e.latlng); });
+  renderWmLegend();
+  // data is fetched lazily the first time the Wind map tab is opened (see showTab)
+}
+function loadWindFields(){
+  if(!windMap) return;
+  if(typeof L.velocityLayer!=='function'){ wmNote('Wind animation couldn’t load — check your connection and Reload.'); return; }
+  var g=wmGrid(); wmGridCache=g;
+  var lats=[], lons=[]; g.pts.forEach(function(p){ lats.push(p[0]); lons.push(p[1]); });
+  var ll='latitude='+lats.join(',')+'&longitude='+lons.join(',');
+  function getJson(url){ return fetch(url).then(wmJson).catch(function(){ return null; }); }
+  // one request per API, both models in it (hourly + models=); 7 forecast days stays in the cheap call tier
+  var wUrl=WEATHER+'?'+ll+'&hourly=wind_speed_10m,wind_direction_10m&models='+WIND_MODELS.join(',')+'&forecast_days=7&timezone='+TZ;
+  var mUrl=MARINE+'?'+ll+'&hourly=wave_height,wave_direction,swell_wave_height,swell_wave_direction&models='+MARINE_MODELS.join(',')+'&forecast_days=7&timezone='+TZ;
+  Promise.all([getJson(wUrl), getJson(mUrl)]).then(function(res){
+    var wArr=res[0]&&wmAsArr(res[0]), mArr=res[1]&&wmAsArr(res[1]);
+    if(!wArr||!wArr.length||!wArr[0].hourly){ wmNote('Couldn’t load the wind field — try again later.'); return; }
+    wmRaw.wind = buildHourly(wArr, WIND_MODELS, 'wind_speed_10m', 'wind_direction_10m');
+    if(mArr && mArr.length && mArr[0].hourly){
+      wmRaw.waves = buildHourly(mArr, MARINE_MODELS, 'wave_height', 'wave_direction');
+      wmRaw.swell = buildHourly(mArr, MARINE_MODELS, 'swell_wave_height', 'swell_wave_direction');
+    } else { wmRaw.waves=null; wmRaw.swell=null; }
+    wmTimes = wArr[0].hourly.time || [];
+    wmInitSlider();
+    Object.keys(FIELDS).forEach(function(k){ if(wmRaw[k]) wmRebuildField(k); });
+    wmReady=true; setWmField(wmActive, true);
+  }).catch(function(){ wmNote('Couldn’t load the wind field — try again later.'); });
+}
+// reshape a multi-model hourly response into [model][cell]{mag:[hourly], dir:[hourly]}
+function buildHourly(arr, models, magKey, dirKey){
+  return models.map(function(m){
+    return arr.map(function(el){
+      var h=(el&&el.hourly)||{};
+      return { mag: h[magKey+'_'+m]||[], dir: h[dirKey+'_'+m]||[] };
+    });
+  });
+}
+// per-model {mag,dir} samples for one timestep, ready for averageModels()
+function modelsAtStep(key, hourIdx){
+  return (wmRaw[key]||[]).map(function(modelCells){
+    return modelCells.map(function(cell){ return {mag: cell.mag[hourIdx], dir: cell.dir[hourIdx]}; });
+  });
+}
+// (re)build one field's averaged data + layers at the currently selected hour
+function wmRebuildField(key){
+  var g=wmGridCache; if(!g||!wmRaw[key]) return;
+  wmData[key]=averageModels(modelsAtStep(key, wmCurHour));
+  var d=toVelocityData(wmData[key], g.nx, g.ny);
+  if(wmLayers[key]) wmLayers[key].setData(d); else wmLayers[key]=makeVelocityLayer(key, d);
+  var url=buildFieldImage(key), bounds=wmFieldBounds();
+  if(url){
+    if(wmColorLayers[key]){ wmColorLayers[key].setBounds(L.latLngBounds(bounds)); wmColorLayers[key].setUrl(url); }
+    else { wmColorLayers[key]=L.imageOverlay(url, bounds, {opacity:1, pane:'tilePane', interactive:false}); wmColorLayers[key].setZIndex(200); }
+  }
+  var wasOn = wmSpreadLayers[key] && windMap.hasLayer(wmSpreadLayers[key]);
+  if(wasOn) windMap.removeLayer(wmSpreadLayers[key]);
+  wmSpreadLayers[key]=buildSpreadLayer(key);
+  if(wasOn && wmSpreadLayers[key]) wmSpreadLayers[key].addTo(windMap);
+  wmBuiltHour[key]=wmCurHour;
+}
+function wmInitSlider(){
+  var n=wmTimes.length; if(!n) return;
+  wmStepCount=Math.floor((n-1)/wmStepHours)+1;
+  var now=Date.now(), best=0, bd=Infinity;
+  for(var s=0;s<wmStepCount;s++){ var t=new Date(wmTimes[s*wmStepHours]).getTime(); var dd=Math.abs(t-now); if(dd<bd){ bd=dd; best=s; } }
+  wmStep=best; wmCurHour=best*wmStepHours;
+  var sl=document.getElementById('wmTime'); if(sl){ sl.min=0; sl.max=wmStepCount-1; sl.value=wmStep; }
+  wmBuildDayLabels();
+  updateWmTimeLabel();
+}
+// a label per forecast day under the slider, each cell spanning that day's 24h
+function wmBuildDayLabels(){
+  var el=document.getElementById('wmTimeDays'); if(!el||!wmTimes.length) return;
+  var nDays=Math.ceil(wmTimes.length/24), html='', today=new Date(); today.setHours(0,0,0,0);
+  for(var d=0;d<nDays;d++){
+    var dt=new Date(wmTimes[Math.min(d*24, wmTimes.length-1)]); var dd=new Date(dt); dd.setHours(0,0,0,0);
+    var diff=Math.round((dd-today)/86400000);
+    var lbl = diff===0 ? 'Today' : (diff===1 ? 'Tmrw' : dt.toLocaleDateString(undefined,{weekday:'short'})+' '+dt.getDate());
+    html+='<span class="wm-day">'+lbl+'</span>';
+  }
+  el.innerHTML=html;
+}
+function wmSetStep(v){
+  wmStep=+v; wmCurHour=Math.min(wmTimes.length-1, wmStep*wmStepHours);
+  updateWmTimeLabel();
+  clearTimeout(wmStepTimer);
+  wmStepTimer=setTimeout(function(){ if(wmReady) wmRebuildField(wmActive); }, 50);
+}
+function wmJumpNow(){ wmInitSlider(); if(wmReady) wmRebuildField(wmActive); }
+function updateWmTimeLabel(){ var el=document.getElementById('wmTimeLabel'); if(el) el.textContent=wmStepLabel(wmCurHour); }
+function wmStepLabel(hourIdx){
+  var t=wmTimes[hourIdx]; if(!t) return '—';
+  var d=new Date(t), today=new Date(); today.setHours(0,0,0,0);
+  var dd=new Date(d); dd.setHours(0,0,0,0);
+  var diff=Math.round((dd-today)/86400000);
+  var day = diff===0?'Today':(diff===1?'Tomorrow':d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'}));
+  var h=d.getHours(), ap=h<12?'am':'pm', h12=h%12; if(h12===0) h12=12;
+  return day+' · '+h12+' '+ap;
+}
+// average several models per cell on the U/V vectors (handles direction wrap-around),
+// and measure disagreement as the RMS vector spread between models.
+function averageModels(modelLists){
+  var valid=modelLists.filter(function(a){ return a && a.length; });
+  var ncells=valid.length ? valid[0].length : 0, out=new Array(ncells), i, m, k;
+  for(i=0;i<ncells;i++){
+    var us=[], vs=[];
+    for(m=0;m<valid.length;m++){
+      var s=valid[m][i]; if(!s) continue;
+      var mag=s.mag, dir=s.dir;
+      if(mag==null||dir==null||isNaN(mag)||isNaN(dir)) continue;
+      var rad=dir*Math.PI/180; us.push(-mag*Math.sin(rad)); vs.push(-mag*Math.cos(rad));
+    }
+    var n=us.length;
+    if(!n){ out[i]={u:0,v:0,mag:null,dir:null,n:0,spread:0}; continue; }
+    var ub=0,vb=0; for(k=0;k<n;k++){ ub+=us[k]; vb+=vs[k]; } ub/=n; vb/=n;
+    var sd=0; for(k=0;k<n;k++){ var du=us[k]-ub, dv=vs[k]-vb; sd+=du*du+dv*dv; }
+    out[i]={u:ub, v:vb, mag:Math.sqrt(ub*ub+vb*vb), dir:(Math.atan2(-ub,-vb)*180/Math.PI+360)%360, n:n, spread:Math.sqrt(sd/n)};
+  }
+  return out;
+}
+// subtle hollow rings at cells where the models disagree (spread over the field's threshold)
+function buildSpreadLayer(key){
+  var g=wmGridCache, data=wmData[key], f=FIELDS[key]; if(!g||!data) return null;
+  var hi=f.spreadHi||1, grp=L.layerGroup();
+  for(var r=0;r<g.ny;r++){ for(var c=0;c<g.nx;c++){
+    var i=r*g.nx+c, cell=data[i];
+    if(!cell || cell.mag==null || cell.n<2 || cell.spread<hi) continue;
+    var rad=Math.min(9, 4+(cell.spread/hi-1)*4);
+    L.circleMarker(g.pts[i],{radius:rad,color:'#ffffff',weight:1.4,opacity:0.75,fillColor:'#0d1b2a',fillOpacity:0.12,interactive:false}).addTo(grp);
+  } }
+  return grp;
+}
+function buildField(arr, magKey, dirKey){
+  return arr.map(function(el){
+    var c=(el&&el.current)?el.current:((el&&el.hourly)?{}:{});
+    var m=c[magKey], d=c[dirKey];
+    if(m==null && el&&el.hourly&&el.hourly[magKey]&&el.hourly[magKey].length){ m=el.hourly[magKey][0]; d=el.hourly[dirKey]?el.hourly[dirKey][0]:null; }
+    return {mag:m, dir:d};
+  });
+}
+// averaged U/V components per cell straight into the velocity grid (null cells -> 0, no particle).
+function toVelocityData(cells, nx, ny){
+  var W=WINDMAP, u=[], v=[], i;
+  for(i=0;i<cells.length;i++){ var c=cells[i]||{}; u.push(c.u||0); v.push(c.v||0); }
+  var la2=+(W.latMax-(ny-1)*W.step).toFixed(4), lo2=+(W.lonMin+(nx-1)*W.step).toFixed(4);
+  function rec(num, data){ return {header:{parameterCategory:2, parameterNumber:num, parameterUnit:'m.s-1',
+    nx:nx, ny:ny, lo1:W.lonMin, la1:W.latMax, lo2:lo2, la2:la2, dx:W.step, dy:W.step,
+    refTime:new Date().toISOString(), forecastTime:0}, data:data}; }
+  return [rec(2,u), rec(3,v)]; // 2 = U component, 3 = V component
+}
+function makeVelocityLayer(key, data){
+  var f=FIELDS[key];
+  return L.velocityLayer({
+    displayValues:false, data:data, maxVelocity:f.maxVelocity, velocityScale:f.velocityScale,
+    colorScale:f.colorScale, particleAge:90, lineWidth:1.4, particleMultiplier:1/600, frameRate:18
+  });
+}
+// interpolate a hex colorScale at t in [0,1] -> [r,g,b]
+function colorAt(scale, t){
+  if(t<0) t=0; if(t>1) t=1;
+  var n=scale.length-1, f=t*n, i=Math.floor(f), frac=f-i;
+  if(i>=n) return hexToRgb(scale[n]);
+  var a=hexToRgb(scale[i]), b=hexToRgb(scale[i+1]);
+  return [Math.round(a[0]+(b[0]-a[0])*frac), Math.round(a[1]+(b[1]-a[1])*frac), Math.round(a[2]+(b[2]-a[2])*frac)];
+}
+// bounds expanded by a 1-cell transparent ring + half a cell, so the padded image's
+// data pixels still centre on the sample points and the field fades out at the edges.
+function wmFieldBounds(){
+  var W=WINDMAP, g=wmGridCache, hb=W.step*1.5;
+  var la2=W.latMax-(g.ny-1)*W.step, lo2=W.lonMin+(g.nx-1)*W.step;
+  return [[W.latMax+hb, W.lonMin-hb],[la2-hb, lo2+hb]];
+}
+// paint an (nx+2)-by-(ny+2) image coloured by magnitude, with a transparent border ring
+// and transparent null cells; the browser smooths it across the bounds, giving a
+// Windy-style shaded field that feathers out at the edges, under the particles.
+function buildFieldImage(key){
+  var f=FIELDS[key], g=wmGridCache, data=wmData[key]; if(!g||!data) return null;
+  var mags=new Array(data.length), i;
+  for(i=0;i<data.length;i++){ var d=data[i]; mags[i]=(d&&d.mag!=null&&!isNaN(d.mag))?d.mag:null; }
+  // marine: extend colour over null (nearshore/land) cells so it reaches the coast; land is hidden by the mask
+  if(f.api==='marine') mags=fillNulls(mags, g.nx, g.ny);
+  var w=g.nx+2, h=g.ny+2;
+  var cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+  var ctx=cv.getContext('2d'), im=ctx.createImageData(w, h), px=im.data;
+  for(var r=0;r<g.ny;r++){ for(var c=0;c<g.nx;c++){
+    var m=mags[r*g.nx+c]; if(m==null) continue;
+    var rgb=colorAt(f.colorScale, m/f.maxVelocity), o=((r+1)*w+(c+1))*4;
+    px[o]=rgb[0]; px[o+1]=rgb[1]; px[o+2]=rgb[2]; px[o+3]=255;
+  } }
+  ctx.putImageData(im, 0, 0);
+  return cv.toDataURL('image/png');
+}
+// fill null grid cells with the nearest valid cell's value (so a sparse field reaches the coast)
+function fillNulls(arr, nx, ny){
+  var out=arr.slice(), valid=[], i;
+  for(i=0;i<arr.length;i++) if(arr[i]!=null) valid.push(i);
+  if(!valid.length) return out;
+  for(i=0;i<arr.length;i++){
+    if(out[i]!=null) continue;
+    var r=Math.floor(i/nx), c=i%nx, best=valid[0], bd=Infinity;
+    for(var k=0;k<valid.length;k++){ var j=valid[k], dr=Math.floor(j/nx)-r, dc=(j%nx)-c, d=dr*dr+dc*dc; if(d<bd){ bd=d; best=j; } }
+    out[i]=arr[best];
+  }
+  return out;
+}
+function setWmField(key, force){
+  if(!FIELDS[key]) return;
+  wmActive=key;
+  Object.keys(FIELDS).forEach(function(k){
+    var b=document.getElementById('wmtab-'+k); if(b) b.classList.toggle('active', k===key);
+    if(k!==key){
+      if(wmLayers[k] && windMap.hasLayer(wmLayers[k])) windMap.removeLayer(wmLayers[k]);
+      if(wmColorLayers[k] && windMap.hasLayer(wmColorLayers[k])) windMap.removeLayer(wmColorLayers[k]);
+      if(wmSpreadLayers[k] && windMap.hasLayer(wmSpreadLayers[k])) windMap.removeLayer(wmSpreadLayers[k]);
+    }
+  });
+  if(wmReady){
+    if(wmRaw[key] && wmBuiltHour[key]!==wmCurHour) wmRebuildField(key); // refresh if the slider moved while another field was shown
+    if(wmColorLayers[key] && !windMap.hasLayer(wmColorLayers[key])){ wmColorLayers[key].addTo(windMap); wmColorLayers[key].setZIndex(200); }
+    if(wmLayers[key] && !windMap.hasLayer(wmLayers[key])) wmLayers[key].addTo(windMap);
+    if(wmSpreadLayers[key] && !windMap.hasLayer(wmSpreadLayers[key])) wmSpreadLayers[key].addTo(windMap);
+  }
+  if(wmLandMask) wmLandMask.setOpacity(FIELDS[key].api==='marine' ? 1 : 0); // mask land for Swell/Waves only
+  renderWmLegend();
+}
+function renderWmLegend(){
+  var el=document.getElementById('wmlegend'); if(!el) return; var f=FIELDS[wmActive];
+  var grad='linear-gradient(90deg,'+f.colorScale.join(',')+')';
+  var ticks=f.legend.map(function(t){ return '<span>'+t+'</span>'; }).join('');
+  el.innerHTML='<div class="wm-leg-label">'+f.label+' ('+f.unit+')</div>'+
+    '<div class="wm-leg-bar" style="background:'+grad+'"></div>'+
+    '<div class="wm-leg-ticks">'+ticks+'</div>'+
+    '<div class="wm-leg-note"><span class="wm-leg-ring"></span> models disagree &middot; avg of '+f.src+'</div>';
+}
+function wmNearestIdx(ll){
+  var g=wmGridCache; if(!g) return -1; var W=WINDMAP;
+  var c=Math.round((ll.lng-W.lonMin)/W.step), r=Math.round((W.latMax-ll.lat)/W.step);
+  c=Math.max(0,Math.min(g.nx-1,c)); r=Math.max(0,Math.min(g.ny-1,r));
+  return r*g.nx+c;
+}
+var wmSelDot=null;
+function wmDotIcon(){ return L.divIcon({className:'wm-seldot-wrap',html:'<span class="wm-seldot"></span>',iconSize:[24,24],iconAnchor:[12,12]}); }
+// drop/move the selection dot at the clicked point (the values live in the forecast panel)
+function wmShowReadout(ll){
+  if(!wmReady) return;
+  if(!wmSelDot) wmSelDot=L.marker(ll,{icon:wmDotIcon(),interactive:false,keyboard:false,zIndexOffset:1000}).addTo(windMap);
+  else wmSelDot.setLatLng(ll);
+}
+// nearest known dive site -> borrow its onshore bearing so the off-spot dive rating is sensible
+function nearestSpot(lat,lon){
+  var best=null, bd=1e9;
+  for(var id in SPOTS){ var s=SPOTS[id], dx=s.lat-lat, dy=s.lon-lon, d=dx*dx+dy*dy; if(d<bd){ bd=d; best=s; } }
+  return best;
+}
+// WMO weather code -> glyph
+function weatherIcon(c){
+  if(c==null||isNaN(c)) return '·';
+  if(c===0) return '☀️'; if(c<=2) return '🌤️'; if(c===3) return '☁️';
+  if(c<=48) return '🌫️'; if(c<=57) return '🌧️'; if(c<=67) return '🌧️';
+  if(c<=77) return '🌨️'; if(c<=82) return '🌦️'; if(c<=86) return '🌨️'; return '⛈️';
+}
+function fetchPointForecast(lat,lon){
+  var w=WEATHER+'?latitude='+lat+'&longitude='+lon+'&hourly=weather_code,wind_speed_10m,wind_direction_10m&timezone='+TZ+'&forecast_days=3';
+  var m=MARINE+'?latitude='+lat+'&longitude='+lon+'&hourly=wave_height,wave_period,swell_wave_height,swell_wave_period,sea_level_height_msl&timezone='+TZ+'&forecast_days=3';
+  return Promise.all([fetch(w).then(wmJson), fetch(m).then(wmJson)]);
+}
+var wmfReq=0;
+function openWmForecast(ll){
+  var box=document.getElementById('wmforecast'); if(!box) return;
+  box.hidden=false;
+  document.getElementById('wmfName').textContent='Loading…';
+  document.getElementById('wmfCoord').textContent=ll.lat.toFixed(3)+', '+ll.lng.toFixed(3)+' · 48-hour outlook, 3-hourly';
+  document.getElementById('wmfBody').innerHTML='<div class="pad" style="padding:14px;color:var(--muted);font-size:13px">Loading point forecast…</div>';
+  var rid=++wmfReq;
+  jsonp('https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&addressdetails=1&lat='+ll.lat+'&lon='+ll.lng, function(d){
+    if(rid!==wmfReq) return; var nm=null;
+    if(d){ var a=d.address||{}; nm=a.hamlet||a.village||a.town||a.suburb||a.city||a.county||a.state||null; }
+    var e=document.getElementById('wmfName'); if(e) e.textContent=nm||'Offshore Victoria';
+  }, 'json_callback');
+  fetchPointForecast(ll.lat, ll.lng).then(function(res){
+    if(rid!==wmfReq) return; renderWmForecast(ll, res[0], res[1]);
+  }).catch(function(){
+    if(rid!==wmfReq) return;
+    document.getElementById('wmfBody').innerHTML='<div class="pad" style="padding:14px;color:var(--muted);font-size:13px">Couldn’t load the forecast for this point — try another cell.</div>';
+  });
+}
+function closeWmForecast(){ var b=document.getElementById('wmforecast'); if(b) b.hidden=true; wmfReq++; destroyWmCharts(); wmRestoreLock(); }
+// pan so the clicked point rises to the centre of the area above the forecast panel,
+// keeping it (and its popup) clear of the table. Relaxes the region lock for the pan.
+function wmCenterSelected(ll){
+  if(!windMap) return;
+  var size=windMap.getSize();
+  var panelFootprint=524;                 // forecast panel: ~460px (table + 2 charts) + 62px bottom offset
+  var desiredY=Math.max(50,(size.y-panelFootprint)/2);
+  var z=windMap.getZoom();
+  windMap.setMaxBounds(null);             // relax the lock so the centring pan isn't clamped back
+  var ptPx=windMap.project(ll,z);
+  var newCenter=windMap.unproject(ptPx.add(size.divideBy(2)).subtract(L.point(size.x/2,desiredY)),z);
+  windMap.panTo(newCenter,{animate:true});
+}
+// re-apply the Victoria + N Tasmania lock and snap the view back to it
+function wmRestoreLock(){ if(windMap){ windMap.setMaxBounds(WM_BOUNDS); windMap.panInsideBounds(WM_BOUNDS,{animate:true}); } }
+function wmHourCell(d, showDay){
+  var h=d.getHours(), ap=h<12?'a':'p', h12=h%12; if(h12===0) h12=12;
+  var day=showDay?('<span class="wmf-d">'+d.toLocaleDateString(undefined,{weekday:'short'})+'</span>'):'';
+  return day+h12+ap;
+}
+// forecast-panel charts live in their own registry so they don't collide with the Conditions tab's
+var wmFcCharts={};
+function destroyWmCharts(){ for(var k in wmFcCharts){ try{wmFcCharts[k].destroy();}catch(e){} } wmFcCharts={}; }
+function hourLabel(t){ var d=new Date(t), h=d.getHours(), ap=h<12?'a':'p', h12=h%12; if(h12===0) h12=12; return h12+ap; }
+// a colour-coded arrow (colour = speed on the wind scale, pointing the way the wind blows) + the speed
+function windArrowCell(speed, dir){
+  if(speed==null||isNaN(speed)) return '<td>—</td>';
+  var rgb=colorAt(FIELDS.wind.colorScale, speed/FIELDS.wind.maxVelocity), col='rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
+  var rot=(dir!=null&&!isNaN(dir))?(dir+180)%360:0; // met dir is "from"; arrow points downwind
+  return '<td><div class="wmf-windcell">'+
+    '<svg class="wmf-arrow" viewBox="0 0 24 24" style="transform:rotate('+rot+'deg);color:'+col+'">'+
+    '<path d="M12 21 V4 M6 10 L12 3 L18 10" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+    '<span class="wmf-ws">'+fmt(speed,0)+'</span></div></td>';
+}
+// local maxima/minima of the tide series -> labelled high/low points
+function tidePeaks(times, vals){
+  var peaks=[];
+  for(var i=1;i<vals.length-1;i++){
+    if(vals[i]==null||vals[i-1]==null||vals[i+1]==null) continue;
+    if(vals[i]>vals[i-1] && vals[i]>=vals[i+1]) peaks.push({idx:i,type:'H',time:hourLabel(times[i])});
+    else if(vals[i]<vals[i-1] && vals[i]<=vals[i+1]) peaks.push({idx:i,type:'L',time:hourLabel(times[i])});
+  }
+  return peaks;
+}
+var wmTidePeaks={ id:'wmTidePeaks', afterDatasetsDraw:function(chart){
+  var peaks=chart.$peaks; if(!peaks||!peaks.length) return; var meta=chart.getDatasetMeta(0), ctx=chart.ctx, area=chart.chartArea;
+  ctx.save(); ctx.textAlign='center'; ctx.font='bold 9px sans-serif';
+  peaks.forEach(function(p){ var pt=meta.data[p.idx]; if(!pt) return; var isH=p.type==='H', c=isH?'#1b6ca8':'#c47f2e';
+    ctx.fillStyle=c; ctx.beginPath(); ctx.arc(pt.x,pt.y,3,0,2*Math.PI); ctx.fill();
+    var ly=isH?Math.max(area.top+8,pt.y-6):Math.min(area.bottom-3,pt.y+13);
+    ctx.fillText((isH?'H ':'L ')+p.time, pt.x, ly);
+  });
+  ctx.restore();
+}};
+// day separators + tiny corner max/min labels (no axis, no now line — the Time row is the shared axis)
+var wmFcAxis={ id:'wmFcAxis', afterDraw:function(chart){
+  var times=chart.$times; if(!times||!times.length) return; var ctx=chart.ctx, area=chart.chartArea, pts=chart.getDatasetMeta(0).data; if(!pts||!pts.length) return;
+  ctx.save();
+  for(var i=1;i<times.length;i++){ if(new Date(times[i-1]).getDate()!==new Date(times[i]).getDate() && pts[i]){ ctx.strokeStyle='#e2e8ee'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pts[i].x,area.top); ctx.lineTo(pts[i].x,area.bottom); ctx.stroke(); } }
+  var mx=-Infinity, mn=Infinity;
+  chart.data.datasets.forEach(function(ds){ ds.data.forEach(function(v){ if(v!=null&&!isNaN(v)){ if(v>mx)mx=v; if(v<mn)mn=v; } }); });
+  if(mx>-Infinity){ ctx.fillStyle='#9aa6b4'; ctx.font='9px sans-serif'; ctx.textAlign='left';
+    ctx.textBaseline='top'; ctx.fillText(fmt(mx,1), area.left+2, area.top+1);
+    ctx.textBaseline='bottom'; ctx.fillText(fmt(mn,1), area.left+2, area.bottom-1); }
+  ctx.restore();
+}};
+// chart options: y-axis hidden so the plot fills the canvas and lines up exactly with the table columns
+function wmFcOpts(p1, p2){
+  return {responsive:true,maintainAspectRatio:false,layout:{padding:{top:3,right:1,bottom:3,left:0}},interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{callbacks:{
+      title:function(items){ var t=items[0].chart.$times[items[0].dataIndex], d=new Date(t); return d.toLocaleDateString(undefined,{weekday:'short'})+' '+d.toLocaleTimeString(undefined,{hour:'numeric'}); },
+      afterLabel:(p1?function(ctx){ var p=(ctx.datasetIndex===0?p1:p2)[ctx.dataIndex]; return (p==null)?'':('period '+fmt(p,0)+' s'); }:undefined)
+    }}},
+    scales:{ x:{type:'category',offset:true,ticks:{display:false},grid:{display:false},border:{display:false}},
+      y:{display:false,grace:'8%'} }};
+}
+function buildWmCharts(times, wh, mh, mIdx, cols){
+  if(typeof Chart==='undefined') return;
+  var L=[], swH=[], wvH=[], swP=[], wvP=[], tide=[];
+  cols.forEach(function(k){ var t=times[k], mk=mIdx[t]; L.push(t);
+    swH.push(mk!=null?mh.swell_wave_height[mk]:null); wvH.push(mk!=null?mh.wave_height[mk]:null);
+    swP.push(mk!=null?mh.swell_wave_period[mk]:null); wvP.push(mk!=null?mh.wave_period[mk]:null);
+    tide.push(mk!=null?mh.sea_level_height_msl[mk]:null);
+  });
+  var c1=document.getElementById('wmf-sw');
+  if(c1){ var ch=new Chart(c1.getContext('2d'),{type:'line',data:{labels:L,datasets:[
+      {label:'Swell',data:swH,borderColor:'#3b6fb0',backgroundColor:'#3b6fb022',borderWidth:2,pointRadius:0,tension:0.35,fill:true},
+      {label:'Waves',data:wvH,borderColor:'#2e7d6b',borderWidth:2,pointRadius:0,tension:0.35}
+    ]},options:wmFcOpts(swP,wvP),plugins:[wmFcAxis]});
+    ch.$times=L; ch.update('none'); wmFcCharts['sw']=ch;
+  }
+  var c2=document.getElementById('wmf-tide');
+  if(c2){ var ch2=new Chart(c2.getContext('2d'),{type:'line',data:{labels:L,datasets:[
+      {label:'Tide',data:tide,borderColor:'#6a9bcc',backgroundColor:'#6a9bcc22',borderWidth:2,pointRadius:0,tension:0.4,fill:true}
+    ]},options:wmFcOpts(),plugins:[wmFcAxis,wmTidePeaks]});
+    ch2.$times=L; ch2.$peaks=tidePeaks(L,tide); ch2.update('none'); wmFcCharts['tide']=ch2;
+  }
+}
+function renderWmForecast(ll, wRes, mRes){
+  destroyWmCharts();
+  var wh=wRes.hourly||{}, mh=mRes.hourly||{}, times=wh.time||[];
+  if(!times.length){ document.getElementById('wmfBody').innerHTML='<div class="pad" style="padding:14px;color:var(--muted);font-size:13px">No forecast available here.</div>'; return; }
+  var mIdx={}; (mh.time||[]).forEach(function(t,k){ mIdx[t]=k; });
+  var now=Date.now(), start=0, i;
+  for(i=0;i<times.length;i++){ if(new Date(times[i]).getTime()>=now-3600000){ start=i; break; } }
+  var cols=[]; for(i=start;i<times.length && cols.length<16;i+=3){ cols.push(i); }
+  var spot=nearestSpot(ll.lat, ll.lng), onshore=spot?spot.onshore:200;
+  function row(label, cls, fn){ return '<tr'+(cls?' class="'+cls+'"':'')+'><th>'+label+'</th>'+cols.map(fn).join('')+'</tr>'; }
+  var prevDay=null;
+  var timeRow='<tr class="wmf-time"><th>Time</th>'+cols.map(function(k){
+    var d=new Date(times[k]), dk=d.getDate(), show=(dk!==prevDay); prevDay=dk; return '<td>'+wmHourCell(d, show)+'</td>';
+  }).join('')+'</tr>';
+  var H='<div class="wmf-grid"><table class="wmf-table"><tbody>';
+  H+=timeRow;
+  H+=row('Dive','',function(k){
+    var t=times[k], mk=mIdx[t];
+    var swH=(mk!=null)?mh.swell_wave_height[mk]:null, swP=(mk!=null)?mh.swell_wave_period[mk]:null;
+    var wind=wh.wind_speed_10m?wh.wind_speed_10m[k]:null, wdir=wh.wind_direction_10m?wh.wind_direction_10m[k]:null;
+    var rt=classify(swH, swP, wind, wdir, onshore, null, false), sc=DIVE_SCORE[rt.label]||0;
+    return '<td><span class="wmf-rate" style="background:'+rt.col+'" title="'+rt.label+'">'+sc+'</span></td>';
+  });
+  H+=row('Sky','',function(k){ return '<td class="wmf-sky">'+weatherIcon(wh.weather_code?wh.weather_code[k]:null)+'</td>'; });
+  H+=row('Wind','wmf-windrow',function(k){ return windArrowCell(wh.wind_speed_10m?wh.wind_speed_10m[k]:null, wh.wind_direction_10m?wh.wind_direction_10m[k]:null); });
+  H+='</tbody></table>';
+  H+='<div class="wmf-crow"><div class="wmf-clabel"><span class="wmf-leg" style="color:#3b6fb0"><i style="background:#3b6fb0"></i>Swell</span><span class="wmf-leg" style="color:#2e7d6b"><i style="background:#2e7d6b"></i>Waves</span></div><div class="wmf-cbox"><canvas id="wmf-sw"></canvas></div></div>';
+  H+='<div class="wmf-crow"><div class="wmf-clabel">Tide</div><div class="wmf-cbox"><canvas id="wmf-tide"></canvas></div></div>';
+  H+='</div>';
+  document.getElementById('wmfBody').innerHTML=H;
+  buildWmCharts(times, wh, mh, mIdx, cols);
+}
+
 /* ---- 2-day chlorophyll composite (stacked image overlays) ---- */
 var compMap, compLayers=[];
 function initCompMap(){
@@ -514,6 +989,7 @@ function reloadAll(){
   refreshSelected();
   loadComposite();
   loadDataStamps();
+  if(windMap && wmShown) loadWindFields();
 }
 /* ---- Fish guide ---- */
 var MONTH_LBL=['J','F','M','A','M','J','J','A','S','O','N','D'];
@@ -794,7 +1270,7 @@ function geoClick(e){
     det.innerHTML=h;
   }
   render();
-  jsonp('https://nominatim.openstreetmap.org/reverse?format=jsonp&zoom=12&addressdetails=1&lat='+ll.lat+'&lon='+ll.lng, function(d){
+  jsonp('https://nominatim.openstreetmap.org/reverse?format=json&zoom=12&addressdetails=1&lat='+ll.lat+'&lon='+ll.lng, function(d){
     if(d){ var a=d.address||{}; st.name=a.hamlet||a.village||a.town||a.suburb||a.city||a.county||a.state||(d.display_name?d.display_name.split(',')[0]:null); }
     if(!st.name) st.name='Offshore Victoria'; render();
   }, 'json_callback');
@@ -854,23 +1330,27 @@ function restoreTheme(){
 }
 function showTab(t){
   document.getElementById('tab-conditions').hidden=(t!=='conditions');
+  document.getElementById('tab-windmap').hidden=(t!=='windmap');
   document.getElementById('tab-fish').hidden=(t!=='fish');
   document.getElementById('tab-live').hidden=(t!=='live');
   document.getElementById('tab-geo').hidden=(t!=='geo');
   document.getElementById('tab-about').hidden=(t!=='about');
   document.getElementById('tab-feedback').hidden=(t!=='feedback');
   document.getElementById('btn-conditions').classList.toggle('active',t==='conditions');
+  document.getElementById('btn-windmap').classList.toggle('active',t==='windmap');
   document.getElementById('btn-fish').classList.toggle('active',t==='fish');
   document.getElementById('btn-live').classList.toggle('active',t==='live');
   document.getElementById('btn-geo').classList.toggle('active',t==='geo');
   document.getElementById('btn-about').classList.toggle('active',t==='about');
   document.getElementById('btn-feedback').classList.toggle('active',t==='feedback');
   if(t==='conditions'){ setTimeout(function(){ try{map.invalidateSize();}catch(e){} },60); }
+  if(t==='windmap'){ setTimeout(function(){ try{ windMap.invalidateSize(); if(!wmShown){ wmShown=true; windMap.setView(WM_HOME, WM_HOME_ZOOM); loadWindFields(); } }catch(e){} },80); }
   if(t==='live'){ loadLiveTab(); setTimeout(function(){ try{compMap.invalidateSize();}catch(e){} fitLiveEmbed(); },60); }
   if(t==='geo'){ setTimeout(function(){ try{geoMap.invalidateSize();}catch(e){} if(!geoBasesAdded){geoBasesAdded=true; addGeoBase(geoMap,'habitat.png',habitatLayer,0.62,250); addGeoBase(geoMap,'contours.png',contourLayer,0.95,255);} if(!('IntersectionObserver' in window)){ try{bathyMap.invalidateSize();}catch(e){} } },60); }
 }
 
 initMap();
+initWindMap();
 initCompMap();
 initGeoMap();
 initBathyMap();

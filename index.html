@@ -6,6 +6,7 @@
 <title>Victoria Daily Ocean & Dive Map</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231b6ca8'/><g fill='none' stroke='%23ffffff' stroke-width='2.4' stroke-linecap='round'><path d='M5 12c3 0 3-2.5 6-2.5s3 2.5 6 2.5 3-2.5 6-2.5 3 2.5 6 2.5'/><path d='M5 18c3 0 3-2.5 6-2.5s3 2.5 6 2.5 3-2.5 6-2.5 3 2.5 6 2.5'/><path d='M5 24c3 0 3-2.5 6-2.5s3 2.5 6 2.5 3-2.5 6-2.5 3 2.5 6 2.5'/></g></svg>">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet-velocity@1.7.0/dist/leaflet-velocity.css">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -30,12 +31,15 @@
   </div>
 
   <div class="tabs">
-    <button id="btn-conditions" class="tab active" onclick="showTab('conditions')">Conditions</button>
-    <button id="btn-fish" class="tab" onclick="showTab('fish')">Fish guide</button>
-    <button id="btn-live" class="tab" onclick="showTab('live')">Live data</button>
-    <button id="btn-geo" class="tab" onclick="showTab('geo')">Underwater geography</button>
-    <button id="btn-about" class="tab" onclick="showTab('about')">About</button>
-    <button id="btn-feedback" class="tab" onclick="showTab('feedback')">Feedback<span class="tab-badge" aria-label="new"></span></button>
+    <div class="tabs-inner">
+      <button id="btn-conditions" class="tab active" onclick="showTab('conditions')">Conditions</button>
+      <button id="btn-windmap" class="tab" onclick="showTab('windmap')">Wind map</button>
+      <button id="btn-fish" class="tab" onclick="showTab('fish')">Fish guide</button>
+      <button id="btn-live" class="tab" onclick="showTab('live')">Live data</button>
+      <button id="btn-geo" class="tab" onclick="showTab('geo')">Underwater geography</button>
+      <button id="btn-about" class="tab" onclick="showTab('about')">About</button>
+      <button id="btn-feedback" class="tab" onclick="showTab('feedback')">Feedback<span class="tab-badge" aria-label="new"></span></button>
+    </div>
   </div>
 
   <div id="tab-conditions" class="tabpanel">
@@ -76,16 +80,39 @@
     over the Victorian coast, Australia&rsquo;s IMOS OceanCurrent is the local source &rarr;
     <a href="https://oceancurrent.aodn.org.au/sealevel_nrt.php" target="_blank" rel="noopener">oceancurrent.aodn.org.au &#8599;</a>
   </div>
-  <div class="panel" style="margin-top:18px">
-    <div class="panel-hd"><span class="dot" style="background:var(--accent)"></span><span class="panel-ttl">Wind &amp; weather (Windy)</span><span class="panel-meta">Live &middot; Windy.com</span></div>
-    <div class="panel-bd">
-      <div class="sub" style="margin-bottom:8px">Live animated wind over the Victorian dive coast, from Windy.com. Pan, zoom, or switch the overlay (waves, swell, rain, temperature) inside the map.</div>
-      <div class="windybox">
-        <iframe src="https://embed.windy.com/embed2.html?lat=-38.5&lon=145.1&zoom=8&level=surface&overlay=wind&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=km%2Fh&metricTemp=default&radarRange=-1" loading="lazy" title="Windy wind map for the Victorian coast" style="width:100%;height:100%;border:0;display:block"></iframe>
+  </div><!-- /tab-conditions -->
+
+  <div id="tab-windmap" class="tabpanel" hidden>
+    <div class="sub" style="margin-top:6px">Live animated wind, swell and wave fields over Victoria and northern Tasmania, from free Open-Meteo data. Switch the field with the buttons top-right; click anywhere offshore for a 48-hour point forecast.</div>
+    <div class="wm-mapwrap wm-full">
+      <div id="windmap"></div>
+      <div class="wm-toggle" role="tablist" aria-label="Map field">
+        <button id="wmtab-wind" class="wm-tab active" onclick="setWmField('wind')">Wind</button>
+        <button id="wmtab-swell" class="wm-tab" onclick="setWmField('swell')">Swell</button>
+        <button id="wmtab-waves" class="wm-tab" onclick="setWmField('waves')">Waves</button>
+      </div>
+      <div class="wm-legend" id="wmlegend"></div>
+      <div class="wm-timebar">
+        <button class="wm-time-now" onclick="wmJumpNow()" title="Jump back to now">Now</button>
+        <div class="wm-time-track">
+          <input type="range" id="wmTime" class="wm-time-range" min="0" max="1" value="0" step="1" oninput="wmSetStep(this.value)" aria-label="Forecast time">
+          <div class="wm-time-days" id="wmTimeDays"></div>
+        </div>
+        <span class="wm-timelabel" id="wmTimeLabel">&mdash;</span>
+      </div>
+      <div id="wmforecast" hidden>
+        <div class="wmf-head">
+          <div class="wmf-htext">
+            <div class="wmf-title">Point forecast &mdash; <span id="wmfName">&mdash;</span></div>
+            <div class="wmf-coord" id="wmfCoord"></div>
+          </div>
+          <button class="wmf-close" onclick="closeWmForecast()" title="Close point forecast" aria-label="Close point forecast">&times;</button>
+        </div>
+        <div class="wmf-wrap"><div id="wmfBody"></div></div>
       </div>
     </div>
-  </div>
-  </div><!-- /tab-conditions -->
+    <div class="sub" style="font-size:12px;margin-top:8px">The map is shaded by the selected field; the particles show its direction. Nearshore and inside-Port-Phillip cells can read blank — the wave model is coarse close to land.</div>
+  </div><!-- /tab-windmap -->
 
   <div id="tab-fish" class="tabpanel" hidden>
     <div class="sub" style="margin-top:6px">Species worth targeting around Victoria, shore or boat. Green = likely worth a go around now. Always check current <a href="https://vfa.vic.gov.au/recreational-fishing/recreational-fishing-guide" target="_blank" rel="noopener">VFA size &amp; bag limits and closed seasons</a> before keeping anything — the illustrations are stylised, not photos.</div>
@@ -177,6 +204,7 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-velocity@1.7.0/dist/leaflet-velocity.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="app.js"></script>
 </body>
