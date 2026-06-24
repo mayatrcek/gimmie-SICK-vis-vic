@@ -56,7 +56,7 @@
   .wm-pop-agree{margin-top:4px;padding-top:4px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
   body.dark .wm-popup .leaflet-popup-content-wrap,body.dark .wm-popup .leaflet-popup-tip{background:var(--panel);color:var(--ink)}
   .wm-seldot-wrap{background:none;border:none}
-  .wm-seldot{display:block;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.55)}
+  .wm-seldot{display:block;width:18px;height:18px;border-radius:50%;background:var(--accent);border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.6)}
   .wm-mapwrap{position:relative}
   .wm-landshade{mix-blend-mode:multiply}
   .wm-landmask{filter:brightness(0) invert(0.82)}
@@ -108,8 +108,10 @@
   .wmf-clabel{flex:0 0 62px;box-sizing:border-box;padding:6px 10px;font-size:11px;font-weight:600;color:var(--muted);
     display:flex;flex-direction:column;justify-content:center;line-height:1.4;white-space:nowrap}
   .wmf-clabel i{font-style:normal}
-  .wmf-rng{font-size:9px;font-weight:400;color:var(--muted);margin-top:2px}
-  .wmf-cbox{flex:1;min-width:0;padding:2px 0}
+  .wmf-leg{display:flex;align-items:center;gap:5px;font-weight:700;font-size:11px}
+  .wmf-leg+.wmf-leg{margin-top:4px}
+  .wmf-leg i{width:13px;height:3px;border-radius:2px;flex:0 0 13px}
+  .wmf-cbox{flex:1;min-width:0;padding:3px 0 2px 0}
   .wmf-cbox canvas{width:100%!important;height:94px!important}
   .surfbox{margin:14px 0 4px}
   .surfhd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
