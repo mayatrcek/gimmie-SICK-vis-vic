@@ -108,7 +108,7 @@
   .wmf-clabel{flex:0 0 62px;box-sizing:border-box;padding:6px 10px;font-size:11px;font-weight:600;color:var(--muted);
     display:flex;flex-direction:column;justify-content:center;line-height:1.4;white-space:nowrap}
   .wmf-clabel i{font-style:normal}
-  .wmf-cbox{flex:1;min-width:0;padding:2px 3px 2px 0}
+  .wmf-cbox{flex:1;min-width:0;padding:3px 0 2px 0}
   .wmf-cbox canvas{width:100%!important;height:94px!important}
   .surfbox{margin:14px 0 4px}
   .surfhd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}

@@ -807,25 +807,27 @@ var wmTidePeaks={ id:'wmTidePeaks', afterDatasetsDraw:function(chart){
   });
   ctx.restore();
 }};
-// vertical "now" line + day separators, no axis labels (the table's Time row is the shared axis)
+// day separators + tiny corner max/min labels (no axis, no now line — the Time row is the shared axis)
 var wmFcAxis={ id:'wmFcAxis', afterDraw:function(chart){
   var times=chart.$times; if(!times||!times.length) return; var ctx=chart.ctx, area=chart.chartArea, pts=chart.getDatasetMeta(0).data; if(!pts||!pts.length) return;
   ctx.save();
   for(var i=1;i<times.length;i++){ if(new Date(times[i-1]).getDate()!==new Date(times[i]).getDate() && pts[i]){ ctx.strokeStyle='#e2e8ee'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pts[i].x,area.top); ctx.lineTo(pts[i].x,area.bottom); ctx.stroke(); } }
-  var f=nearestFrac(times);
-  if(f!=null){ var lo=Math.floor(f), hi=Math.min(lo+1,pts.length-1); var x=pts[lo].x+(f-lo)*(pts[hi].x-pts[lo].x);
-    ctx.strokeStyle='#d9534f'; ctx.lineWidth=1.4; ctx.setLineDash([4,3]); ctx.beginPath(); ctx.moveTo(x,area.top); ctx.lineTo(x,area.bottom); ctx.stroke(); }
+  var mx=-Infinity, mn=Infinity;
+  chart.data.datasets.forEach(function(ds){ ds.data.forEach(function(v){ if(v!=null&&!isNaN(v)){ if(v>mx)mx=v; if(v<mn)mn=v; } }); });
+  if(mx>-Infinity){ ctx.fillStyle='#9aa6b4'; ctx.font='9px sans-serif'; ctx.textAlign='left';
+    ctx.textBaseline='top'; ctx.fillText(fmt(mx,1), area.left+2, area.top+1);
+    ctx.textBaseline='bottom'; ctx.fillText(fmt(mn,1), area.left+2, area.bottom-1); }
   ctx.restore();
 }};
-// chart options that keep the plot full-width (y labels mirrored inside) so it aligns with the table columns
+// chart options: y-axis hidden so the plot fills the canvas and lines up exactly with the table columns
 function wmFcOpts(p1, p2){
-  return {responsive:true,maintainAspectRatio:false,layout:{padding:{top:3,right:3,bottom:3,left:0}},interaction:{mode:'index',intersect:false},
+  return {responsive:true,maintainAspectRatio:false,layout:{padding:{top:3,right:1,bottom:3,left:0}},interaction:{mode:'index',intersect:false},
     plugins:{legend:{display:false},tooltip:{callbacks:{
       title:function(items){ var t=items[0].chart.$times[items[0].dataIndex], d=new Date(t); return d.toLocaleDateString(undefined,{weekday:'short'})+' '+d.toLocaleTimeString(undefined,{hour:'numeric'}); },
       afterLabel:(p1?function(ctx){ var p=(ctx.datasetIndex===0?p1:p2)[ctx.dataIndex]; return (p==null)?'':('period '+fmt(p,0)+' s'); }:undefined)
     }}},
     scales:{ x:{type:'category',offset:true,ticks:{display:false},grid:{display:false},border:{display:false}},
-      y:{ticks:{mirror:true,maxTicksLimit:3,font:{size:9},color:'#7a8794',padding:0,z:1},grid:{color:'#eef2f6'},border:{display:false}} }};
+      y:{display:false,grace:'8%'} }};
 }
 function buildWmCharts(times, wh, mh, mIdx, cols){
   if(typeof Chart==='undefined') return;
