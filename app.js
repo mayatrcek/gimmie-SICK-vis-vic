@@ -810,7 +810,7 @@ var wmFcAxis={ id:'wmFcAxis', afterDraw:function(chart){
 }};
 // chart options: y-axis hidden so the plot fills the canvas and lines up exactly with the table columns
 function wmFcOpts(p1, p2){
-  return {responsive:true,maintainAspectRatio:false,layout:{padding:{top:3,right:1,bottom:3,left:9}},interaction:{mode:'index',intersect:false},
+  return {responsive:true,maintainAspectRatio:false,layout:{padding:{top:3,right:1,bottom:3,left:0}},interaction:{mode:'index',intersect:false},
     plugins:{legend:{display:false},tooltip:{callbacks:{
       title:function(items){ var t=items[0].chart.$times[items[0].dataIndex], d=new Date(t); return d.toLocaleDateString(undefined,{weekday:'short'})+' '+d.toLocaleTimeString(undefined,{hour:'numeric'}); },
       afterLabel:(p1?function(ctx){ var p=(ctx.datasetIndex===0?p1:p2)[ctx.dataIndex]; return (p==null)?'':('period '+fmt(p,0)+' s'); }:undefined)
