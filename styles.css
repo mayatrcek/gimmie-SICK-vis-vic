@@ -271,7 +271,10 @@
   .foot a{color:var(--accent);text-decoration:none;font-weight:500}
   .note{background:#fff4ec;border:1px solid #ffd9c2;border-radius:var(--radius-tile);padding:13px 18px;font-size:13px;color:#8a4a23;line-height:1.55;margin-top:6px}
   .note a{color:var(--accent);font-weight:600;text-decoration:none}
-  footer{margin-top:26px;color:var(--muted);font-size:12px;line-height:1.6;text-align:center}
+  /* Footer sits in a cloud box so it stays legible over the Home photo */
+  footer{margin-top:26px;color:var(--muted);font-size:12px;line-height:1.6;text-align:center;
+    background:var(--color-cloud);border:1px solid var(--line);border-radius:var(--radius-card);
+    box-shadow:var(--shadow-1);padding:16px 22px}
   footer a{color:var(--accent);text-decoration:none}
 
   /* Top-level tabs — a single floating cloud pill, centered, sticky on every page.
