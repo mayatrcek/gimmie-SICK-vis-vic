@@ -43,7 +43,7 @@
 
   /* Page is open sky: a soft horizon gradient with drifting cloud highlights */
   body{font-family:var(--font-sans);font-size:15px;line-height:1.55;color:var(--ink);
-       padding:calc(var(--tabh)) 24px 24px;min-height:100vh;
+       padding:calc(var(--tabh) + 18px) 24px 24px;min-height:100vh;
        background-color:var(--color-sky);
        background-image:
          radial-gradient(60% 40% at 18% 22%,rgba(255,255,255,.9) 0%,rgba(255,255,255,0) 62%),
@@ -324,25 +324,6 @@
   .env h4{font-family:var(--font-display);font-size:15px;font-weight:600;letter-spacing:-.01em;margin-bottom:4px}
   .env p{font-size:12.5px;color:var(--muted);line-height:1.5;margin:2px 0}
   .env .sp{font-size:12px;color:var(--accent);font-weight:600;margin-top:5px}
-
-  /* ===== Title banner (photo hero) =====
-     The banner image stands in for Cirrus's cloudy-sky hero. Full-bleed,
-     with a Cirrus type treatment and a single italic-serif accent on "Victoria". */
-  .titlebanner{position:relative;overflow:hidden;border-radius:0;
-    margin:0 calc(50% - 50vw) 24px;min-height:240px;display:flex;align-items:flex-end;
-    background:var(--color-ink) url('assets/home-banner.jpg') center 80%/cover no-repeat;
-    box-shadow:var(--shadow-1)}
-  .titlebanner::after{content:'';position:absolute;inset:0;pointer-events:none;
-    background:linear-gradient(180deg,rgba(14,17,22,.12) 0%,rgba(14,17,22,.30) 48%,rgba(14,17,22,.72) 100%)}
-  .titlebanner .tb-inner{position:relative;z-index:1;width:100%;max-width:1240px;margin:0 auto;padding:40px 32px 32px}
-  .titlebanner .tb-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;justify-content:space-between}
-  .titlebanner h1{color:#fff;text-shadow:0 1px 18px rgba(0,0,0,.42);max-width:20ch}
-  /* The signature italic serif accent — set once, in the hero */
-  .titlebanner .region{font-family:var(--font-serif);font-style:italic;font-weight:400;color:#cfe1f6;font-size:1.04em;letter-spacing:-.01em}
-  @media(max-width:560px){
-    .titlebanner{min-height:240px;background-size:auto 400px;background-position:45% 64%}
-    .titlebanner .tb-inner{padding:30px 18px 24px}
-  }
 
   /* ===== Dashboard panels — Cirrus cards ===== */
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden;
