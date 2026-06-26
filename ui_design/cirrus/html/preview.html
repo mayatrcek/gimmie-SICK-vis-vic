@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cirrus — A calm SaaS system staged on open sky</title>
+    <link rel="stylesheet" href="../css/system.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+      /* ------------------------------------------------------------
+         Preview-only composition. All design-system primitives live
+         in ../css/system.css. This file only arranges them.
+         ------------------------------------------------------------ */
+      .page {
+        position: relative;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      /* Atmospheric sky canvas behind the hero. Layers the photo cloud
+         imagery on top of the CSS-only sky recipe so the system
+         signature stays visible even when imagery does not load. */
+      .sky-canvas {
+        position: relative;
+        background: linear-gradient(180deg, var(--color-horizon) 0%, var(--color-sky) 78%);
+      }
+      .sky-photo {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center bottom;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .sky-canvas > .container {
+        position: relative;
+        z-index: 3;
+      }
+      .sky-canvas::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(48% 30% at 50% 12%, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 60%);
+        pointer-events: none;
+        z-index: 1;
+      }
+      .sky-canvas::after {
+        /* Smooth transition from sky into the page below */
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 240px;
+        background: linear-gradient(180deg, rgba(237,242,247,0) 0%, var(--color-sky) 92%);
+        pointer-events: none;
+        z-index: 2;
+      }
+
+      /* Brand mark inside nav: outline pill, ink-filled glyph */
+      .brand-mark {
+        width: 36px;
+        height: 36px;
+        display: inline-grid;
+        place-items: center;
+        border-radius: var(--radius-pill);
+        background: var(--color-ink);
+        color: var(--color-cloud);
+      }
+      .brand-mark svg { width: 18px; height: 18px; }
+
+      /* Hero composition */
+      .hero-wrap {
+        position: relative;
+        padding-top: clamp(80px, 9vw, 132px);
+        padding-bottom: clamp(72px, 8vw, 120px);
+        text-align: center;
+      }
+      .hero-headline {
+        max-width: 18ch;
+        margin: 0 auto;
+      }
+      .hero-sub {
+        margin: 28px auto 0;
+        max-width: 56ch;
+        font-size: var(--fs-body-lg);
+        line-height: 1.55;
+        color: var(--text-muted);
+      }
+      .hero-cta {
+        margin-top: 40px;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      /* Floating dashboard slab — breaks halfway out of the hero */
+      .slab-wrap {
+        position: relative;
+        z-index: 2;
+        margin-top: clamp(32px, 4vw, 56px);
+        margin-bottom: clamp(-160px, -10vw, -120px);
+      }
+      .slab {
+        padding: 24px;
+        border-radius: 36px;
+      }
+      .slab-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 22px;
+      }
+      .tabs {
+        background: transparent;
+      }
+      .toolbar-right {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .slab-grid {
+        display: grid;
+        grid-template-columns: 64px minmax(0, 1fr) 320px;
+        gap: 20px;
+        align-items: stretch;
+      }
+
+      .rail-vertical {
+        align-self: start;
+      }
+
+      .panel {
+        background: var(--color-cloud);
+        border: var(--border-hairline);
+        border-radius: var(--radius-card);
+        padding: 26px 28px;
+        box-shadow: var(--shadow-tier-1);
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+      }
+
+      .panel-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .panel-title {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 32px;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        color: var(--text-strong);
+        margin: 0;
+      }
+      .panel-sub {
+        margin-top: 6px;
+        font-size: var(--fs-body);
+        color: var(--text-muted);
+      }
+
+      .toolbar-chips {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      /* KPI strip */
+      .kpi-strip {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0;
+        padding: 6px 0;
+      }
+      .kpi {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 14px 22px 14px 0;
+        border-right: var(--border-hairline);
+      }
+      .kpi:first-child { padding-left: 0; }
+      .kpi:not(:first-child) { padding-left: 22px; }
+      .kpi:last-child { border-right: 0; padding-right: 0; }
+      .kpi-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: var(--fs-small);
+        color: var(--text-muted);
+      }
+      .kpi-value {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 28px;
+        letter-spacing: -0.02em;
+        color: var(--text-strong);
+        font-variant-numeric: tabular-nums;
+        display: block;
+        line-height: 1.05;
+        white-space: nowrap;
+      }
+      .kpi-delta {
+        font-size: var(--fs-small);
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .kpi-delta--up { color: var(--color-meadow); }
+      .kpi-delta--down { color: var(--color-citrus); }
+
+      /* Progress tri-band */
+      .progress-tri {
+        height: 10px;
+      }
+
+      /* Chart card */
+      .chart-card {
+        border-top: var(--border-hairline);
+        padding-top: 22px;
+      }
+      .chart-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+      .chart-header h4 {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 18px;
+        letter-spacing: var(--tracking-snug);
+        color: var(--text-strong);
+        margin: 0;
+      }
+      .chart-header p {
+        margin: 6px 0 0;
+        font-size: var(--fs-small);
+        color: var(--color-meadow);
+        font-weight: 500;
+      }
+
+      .chart {
+        position: relative;
+        padding-left: 36px;
+      }
+      .y-axis {
+        position: absolute;
+        inset: 0 auto 24px 0;
+        width: 36px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        font-size: 11px;
+        color: var(--text-soft);
+        font-variant-numeric: tabular-nums;
+      }
+      .y-axis span { line-height: 1; }
+      .bar-track {
+        height: 200px;
+        gap: 12px;
+        align-items: flex-end;
+        position: relative;
+      }
+      .bar-track::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(to top, var(--color-edge-soft) 1px, transparent 1px);
+        background-size: 100% 25%;
+        opacity: 0.9;
+        pointer-events: none;
+      }
+      .bar-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 3px;
+        justify-content: flex-end;
+        position: relative;
+        z-index: 1;
+      }
+      .bar-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .bar-seg {
+        height: 0;
+        border-radius: 6px;
+      }
+      .bar-seg--signal { background: var(--color-signal); }
+      .bar-seg--citrus { background: var(--color-citrus); }
+      .bar-seg--meadow { background: var(--color-meadow); }
+      .bar-seg--muted {
+        background: repeating-linear-gradient(135deg, var(--color-edge) 0 6px, transparent 6px 12px);
+        border: 1px solid var(--color-edge);
+      }
+      .bar-seg.top { border-top-left-radius: 12px; border-top-right-radius: 12px; }
+      .bar-label {
+        margin-top: 8px;
+        text-align: center;
+        font-size: 11px;
+        color: var(--text-soft);
+        font-variant-numeric: tabular-nums;
+      }
+      .tooltip {
+        position: absolute;
+        top: 32%;
+        left: 64%;
+        transform: translate(-50%, -50%);
+        background: var(--color-cloud);
+        border: var(--border-hairline);
+        border-radius: 14px;
+        box-shadow: var(--shadow-tier-2);
+        padding: 12px 14px;
+        font-size: var(--fs-small);
+        line-height: 1.35;
+        min-width: 168px;
+        z-index: 3;
+      }
+      .tooltip-title {
+        color: var(--text-muted);
+        margin-bottom: 6px;
+      }
+      .tooltip-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-variant-numeric: tabular-nums;
+      }
+      .tooltip-row + .tooltip-row { margin-top: 2px; }
+      .tooltip-row .lab { display: inline-flex; align-items: center; gap: 6px; color: var(--text-strong); font-weight: 500; }
+      .tooltip-row .lab::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+      .tooltip-row.signal .lab { color: var(--color-signal); }
+      .tooltip-row.citrus .lab { color: var(--color-citrus); }
+      .tooltip-row .val { color: var(--text-strong); }
+
+      /* Right column on slab — reply preview + gauge */
+      .col-right {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .reply-card {
+        background: var(--color-cloud);
+        border: var(--border-hairline);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-tier-1);
+        padding: 22px;
+        position: relative;
+        overflow: hidden;
+      }
+      .reply-canvas {
+        position: relative;
+        height: 168px;
+        margin: -22px -22px 16px;
+        background-color: var(--color-sky);
+        background-image:
+          radial-gradient(60% 50% at 30% 40%, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 65%),
+          radial-gradient(60% 50% at 80% 65%, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 65%),
+          linear-gradient(180deg, #cfe1f6 0%, #e9eff7 100%);
+        border-bottom: var(--border-hairline);
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        justify-content: center;
+      }
+      .reply-bubble {
+        align-self: flex-end;
+        max-width: 78%;
+        background: var(--color-cloud);
+        border: var(--border-hairline);
+        border-radius: 18px;
+        padding: 8px 14px;
+        font-size: var(--fs-small);
+        color: var(--text-strong);
+        box-shadow: var(--shadow-tier-1);
+      }
+      .reply-bubble.me {
+        align-self: flex-start;
+        background: var(--color-ink);
+        color: var(--color-cloud);
+        border-color: var(--color-ink);
+        max-width: 64%;
+      }
+      .reply-typing {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        align-self: flex-start;
+        background: var(--color-cloud);
+        border: var(--border-hairline);
+        border-radius: var(--radius-pill);
+        padding: 8px 14px;
+        font-size: var(--fs-small);
+        color: var(--text-strong);
+        box-shadow: var(--shadow-tier-1);
+      }
+      .reply-typing .spark {
+        width: 14px;
+        height: 14px;
+        color: var(--color-signal);
+      }
+      .reply-title {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 16px;
+        color: var(--text-strong);
+        margin: 0 0 4px;
+      }
+      .reply-desc {
+        font-size: var(--fs-small);
+        color: var(--text-muted);
+        margin: 0;
+      }
+
+      .gauge-card {
+        background: var(--color-cloud);
+        border: var(--border-hairline);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-tier-1);
+        padding: 20px 22px;
+      }
+      .gauge-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .gauge-header h5 {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 15px;
+        color: var(--text-strong);
+        margin: 0;
+      }
+      .gauge {
+        position: relative;
+        height: 96px;
+        display: grid;
+        place-items: end center;
+      }
+      .gauge svg { width: 200px; height: 110px; overflow: visible; }
+      .gauge-value {
+        position: absolute;
+        bottom: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+      }
+      .gauge-value .v {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 26px;
+        letter-spacing: -0.02em;
+        color: var(--text-strong);
+        font-variant-numeric: tabular-nums;
+        display: block;
+        line-height: 1;
+      }
+      .gauge-value .u {
+        font-size: 11px;
+        color: var(--text-soft);
+        letter-spacing: 0.04em;
+        text-transform: lowercase;
+      }
+
+      /* ------------------------------------------------------------
+         Feature section — three cards
+         ------------------------------------------------------------ */
+      .section-light {
+        background: var(--color-sky);
+        background-image:
+          radial-gradient(55% 50% at 15% 10%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 55%),
+          radial-gradient(50% 45% at 85% 90%, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 55%);
+        background-color: var(--color-sky);
+        padding-top: clamp(180px, 14vw, 240px);
+        padding-bottom: clamp(96px, 10vw, 140px);
+      }
+      .section-head {
+        max-width: 760px;
+        margin: 0 auto clamp(40px, 5vw, 64px);
+        text-align: center;
+      }
+      .section-head h2 {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: clamp(36px, 4vw, 52px);
+        line-height: 1.06;
+        letter-spacing: -0.025em;
+        color: var(--text-strong);
+        margin: 0;
+      }
+      .section-head p {
+        max-width: 56ch;
+        margin: 18px auto 0;
+        font-size: var(--fs-body-lg);
+        line-height: 1.55;
+        color: var(--text-muted);
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 22px;
+      }
+      .feat-card {
+        background: var(--color-cloud);
+        border: var(--border-hairline);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-tier-1);
+        padding: 32px 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .feat-ico {
+        width: 44px;
+        height: 44px;
+        border-radius: 16px;
+        background: var(--color-ink);
+        color: var(--color-cloud);
+        display: grid;
+        place-items: center;
+      }
+      .feat-ico svg { width: 22px; height: 22px; }
+      .feat-card h3 {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 22px;
+        letter-spacing: -0.018em;
+        color: var(--text-strong);
+        margin: 0;
+      }
+      .feat-card p {
+        font-size: var(--fs-body);
+        line-height: 1.55;
+        color: var(--text-muted);
+        margin: 0;
+      }
+      .feat-card .mini-ui {
+        margin-top: auto;
+        background: var(--surface-sunken);
+        border: 1px solid var(--color-edge-soft);
+        border-radius: var(--radius-tile);
+        padding: 14px 16px;
+      }
+      .mini-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: var(--fs-small);
+      }
+      .mini-row + .mini-row { margin-top: 10px; }
+      .mini-row .lab { color: var(--text-muted); display: inline-flex; align-items: center; gap: 8px; }
+      .mini-row .lab svg { width: 14px; height: 14px; }
+      .mini-row .val {
+        font-family: var(--font-display);
+        font-weight: 600;
+        color: var(--text-strong);
+        font-variant-numeric: tabular-nums;
+      }
+      .mini-row .pill {
+        font-size: 11px;
+        font-weight: 500;
+        padding: 4px 10px;
+        border-radius: var(--radius-pill);
+        background: var(--color-cloud);
+        border: var(--border-hairline);
+        color: var(--text-strong);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .pill-meadow { color: var(--color-meadow); }
+      .pill-meadow::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--color-meadow); }
+      .pill-signal { color: var(--color-signal); }
+      .pill-signal::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--color-signal); }
+      .pill-citrus { color: var(--color-citrus); }
+      .pill-citrus::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--color-citrus); }
+
+      .mini-progress {
+        height: 6px;
+        border-radius: var(--radius-pill);
+        background: var(--color-edge-soft);
+        overflow: hidden;
+        flex: 1;
+        margin: 0 12px;
+      }
+      .mini-progress > i {
+        display: block;
+        height: 100%;
+        border-radius: var(--radius-pill);
+      }
+
+      /* ------------------------------------------------------------
+         Inbox section — left-aligned, two-column with floating UI
+         ------------------------------------------------------------ */
+      .inbox-section {
+        padding: clamp(96px, 10vw, 140px) 0;
+        background:
+          linear-gradient(180deg, var(--color-sky) 0%, #f5f8fc 100%);
+      }
+      .inbox-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 1fr;
+        gap: 56px;
+        align-items: center;
+      }
+      .inbox-copy h2 {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: clamp(36px, 4vw, 52px);
+        line-height: 1.08;
+        letter-spacing: -0.025em;
+        color: var(--text-strong);
+        margin: 0;
+      }
+      .inbox-copy p {
+        max-width: 48ch;
+        margin: 22px 0 0;
+        font-size: var(--fs-body-lg);
+        line-height: 1.55;
+        color: var(--text-muted);
+      }
+      .inbox-list {
+        margin-top: 32px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .inbox-list li {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        list-style: none;
+      }
+      .inbox-list .tick {
+        flex-shrink: 0;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: var(--color-ink);
+        color: var(--color-cloud);
+      }
+      .inbox-list .tick svg { width: 14px; height: 14px; }
+      .inbox-list .t {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 17px;
+        color: var(--text-strong);
+        letter-spacing: -0.01em;
+        display: block;
+      }
+      .inbox-list .d {
+        font-size: var(--fs-body);
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+
+      .inbox-ui {
+        position: relative;
+        padding: 28px 24px;
+        background: var(--color-cloud);
+        border: var(--border-hairline);
+        border-radius: 32px;
+        box-shadow: var(--shadow-tier-2);
+      }
+      .inbox-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+      }
+      .inbox-head h4 {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 17px;
+        color: var(--text-strong);
+        margin: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .inbox-head h4 .count {
+        background: var(--color-ink);
+        color: var(--color-cloud);
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: var(--radius-pill);
+        font-weight: 500;
+        font-family: var(--font-sans);
+      }
+      .inbox-head .input { height: 36px; padding-inline: 14px; font-size: var(--fs-small); width: 180px; }
+
+      .msg {
+        display: grid;
+        grid-template-columns: 36px 1fr auto;
+        column-gap: 14px;
+        row-gap: 2px;
+        align-items: start;
+        padding: 14px 8px;
+        border-radius: var(--radius-tile);
+        cursor: pointer;
+        transition: background var(--dur-base) var(--ease-soft);
+      }
+      .msg:hover { background: var(--surface-sunken); }
+      .msg.is-active { background: var(--surface-sunken); }
+      .msg .av {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--surface-sunken);
+        border: var(--border-hairline);
+        display: grid;
+        place-items: center;
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--text-strong);
+        grid-row: span 2;
+        overflow: hidden;
+      }
+      .msg .who {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-strong);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .msg .who .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+      .msg .who .dot.signal { background: var(--color-signal); }
+      .msg .who .dot.meadow { background: var(--color-meadow); }
+      .msg .who .dot.citrus { background: var(--color-citrus); }
+      .msg .when {
+        font-size: 11px;
+        color: var(--text-soft);
+        font-variant-numeric: tabular-nums;
+        grid-row: 1;
+      }
+      .msg .preview {
+        font-size: var(--fs-small);
+        color: var(--text-muted);
+        line-height: 1.45;
+        grid-column: 2;
+      }
+      .msg .tag {
+        grid-column: 3;
+        grid-row: 2;
+        align-self: center;
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: var(--radius-pill);
+        background: var(--color-cloud);
+        border: var(--border-hairline);
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .msg .tag.ink { background: var(--color-ink); color: var(--color-cloud); border-color: var(--color-ink); }
+
+      /* ------------------------------------------------------------
+         Pricing section — three plans, center recommended lifted
+         ------------------------------------------------------------ */
+      .pricing-section {
+        background: var(--color-sky);
+        background-image:
+          radial-gradient(50% 50% at 50% 100%, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0) 60%);
+        padding: clamp(96px, 10vw, 140px) 0;
+      }
+      .plan-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 22px;
+        align-items: stretch;
+      }
+      .plan {
+        background: var(--color-cloud);
+        border: var(--border-hairline);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-tier-1);
+        padding: 32px 28px 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+      }
+      .plan.is-featured {
+        transform: translateY(-12px);
+        box-shadow: var(--shadow-tier-2);
+        border-radius: 32px;
+      }
+      .plan-name {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 17px;
+        color: var(--text-strong);
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+      }
+      .plan-name .chip {
+        background: var(--color-ink);
+        color: var(--color-cloud);
+        border-color: var(--color-ink);
+        font-size: 11px;
+        padding: 3px 10px;
+      }
+      .plan-price {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 52px;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text-strong);
+        display: inline-flex;
+        align-items: baseline;
+        gap: 6px;
+      }
+      .plan-price .currency { font-size: 26px; font-weight: 600; color: var(--text-muted); }
+      .plan-price .per { font-size: var(--fs-body); color: var(--text-muted); font-weight: 500; font-family: var(--font-sans); }
+      .plan-desc {
+        font-size: var(--fs-body);
+        color: var(--text-muted);
+        margin: 0;
+        line-height: 1.55;
+      }
+      .plan ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .plan li {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: var(--fs-body);
+        color: var(--text-strong);
+      }
+      .plan li svg {
+        width: 16px;
+        height: 16px;
+        color: var(--color-meadow);
+        flex-shrink: 0;
+        margin-top: 3px;
+      }
+      .plan li.muted { color: var(--text-muted); }
+      .plan li.muted svg { color: var(--text-soft); }
+      .plan .btn { width: 100%; }
+
+      /* ------------------------------------------------------------
+         Footer
+         ------------------------------------------------------------ */
+      .foot {
+        background: var(--color-cloud);
+        border-top: var(--border-hairline);
+        padding: 56px 0 40px;
+      }
+      .foot-top {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr 1fr 1fr;
+        gap: 40px;
+        margin-bottom: 40px;
+      }
+      .foot-col h6 {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-strong);
+        margin: 0 0 14px;
+      }
+      .foot-col ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+      .foot-col a { font-size: var(--fs-body); color: var(--text-muted); transition: color var(--dur-base) var(--ease-soft); }
+      .foot-col a:hover { color: var(--text-strong); }
+      .foot-brand { display: inline-flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+      .foot-brand .name { font-family: var(--font-display); font-weight: 600; font-size: 22px; letter-spacing: -0.02em; }
+      .foot-brand .brand-mark { width: 40px; height: 40px; }
+      .foot-brand .brand-mark svg { width: 22px; height: 22px; }
+      .foot-tag { color: var(--text-muted); max-width: 38ch; font-size: var(--fs-body); line-height: 1.55; }
+      .foot-tag em { font-family: var(--font-serif); font-style: italic; color: var(--color-mist); font-size: 1.05em; }
+      .foot-bot {
+        border-top: var(--border-hairline);
+        padding-top: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: var(--fs-small);
+        color: var(--text-muted);
+      }
+
+      /* ------------------------------------------------------------
+         Responsive
+         ------------------------------------------------------------ */
+      @media (max-width: 1024px) {
+        .slab-grid { grid-template-columns: 56px minmax(0, 1fr); }
+        .col-right { grid-column: span 2; flex-direction: row; }
+        .col-right > * { flex: 1; }
+        .inbox-grid { grid-template-columns: 1fr; gap: 40px; }
+        .foot-top { grid-template-columns: 1fr 1fr; }
+      }
+      @media (max-width: 760px) {
+        .slab-grid { grid-template-columns: 1fr; }
+        .rail-vertical { display: none; }
+        .col-right { flex-direction: column; }
+        .feature-grid,
+        .plan-grid { grid-template-columns: 1fr; }
+        .foot-top { grid-template-columns: 1fr; }
+        .kpi-strip { grid-template-columns: 1fr 1fr; }
+        .kpi { border-right: 0; padding: 14px 0; border-bottom: var(--border-hairline); }
+        .kpi:nth-child(odd) { padding-right: 22px; border-right: var(--border-hairline); }
+        .kpi:nth-last-child(-n+2) { border-bottom: 0; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <!-- ============ HERO + SLAB ON SKY ============ -->
+      <header class="sky-canvas">
+        <img
+          class="sky-photo"
+          src="../images/sky-horizon-hero.png"
+          alt=""
+          aria-hidden="true"
+          width="3360"
+          height="1440"
+        />
+        <div class="container">
+          <nav class="nav" aria-label="Primary">
+            <a href="#" class="nav-brand">
+              <span class="brand-mark" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 359.04 345.39"><path fill="currentColor" d="M352.91,121.03c-11.88-22.12-38.68-32.41-62.29-23.88-4.47,1.61-8.56,3.77-12.23,6.35-5.92,4.17-12.12,7.94-18.7,10.99-.07.03-.12.05-.18.08l-12.97,5.99c-11.23,5.18-24.04-3.02-24.04-15.38v-22.98c0-.25,0-.5.02-.75v-.02c.03-7.03.85-14.04,2.13-20.97.55-3.03.85-6.12.85-9.29C225.48,21.85,200.83-1.7,171.15.1c-25.06,1.51-45.64,21.52-47.79,46.55-.42,4.72-.17,9.34.63,13.75,1.31,7.2,2.14,14.48,2.14,21.79v18.17c0,12.37-12.82,20.56-24.04,15.38l-2.55-1.18c-.6-.28-1.2-.55-1.78-.85-6-2.89-11.67-6.4-17.12-10.22-3.66-2.58-7.75-4.74-12.22-6.35-23.62-8.53-50.41,1.76-62.29,23.88-14.06,26.21-3.01,58.46,23.6,70.72,2.88,1.33,5.82,2.38,8.79,3.12,7.06,1.81,14.01,4.12,20.63,7.18l10.09,4.65,8.55,3.94c10.32,4.76,13.12,18.14,5.56,26.64h0s-1.6,1.8-1.6,1.8c-4.85,5.46-10.29,10.35-16.05,14.83-2.41,1.88-4.69,4.01-6.81,6.39-19.46,21.91-16.69,55.86,6.68,74.25,19.75,15.54,48.42,14.23,66.65-3.04,3.46-3.26,6.33-6.86,8.66-10.7,3.79-6.25,8.01-12.23,12.88-17.7l8.51-9.57,16.02-18.03,16.02,18.03,8.51,9.57c4.85,5.47,9.07,11.45,12.86,17.7,2.33,3.84,5.22,7.45,8.66,10.7,18.23,17.27,46.9,18.58,66.65,3.04,23.39-18.38,26.14-52.34,6.68-74.25-2.08-2.34-4.31-4.43-6.68-6.29-4.42-3.47-8.7-7.1-12.57-11.17l-3.6-3.78-.88-.99c-7.55-8.5-4.76-21.87,5.56-26.63l10.26-4.74,10.09-4.65c6.63-3.06,13.58-5.37,20.64-7.18,2.98-.75,5.92-1.8,8.79-3.12,26.61-12.27,37.66-44.51,23.6-70.72Z"/></svg>
+              </span>
+              <span>Cirrus</span>
+            </a>
+
+            <div class="nav-pill" role="navigation">
+              <a href="#" class="nav-link is-active">Product</a>
+              <a href="#" class="nav-link">Inbox</a>
+              <a href="#" class="nav-link">Automations</a>
+              <a href="#" class="nav-link">Pricing</a>
+              <a href="#" class="nav-link">Changelog</a>
+            </div>
+
+            <div class="row row-3">
+              <a href="#" class="nav-link" style="padding:8px 4px;">Sign in</a>
+              <a href="#" class="btn btn-primary">
+                <i data-lucide="arrow-up-right" class="icon"></i>
+                Start free
+              </a>
+            </div>
+          </nav>
+
+          <section class="hero-wrap">
+            <h1 class="display-hero hero-headline">
+              Run your business on a quieter kind of automation.
+            </h1>
+            <p class="hero-sub">
+              Cirrus is an unhurried operations platform for small teams. Capture every lead,
+              draft every reply, and watch every metric move &mdash; without the dashboard noise.
+            </p>
+            <div class="hero-cta">
+              <a href="#" class="btn btn-primary btn-lg">
+                <i data-lucide="play" class="icon"></i>
+                Start a 14&#8209;day trial
+              </a>
+              <a href="#" class="btn btn-secondary btn-lg">
+                <i data-lucide="circle-play" class="icon"></i>
+                Watch the 90&#8209;second tour
+              </a>
+            </div>
+          </section>
+
+          <!-- Floating dashboard slab -->
+          <div class="slab-wrap">
+            <article class="slab" aria-label="Business overview dashboard">
+              <div class="slab-toolbar">
+                <div class="tabs">
+                  <button class="tab is-active"><i data-lucide="layout-grid" class="icon"></i> Overview</button>
+                  <button class="tab"><i data-lucide="inbox" class="icon"></i> Inbox <span style="margin-left:6px;color:var(--text-soft);font-variant-numeric:tabular-nums;">28</span></button>
+                  <button class="tab"><i data-lucide="users-round" class="icon"></i> Leads</button>
+                  <button class="tab"><i data-lucide="line-chart" class="icon"></i> Stats</button>
+                  <button class="tab"><i data-lucide="workflow" class="icon"></i> Flows</button>
+                </div>
+                <div class="toolbar-right">
+                  <label class="input input-search">
+                    <i data-lucide="search" class="icon"></i>
+                    <input type="search" placeholder="Search threads, contacts, replies" aria-label="Search" style="border:0;outline:0;background:transparent;flex:1;min-width:0;font:inherit;color:inherit;" />
+                  </label>
+                  <button class="btn btn-icon btn-secondary" aria-label="Notifications">
+                    <i data-lucide="bell" class="icon"></i>
+                  </button>
+                  <span class="avatar avatar-sm" aria-hidden="true">
+                    <span style="display:grid;place-items:center;width:100%;height:100%;font-family:var(--font-display);font-weight:600;font-size:12px;color:var(--text-strong);">EM</span>
+                  </span>
+                </div>
+              </div>
+
+              <div class="slab-grid">
+                <!-- Left rail -->
+                <aside class="rail rail-vertical" aria-label="Section nav">
+                  <button class="rail-item is-active" aria-label="Home"><i data-lucide="home" class="icon"></i></button>
+                  <button class="rail-item" aria-label="Threads"><i data-lucide="message-circle" class="icon"></i></button>
+                  <button class="rail-item" aria-label="Contacts"><i data-lucide="user-round" class="icon"></i></button>
+                  <button class="rail-item" aria-label="Pipelines"><i data-lucide="git-branch" class="icon"></i></button>
+                  <button class="rail-item" aria-label="Reports"><i data-lucide="pie-chart" class="icon"></i></button>
+                  <button class="rail-item" aria-label="Settings"><i data-lucide="settings-2" class="icon"></i></button>
+                </aside>
+
+                <!-- Center main panel -->
+                <section class="panel" aria-label="Business overview">
+                  <header class="panel-header">
+                    <div>
+                      <h2 class="panel-title">Business overview</h2>
+                      <p class="panel-sub">Real‑time signals from every channel you sell on.</p>
+                    </div>
+                    <div class="toolbar-chips">
+                      <span class="chip"><i data-lucide="calendar" class="icon"></i> 7 days</span>
+                      <span class="chip"><i data-lucide="upload" class="icon"></i> Export</span>
+                      <span class="chip chip-ink"><i data-lucide="share-2" class="icon" style="color:var(--color-cloud);"></i> Share</span>
+                    </div>
+                  </header>
+
+                  <div class="kpi-strip">
+                    <div class="kpi">
+                      <span class="kpi-label"><i data-lucide="flame" class="icon icon-sm"></i> Hot leads today</span>
+                      <span class="kpi-value">382</span>
+                      <span class="kpi-delta kpi-delta--up">↑ 18% wow</span>
+                    </div>
+                    <div class="kpi">
+                      <span class="kpi-label"><i data-lucide="reply" class="icon icon-sm"></i> Pending replies</span>
+                      <span class="kpi-value">4</span>
+                      <span class="kpi-delta kpi-delta--down">↓ 2 since am</span>
+                    </div>
+                    <div class="kpi">
+                      <span class="kpi-label"><i data-lucide="timer" class="icon icon-sm"></i> Avg response</span>
+                      <span class="kpi-value">2m 09s</span>
+                      <span class="kpi-delta kpi-delta--up">↑ 12% faster</span>
+                    </div>
+                    <div class="kpi">
+                      <span class="kpi-label"><i data-lucide="banknote" class="icon icon-sm"></i> Revenue from chats</span>
+                      <span class="kpi-value">$97,418</span>
+                      <span class="kpi-delta kpi-delta--up">↑ 18% mom</span>
+                    </div>
+                  </div>
+
+                  <div class="progress-tri" aria-hidden="true">
+                    <span style="background:var(--color-signal);"></span>
+                    <span style="background:var(--color-citrus);"></span>
+                    <span style="background:var(--color-meadow);"></span>
+                    <span></span>
+                  </div>
+
+                  <div class="chart-card">
+                    <div class="chart-header">
+                      <div>
+                        <h4>Messages vs. sales</h4>
+                        <p>↑ 18% more than last month</p>
+                      </div>
+                      <div class="row row-3">
+                        <span class="legend-dot legend-dot--signal">Messenger</span>
+                        <span class="legend-dot legend-dot--citrus">Sales</span>
+                        <span class="legend-dot legend-dot--meadow">Renewals</span>
+                        <button class="btn btn-secondary btn-sm" aria-label="View report"><i data-lucide="arrow-up-right" class="icon icon-sm"></i> View</button>
+                      </div>
+                    </div>
+
+                    <div class="chart">
+                      <div class="y-axis" aria-hidden="true">
+                        <span>10,500</span>
+                        <span>7,100</span>
+                        <span>4,800</span>
+                        <span>2,400</span>
+                        <span>0</span>
+                      </div>
+                      <div class="bar-track">
+                        <!-- 10 bars Jan..Oct -->
+                        <div class="bar-col">
+                          <div class="bar-stack">
+                            <div class="bar-seg bar-seg--citrus" style="height:14px;"></div>
+                            <div class="bar-seg bar-seg--signal top" style="height:46px;"></div>
+                          </div>
+                          <span class="bar-label">Jan</span>
+                        </div>
+                        <div class="bar-col">
+                          <div class="bar-stack">
+                            <div class="bar-seg bar-seg--citrus" style="height:18px;"></div>
+                            <div class="bar-seg bar-seg--signal top" style="height:62px;"></div>
+                          </div>
+                          <span class="bar-label">Feb</span>
+                        </div>
+                        <div class="bar-col">
+                          <div class="bar-stack">
+                            <div class="bar-seg bar-seg--citrus" style="height:24px;"></div>
+                            <div class="bar-seg bar-seg--signal top" style="height:78px;"></div>
+                          </div>
+                          <span class="bar-label">Mar</span>
+                        </div>
+                        <div class="bar-col">
+                          <div class="bar-stack">
+                            <div class="bar-seg bar-seg--citrus" style="height:30px;"></div>
+                            <div class="bar-seg bar-seg--signal top" style="height:92px;"></div>
+                          </div>
+                          <span class="bar-label">Apr</span>
+                        </div>
+                        <div class="bar-col">
+                          <div class="bar-stack">
+                            <div class="bar-seg bar-seg--citrus" style="height:36px;"></div>
+                            <div class="bar-seg bar-seg--signal top" style="height:108px;"></div>
+                          </div>
+                          <span class="bar-label">May</span>
+                        </div>
+                        <div class="bar-col">
+                          <div class="bar-stack">
+                            <div class="bar-seg bar-seg--citrus" style="height:48px;"></div>
+                            <div class="bar-seg bar-seg--signal top" style="height:130px;"></div>
+                          </div>
+                          <span class="bar-label">Jun</span>
+                          <!-- Tooltip pin -->
+                          <div class="tooltip" role="tooltip">
+                            <div class="tooltip-title">June 2026</div>
+                            <div class="tooltip-row signal"><span class="lab">Messenger</span><span class="val">6,960</span></div>
+                            <div class="tooltip-row citrus"><span class="lab">Sales</span><span class="val">$8,400k</span></div>
+                          </div>
+                        </div>
+                        <div class="bar-col">
+                          <div class="bar-stack">
+                            <div class="bar-seg bar-seg--citrus" style="height:42px;"></div>
+                            <div class="bar-seg bar-seg--signal top" style="height:122px;"></div>
+                          </div>
+                          <span class="bar-label">Jul</span>
+                        </div>
+                        <div class="bar-col">
+                          <div class="bar-stack">
+                            <div class="bar-seg bar-seg--citrus" style="height:56px;"></div>
+                            <div class="bar-seg bar-seg--signal top" style="height:142px;"></div>
+                          </div>
+                          <span class="bar-label">Aug</span>
+                        </div>
+                        <div class="bar-col">
+                          <div class="bar-stack">
+                            <div class="bar-seg bar-seg--citrus" style="height:50px;"></div>
+                            <div class="bar-seg bar-seg--signal top" style="height:120px;"></div>
+                          </div>
+                          <span class="bar-label">Sep</span>
+                        </div>
+                        <div class="bar-col">
+                          <div class="bar-stack">
+                            <div class="bar-seg bar-seg--muted top" style="height:96px;"></div>
+                          </div>
+                          <span class="bar-label">Oct</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- Right column -->
+                <aside class="col-right" aria-label="AI replies and lead quality">
+                  <article class="reply-card">
+                    <div class="reply-canvas">
+                      <div class="reply-bubble">You have to be replying to chats faster.</div>
+                      <div class="reply-bubble">This is the perfect comment.</div>
+                      <div class="reply-typing">
+                        <i data-lucide="sparkles" class="spark"></i>
+                        Generating reply…
+                      </div>
+                    </div>
+                    <h5 class="reply-title">AI reply suggestions</h5>
+                    <p class="reply-desc">
+                      Drafts a tone‑matched response in two seconds whenever the inbox queue tips over five threads.
+                    </p>
+                  </article>
+
+                  <article class="gauge-card">
+                    <div class="gauge-header">
+                      <h5>Lead quality</h5>
+                      <button class="btn-ghost row row-2" style="font-size:13px;color:var(--text-muted);padding:4px;">
+                        <i data-lucide="ellipsis" class="icon icon-sm"></i>
+                      </button>
+                    </div>
+                    <div class="gauge">
+                      <svg viewBox="0 0 220 120" aria-hidden="true">
+                        <defs>
+                          <linearGradient id="gaugeBlue" x1="0" x2="1">
+                            <stop offset="0" stop-color="#2E7DEF" />
+                            <stop offset="1" stop-color="#2BC48A" />
+                          </linearGradient>
+                        </defs>
+                        <!-- tick fan -->
+                        <g stroke="#E3E8EE" stroke-width="2" stroke-linecap="round">
+                          <line x1="110" y1="14" x2="110" y2="0" transform="rotate(-72 110 110)" />
+                          <line x1="110" y1="14" x2="110" y2="0" transform="rotate(-58 110 110)" />
+                          <line x1="110" y1="14" x2="110" y2="0" transform="rotate(-44 110 110)" />
+                          <line x1="110" y1="14" x2="110" y2="0" transform="rotate(-30 110 110)" />
+                          <line x1="110" y1="14" x2="110" y2="0" transform="rotate(-15 110 110)" />
+                          <line x1="110" y1="14" x2="110" y2="0" />
+                          <line x1="110" y1="14" x2="110" y2="0" transform="rotate(15 110 110)" />
+                          <line x1="110" y1="14" x2="110" y2="0" transform="rotate(30 110 110)" />
+                          <line x1="110" y1="14" x2="110" y2="0" transform="rotate(44 110 110)" />
+                          <line x1="110" y1="14" x2="110" y2="0" transform="rotate(58 110 110)" />
+                          <line x1="110" y1="14" x2="110" y2="0" transform="rotate(72 110 110)" />
+                        </g>
+                        <path d="M16 110 A 94 94 0 0 1 204 110" fill="none" stroke="url(#gaugeBlue)" stroke-width="5" stroke-linecap="round" />
+                      </svg>
+                      <div class="gauge-value">
+                        <span class="v">1,000</span>
+                        <span class="u">total leads</span>
+                      </div>
+                    </div>
+                  </article>
+                </aside>
+              </div>
+            </article>
+          </div>
+        </div>
+      </header>
+
+      <!-- ============ FEATURE GRID ============ -->
+      <section class="section-light">
+        <div class="container">
+          <header class="section-head">
+            <h2>Built for teams who would <span class="accent-italic">rather not</span> live in the inbox.</h2>
+            <p>
+              Three small surfaces, working together. None of them ask you to manage them.
+              The platform is the absence of the dashboard.
+            </p>
+          </header>
+
+          <div class="feature-grid">
+            <article class="feat-card">
+              <div class="feat-ico"><i data-lucide="message-square-text"></i></div>
+              <h3>Unified replies</h3>
+              <p>One thread per customer across email, SMS, WhatsApp, and Instagram. The AI keeps tone consistent and never re‑introduces itself.</p>
+              <div class="mini-ui" aria-hidden="true">
+                <div class="mini-row">
+                  <span class="lab"><i data-lucide="mail"></i> Email</span>
+                  <span class="pill pill-meadow">live</span>
+                </div>
+                <div class="mini-row">
+                  <span class="lab"><i data-lucide="message-circle"></i> WhatsApp</span>
+                  <span class="pill pill-meadow">live</span>
+                </div>
+                <div class="mini-row">
+                  <span class="lab"><i data-lucide="instagram"></i> Instagram</span>
+                  <span class="pill pill-signal">syncing</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="feat-card">
+              <div class="feat-ico"><i data-lucide="git-branch"></i></div>
+              <h3>Pipelines that move themselves</h3>
+              <p>Leads slide from <em>new</em> to <em>qualified</em> when the signals say so. Stage rules are plain English, version‑controlled, and one‑click reversible.</p>
+              <div class="mini-ui" aria-hidden="true">
+                <div class="mini-row">
+                  <span class="lab">New</span>
+                  <span class="mini-progress"><i style="width:88%;background:var(--color-signal);"></i></span>
+                  <span class="val">412</span>
+                </div>
+                <div class="mini-row">
+                  <span class="lab">Qualified</span>
+                  <span class="mini-progress"><i style="width:62%;background:var(--color-citrus);"></i></span>
+                  <span class="val">228</span>
+                </div>
+                <div class="mini-row">
+                  <span class="lab">Closed</span>
+                  <span class="mini-progress"><i style="width:34%;background:var(--color-meadow);"></i></span>
+                  <span class="val">96</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="feat-card">
+              <div class="feat-ico"><i data-lucide="activity"></i></div>
+              <h3>Honest analytics</h3>
+              <p>Six metrics, no vanity. Pick the one you report to your team on Monday and Cirrus quietly defends it the rest of the week.</p>
+              <div class="mini-ui" aria-hidden="true">
+                <div class="mini-row">
+                  <span class="lab"><i data-lucide="timer"></i> First reply</span>
+                  <span class="val">2m 09s</span>
+                </div>
+                <div class="mini-row">
+                  <span class="lab"><i data-lucide="check-check"></i> Resolution</span>
+                  <span class="val">94.2%</span>
+                </div>
+                <div class="mini-row">
+                  <span class="lab"><i data-lucide="trending-up"></i> Win rate</span>
+                  <span class="val">31.4%</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ INBOX SECTION ============ -->
+      <section class="inbox-section">
+        <div class="container">
+          <div class="inbox-grid">
+            <div class="inbox-copy">
+              <h2>The inbox stops being the <span class="accent-italic">place you live.</span></h2>
+              <p>
+                Threads sort themselves by intent, not arrival. The AI drafts in the customer's
+                voice. You read, you nudge a sentence, you send. No queue. No backlog. No 9pm panic.
+              </p>
+              <ul class="inbox-list">
+                <li>
+                  <span class="tick"><i data-lucide="check"></i></span>
+                  <div>
+                    <span class="t">Replies drafted in tone</span>
+                    <span class="d">Cirrus learns from the last 90 days of your sent folder.</span>
+                  </div>
+                </li>
+                <li>
+                  <span class="tick"><i data-lucide="check"></i></span>
+                  <div>
+                    <span class="t">Intent‑sorted threads</span>
+                    <span class="d">Buyers float to the top. Spam quietly drops to filed.</span>
+                  </div>
+                </li>
+                <li>
+                  <span class="tick"><i data-lucide="check"></i></span>
+                  <div>
+                    <span class="t">One inbox, every channel</span>
+                    <span class="d">Email, WhatsApp, SMS, Instagram, and your storefront chat.</span>
+                  </div>
+                </li>
+              </ul>
+              <div class="row row-3" style="margin-top:32px;">
+                <a href="#" class="btn btn-primary">
+                  <i data-lucide="inbox" class="icon"></i>
+                  Open inbox demo
+                </a>
+                <a href="#" class="btn btn-ghost row row-2" style="color:var(--text-strong);">
+                  See the underlying model <i data-lucide="arrow-right" class="icon icon-sm"></i>
+                </a>
+              </div>
+            </div>
+
+            <aside class="inbox-ui" aria-label="Inbox preview">
+              <div class="inbox-head">
+                <h4>Inbox <span class="count">28 new</span></h4>
+                <label class="input">
+                  <i data-lucide="search" class="icon"></i>
+                  <input type="search" placeholder="Filter threads" aria-label="Filter threads" style="border:0;outline:0;background:transparent;flex:1;min-width:0;font:inherit;color:inherit;" />
+                </label>
+              </div>
+
+              <div class="msg is-active">
+                <span class="av">MR</span>
+                <span class="who">Maya Roussel <span class="dot signal"></span></span>
+                <span class="when">2 min</span>
+                <span class="preview">Two questions about the silk shirt before I order three for the team retreat…</span>
+                <span class="tag ink">Reply now</span>
+              </div>
+              <div class="msg">
+                <span class="av">JT</span>
+                <span class="who">Jonas T. <span class="dot meadow"></span></span>
+                <span class="when">12 min</span>
+                <span class="preview">Confirmed the upgrade to annual. Send the invoice to billing@studio…</span>
+                <span class="tag">Closed</span>
+              </div>
+              <div class="msg">
+                <span class="av">AO</span>
+                <span class="who">Aiko Ono <span class="dot signal"></span></span>
+                <span class="when">38 min</span>
+                <span class="preview">Following up after our call. Could you share the deck before Thursday?</span>
+                <span class="tag">In review</span>
+              </div>
+              <div class="msg">
+                <span class="av">RF</span>
+                <span class="who">Refik &amp; Co. <span class="dot citrus"></span></span>
+                <span class="when">1h</span>
+                <span class="preview">Hi — the shipping window slipped a day. Should we adjust the estimate on the page?</span>
+                <span class="tag">Needs you</span>
+              </div>
+              <div class="msg">
+                <span class="av">EC</span>
+                <span class="who">Elena Chen <span class="dot meadow"></span></span>
+                <span class="when">2h</span>
+                <span class="preview">Great call earlier. Let's schedule the pilot for the second week of July.</span>
+                <span class="tag">Drafted</span>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PRICING ============ -->
+      <section class="pricing-section">
+        <div class="container">
+          <header class="section-head">
+            <h2>Pricing that <span class="accent-italic">stays</span> small.</h2>
+            <p>One plan per team size. Yearly is 16% less than monthly and the trial really is fourteen days.</p>
+          </header>
+
+          <div class="plan-grid">
+            <article class="plan">
+              <h3 class="plan-name">Solo</h3>
+              <p class="plan-desc">For the operator who's running it all themselves.</p>
+              <div class="plan-price"><span class="currency">$</span>18<span class="per">/month</span></div>
+              <ul>
+                <li><i data-lucide="check"></i> 1 seat, 2 channels</li>
+                <li><i data-lucide="check"></i> 250 AI replies a month</li>
+                <li><i data-lucide="check"></i> Unified inbox &amp; threads</li>
+                <li class="muted"><i data-lucide="minus"></i> Custom automations</li>
+                <li class="muted"><i data-lucide="minus"></i> Pipelines &amp; reporting</li>
+              </ul>
+              <a href="#" class="btn btn-secondary">Start with Solo</a>
+            </article>
+
+            <article class="plan is-featured">
+              <h3 class="plan-name">Studio <span class="chip">Recommended</span></h3>
+              <p class="plan-desc">For a small team that ships every week.</p>
+              <div class="plan-price"><span class="currency">$</span>59<span class="per">/seat/mo</span></div>
+              <ul>
+                <li><i data-lucide="check"></i> Up to 8 seats, every channel</li>
+                <li><i data-lucide="check"></i> Unlimited AI replies</li>
+                <li><i data-lucide="check"></i> Pipelines, rules &amp; webhooks</li>
+                <li><i data-lucide="check"></i> Honest analytics dashboard</li>
+                <li><i data-lucide="check"></i> Shared snippets &amp; tones</li>
+              </ul>
+              <a href="#" class="btn btn-primary">Start a Studio trial</a>
+            </article>
+
+            <article class="plan">
+              <h3 class="plan-name">Atelier</h3>
+              <p class="plan-desc">For agencies and studios who manage multiple brands.</p>
+              <div class="plan-price">Custom</div>
+              <ul>
+                <li><i data-lucide="check"></i> Unlimited seats &amp; brands</li>
+                <li><i data-lucide="check"></i> SSO &amp; SCIM provisioning</li>
+                <li><i data-lucide="check"></i> Private model fine‑tuning</li>
+                <li><i data-lucide="check"></i> Dedicated success lead</li>
+                <li><i data-lucide="check"></i> Onsite onboarding</li>
+              </ul>
+              <a href="#" class="btn btn-secondary">Talk to founders</a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ FOOTER ============ -->
+      <footer class="foot">
+        <div class="container">
+          <div class="foot-top">
+            <div>
+              <div class="foot-brand">
+                <span class="brand-mark" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 359.04 345.39"><path fill="currentColor" d="M352.91,121.03c-11.88-22.12-38.68-32.41-62.29-23.88-4.47,1.61-8.56,3.77-12.23,6.35-5.92,4.17-12.12,7.94-18.7,10.99-.07.03-.12.05-.18.08l-12.97,5.99c-11.23,5.18-24.04-3.02-24.04-15.38v-22.98c0-.25,0-.5.02-.75v-.02c.03-7.03.85-14.04,2.13-20.97.55-3.03.85-6.12.85-9.29C225.48,21.85,200.83-1.7,171.15.1c-25.06,1.51-45.64,21.52-47.79,46.55-.42,4.72-.17,9.34.63,13.75,1.31,7.2,2.14,14.48,2.14,21.79v18.17c0,12.37-12.82,20.56-24.04,15.38l-2.55-1.18c-.6-.28-1.2-.55-1.78-.85-6-2.89-11.67-6.4-17.12-10.22-3.66-2.58-7.75-4.74-12.22-6.35-23.62-8.53-50.41,1.76-62.29,23.88-14.06,26.21-3.01,58.46,23.6,70.72,2.88,1.33,5.82,2.38,8.79,3.12,7.06,1.81,14.01,4.12,20.63,7.18l10.09,4.65,8.55,3.94c10.32,4.76,13.12,18.14,5.56,26.64h0s-1.6,1.8-1.6,1.8c-4.85,5.46-10.29,10.35-16.05,14.83-2.41,1.88-4.69,4.01-6.81,6.39-19.46,21.91-16.69,55.86,6.68,74.25,19.75,15.54,48.42,14.23,66.65-3.04,3.46-3.26,6.33-6.86,8.66-10.7,3.79-6.25,8.01-12.23,12.88-17.7l8.51-9.57,16.02-18.03,16.02,18.03,8.51,9.57c4.85,5.47,9.07,11.45,12.86,17.7,2.33,3.84,5.22,7.45,8.66,10.7,18.23,17.27,46.9,18.58,66.65,3.04,23.39-18.38,26.14-52.34,6.68-74.25-2.08-2.34-4.31-4.43-6.68-6.29-4.42-3.47-8.7-7.1-12.57-11.17l-3.6-3.78-.88-.99c-7.55-8.5-4.76-21.87,5.56-26.63l10.26-4.74,10.09-4.65c6.63-3.06,13.58-5.37,20.64-7.18,2.98-.75,5.92-1.8,8.79-3.12,26.61-12.27,37.66-44.51,23.6-70.72Z"/></svg>
+                </span>
+                <span class="name">Cirrus</span>
+              </div>
+              <p class="foot-tag">
+                An unhurried operations platform for small teams who would rather <em>tend</em> to a customer than triage one.
+              </p>
+            </div>
+
+            <div class="foot-col">
+              <h6>Product</h6>
+              <ul>
+                <li><a href="#">Inbox</a></li>
+                <li><a href="#">Pipelines</a></li>
+                <li><a href="#">Automations</a></li>
+                <li><a href="#">Analytics</a></li>
+                <li><a href="#">Changelog</a></li>
+              </ul>
+            </div>
+            <div class="foot-col">
+              <h6>Company</h6>
+              <ul>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Customers</a></li>
+                <li><a href="#">Press kit</a></li>
+                <li><a href="#">Careers</a></li>
+              </ul>
+            </div>
+            <div class="foot-col">
+              <h6>Resources</h6>
+              <ul>
+                <li><a href="#">Docs</a></li>
+                <li><a href="#">API reference</a></li>
+                <li><a href="#">Support</a></li>
+                <li><a href="#">Security</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="foot-bot">
+            <span>© 2026 Cirrus Operations Co. All rights reserved.</span>
+            <span class="row row-3">
+              <a href="#">Privacy</a>
+              <span class="dot-sep"></span>
+              <a href="#">Terms</a>
+              <span class="dot-sep"></span>
+              <a href="#">Status</a>
+            </span>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      // Initialise Lucide icons used through `<i data-lucide="...">`.
+      window.addEventListener('DOMContentLoaded', () => {
+        if (window.lucide) window.lucide.createIcons();
+      });
+    </script>
+  </body>
+</html>
