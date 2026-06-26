@@ -343,6 +343,8 @@
   #tab-home{min-height:clamp(360px, calc(100vh - 200px), 1000px);
     display:flex;align-items:flex-start;justify-content:center;
     padding:clamp(90px, 18vh, 220px) 24px 24px;text-align:center}
+  /* the ID display rule above outranks [hidden]{display:none}, so restore hiding */
+  #tab-home[hidden]{display:none}
   /* Cirrus hero title overlaid on the photo: Inter Tight display with one
      Instrument Serif italic accent. */
   .home-title{font-family:var(--font-display);font-weight:700;margin:0;max-width:16ch;
