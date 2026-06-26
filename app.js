@@ -1338,8 +1338,37 @@ function showSub(parent, s){
   for(var i=0;i<subs.length;i++) subs[i].hidden=(subs[i].id!=='sub-'+s);
   var btns=panel.getElementsByClassName('subtab');
   for(var j=0;j<btns.length;j++) btns[j].classList.toggle('active', btns[j].getAttribute('data-sub')===s);
+  markDDMenu(parent, s);
   subSetup(s);
 }
+// Dropdown tabs (Live data, Underwater geography): the top pill opens a menu of nested views
+var DD_TABS=['live','geo'];
+function toggleDDMenu(ev, tab){
+  ev.stopPropagation();
+  var dd=document.getElementById('dd-'+tab); if(!dd) return;
+  var open=dd.classList.toggle('open');
+  closeDDMenus(tab); // only one menu open at a time
+  var b=document.getElementById('btn-'+tab); if(b) b.setAttribute('aria-expanded', open?'true':'false');
+}
+function gotoSub(tab, sub){ closeDDMenus(); showTab(tab); showSub(tab, sub); }
+function closeDDMenus(except){
+  DD_TABS.forEach(function(tab){
+    if(tab===except) return;
+    var dd=document.getElementById('dd-'+tab); if(!dd) return;
+    dd.classList.remove('open');
+    var b=document.getElementById('btn-'+tab); if(b) b.setAttribute('aria-expanded','false');
+  });
+}
+function markDDMenu(tab, sub){
+  var items=document.querySelectorAll('#'+tab+'-menu .tab-menu-item');
+  for(var i=0;i<items.length;i++) items[i].classList.toggle('active', items[i].getAttribute('data-sub')===sub);
+}
+document.addEventListener('click', function(e){
+  DD_TABS.forEach(function(tab){
+    var dd=document.getElementById('dd-'+tab);
+    if(dd && !dd.contains(e.target)){ dd.classList.remove('open'); var b=document.getElementById('btn-'+tab); if(b) b.setAttribute('aria-expanded','false'); }
+  });
+});
 // size/load the right map or feed when a section becomes visible (maps init hidden -> need invalidateSize)
 function subSetup(s){
   setTimeout(function(){ try{

@@ -297,6 +297,23 @@
     .subtabs::-webkit-scrollbar{display:none}
     .subtab{white-space:nowrap;flex:0 0 auto;padding:8px 12px}
   }
+  /* Dropdown tab (Live data) — the top pill opens a small cloud menu of nested views */
+  .tab-dd{position:relative;display:inline-flex}
+  .tab-caret{display:inline-block;font-size:10px;margin-left:6px;opacity:.65;transition:transform .18s var(--ease)}
+  .tab-dd.open .tab-caret{transform:rotate(180deg)}
+  .tab-menu{position:absolute;top:calc(100% + 9px);left:50%;transform:translateX(-50%) translateY(-6px);
+        min-width:210px;background:var(--color-cloud);border:1px solid var(--line);border-radius:14px;
+        box-shadow:var(--shadow-2);padding:6px;display:flex;flex-direction:column;gap:2px;z-index:700;
+        opacity:0;visibility:hidden;pointer-events:none;transition:opacity .16s var(--ease),transform .16s var(--ease)}
+  /* invisible bridge over the gap so moving the cursor from pill to menu keeps the hover */
+  .tab-menu::before{content:"";position:absolute;left:0;right:0;top:-12px;height:12px}
+  .tab-dd.open .tab-menu{opacity:1;visibility:visible;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+  @media(hover:hover){.tab-dd:hover .tab-menu{opacity:1;visibility:visible;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+        .tab-dd:hover .tab-caret{transform:rotate(180deg)}}
+  .tab-menu-item{border:none;background:transparent;text-align:left;padding:9px 13px;border-radius:9px;color:var(--ink);
+        font-weight:500;font-size:14px;cursor:pointer;white-space:nowrap;transition:background-color .14s var(--ease),color .14s var(--ease)}
+  .tab-menu-item:hover{background:rgba(14,17,22,.06)}
+  .tab-menu-item.active{color:#fff;background:var(--ink)}
   .tab-badge{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--warm);margin-left:6px;vertical-align:middle;animation:fbpulse 1.8s ease-in-out infinite}
   @keyframes fbpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,122,61,.5)}50%{box-shadow:0 0 0 5px rgba(255,122,61,0)}}
 

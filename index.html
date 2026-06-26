@@ -16,8 +16,21 @@
       <button id="btn-home" class="tab active" onclick="showTab('home')">Home</button>
       <button id="btn-conditions" class="tab" onclick="showTab('conditions')">Conditions</button>
       <button id="btn-fish" class="tab" onclick="showTab('fish')">Fish guide</button>
-      <button id="btn-live" class="tab" onclick="showTab('live')">Live data</button>
-      <button id="btn-geo" class="tab" onclick="showTab('geo')">Underwater geography</button>
+      <div class="tab-dd" id="dd-live">
+        <button id="btn-live" class="tab" onclick="toggleDDMenu(event,'live')" aria-haspopup="true" aria-expanded="false">Live data<span class="tab-caret" aria-hidden="true">&#9662;</span></button>
+        <div class="tab-menu" id="live-menu" role="menu" aria-label="Live data">
+          <button class="tab-menu-item active" role="menuitem" data-sub="chl" onclick="gotoSub('live','chl')">Chlorophyll</button>
+          <button class="tab-menu-item" role="menuitem" data-sub="nepean" onclick="gotoSub('live','nepean')">Point Nepean wave buoy</button>
+          <button class="tab-menu-item" role="menuitem" data-sub="sst" onclick="gotoSub('live','sst')">Sea temperature</button>
+        </div>
+      </div>
+      <div class="tab-dd" id="dd-geo">
+        <button id="btn-geo" class="tab" onclick="toggleDDMenu(event,'geo')" aria-haspopup="true" aria-expanded="false">Underwater geography<span class="tab-caret" aria-hidden="true">&#9662;</span></button>
+        <div class="tab-menu" id="geo-menu" role="menu" aria-label="Underwater geography">
+          <button class="tab-menu-item active" role="menuitem" data-sub="habitat" onclick="gotoSub('geo','habitat')">Seabed habitat</button>
+          <button class="tab-menu-item" role="menuitem" data-sub="depth" onclick="gotoSub('geo','depth')">Depth detail</button>
+        </div>
+      </div>
       <button id="btn-about" class="tab" onclick="showTab('about')">About</button>
       <button id="btn-feedback" class="tab" onclick="showTab('feedback')">Feedback<span class="tab-badge" aria-label="new"></span></button>
     </div>
@@ -103,11 +116,6 @@
   </div><!-- /tab-fish -->
 
   <div id="tab-live" class="tabpanel" hidden>
-    <div class="subtabs">
-      <button class="subtab active" data-sub="chl" onclick="showSub('live','chl')">Chlorophyll</button>
-      <button class="subtab" data-sub="nepean" onclick="showSub('live','nepean')">Point Nepean</button>
-      <button class="subtab" data-sub="sst" onclick="showSub('live','sst')">Sea temperature</button>
-    </div>
     <div id="sub-chl" class="subpanel">
     <div class="panel">
       <div class="panel-hd"><span class="dot" style="background:var(--green)"></span><span class="panel-ttl">Chlorophyll composite</span><span class="panel-meta">NOAA VIIRS &middot; ~4&nbsp;km</span></div>
@@ -140,10 +148,6 @@
   </div><!-- /tab-live -->
 
   <div id="tab-geo" class="tabpanel" hidden>
-    <div class="subtabs">
-      <button class="subtab active" data-sub="habitat" onclick="showSub('geo','habitat')">Seabed habitat</button>
-      <button class="subtab" data-sub="depth" onclick="showSub('geo','depth')">Depth detail</button>
-    </div>
     <div id="sub-habitat" class="subpanel">
     <div class="panel">
       <div class="panel-hd"><span class="dot" style="background:var(--accent)"></span><span class="panel-ttl">Underwater geography &amp; depth</span><span class="panel-meta">Seamap Australia &middot; Esri Ocean</span></div>
