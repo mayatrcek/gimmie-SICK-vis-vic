@@ -274,11 +274,11 @@
   footer{margin-top:26px;color:var(--muted);font-size:12px;line-height:1.6;text-align:center}
   footer a{color:var(--accent);text-decoration:none}
 
-  /* Top-level tabs — floating pill nav over the sky, ink-filled active */
-  .tabs{position:fixed;top:0;left:0;right:0;z-index:600;background:rgba(237,242,247,.82);
-        backdrop-filter:saturate(1.4) blur(10px);-webkit-backdrop-filter:saturate(1.4) blur(10px);
-        border-bottom:1px solid var(--color-edge-soft)}
-  .tabs-inner{max-width:1240px;margin:0 auto;display:flex;gap:4px;padding:11px 24px}
+  /* Top-level tabs — a single floating cloud pill, centered, sticky on every page.
+     Only the pill is interactive; the surrounding strip lets clicks pass through. */
+  .tabs{position:fixed;top:14px;left:0;right:0;z-index:600;display:flex;justify-content:center;padding:0 12px;pointer-events:none}
+  .tabs-inner{pointer-events:auto;display:inline-flex;gap:4px;padding:6px;max-width:calc(100vw - 24px);
+        background:var(--color-cloud);border:1px solid var(--line);border-radius:var(--radius-pill);box-shadow:var(--shadow-1)}
   .tab{border:none;background:transparent;border-radius:var(--radius-pill);padding:9px 16px;color:var(--muted);
        font-weight:500;font-size:15px;cursor:pointer;transition:background-color .18s var(--ease),color .18s var(--ease)}
   .tab:hover{color:var(--ink);background:rgba(14,17,22,.05)}
