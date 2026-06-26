@@ -1,0 +1,25 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dive flag and wave fused logo mark">
+  <!-- palette: navy ink on warm cream -->
+  <!-- tile / badge -->
+  <rect x="40" y="40" width="432" height="432" rx="74" fill="#f3e9d6"/>
+  <rect x="40" y="40" width="432" height="432" rx="74" fill="none" stroke="#21384e" stroke-width="11"/>
+  <rect x="62" y="62" width="388" height="388" rx="56" fill="none" stroke="#21384e" stroke-width="4"/>
+
+  <!-- the dive flag (navy square) -->
+  <rect x="120" y="120" width="272" height="272" rx="22" fill="#21384e"/>
+
+  <!-- fused element: the flag's diagonal sash IS a wave (thick cream stroke) -->
+  <!-- broad cream sash, wavy, running corner-to-corner -->
+  <path d="M 168,168 C 224,206 200,252 252,263 C 304,274 300,322 360,360"
+        fill="none" stroke="#f3e9d6" stroke-width="76" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- breaking curl (barrel) at the upper end of the sash -->
+  <path d="M 168,168 C 150,120 96,118 86,160 C 78,196 112,220 150,206"
+        fill="none" stroke="#f3e9d6" stroke-width="50" stroke-linecap="round"/>
+  <circle cx="118" cy="168" r="15" fill="#21384e"/>
+
+  <!-- navy crest line running along the wave -->
+  <path d="M 158,158 C 214,200 198,250 250,262 C 302,274 296,318 354,356"
+        fill="none" stroke="#21384e" stroke-width="9" stroke-linecap="round"/>
+  <path d="M 196,210 C 226,232 224,258 252,266"
+        fill="none" stroke="#21384e" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+</svg>
