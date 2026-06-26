@@ -1328,6 +1328,7 @@ function showTab(t){
     if(p) p.hidden=(name!==t);
     if(btn) btn.classList.toggle('active', name===t);
   });
+  document.body.classList.toggle('home-tab', t==='home'); // photo backdrop only on Home
   if(activeSub[t]) showSub(t, activeSub[t]);
 }
 function showSub(parent, s){
@@ -1359,5 +1360,5 @@ initGeoMap();
 initBathyMap();
 populateSelect();
 renderFish();
-document.getElementById('stamp').textContent='Updated '+new Date().toLocaleString();
+document.body.classList.add('home-tab'); // Home is the default tab on load
 DEFAULTS.forEach(function(id){ addSpot(id); });

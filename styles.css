@@ -325,17 +325,19 @@
   .env p{font-size:12.5px;color:var(--muted);line-height:1.5;margin:2px 0}
   .env .sp{font-size:12px;color:var(--accent);font-weight:600;margin-top:5px}
 
-  /* ===== Home tab — full-bleed photo backdrop =====
-     Behaves like Cirrus's cloudy sky: edge-to-edge and fixed to the
-     viewport (background-attachment:fixed), so it reads as the page
-     canvas rather than a framed card. */
-  #tab-home{
-    width:100vw;
-    margin-left:calc(50% - 50vw);
-    margin-right:calc(50% - 50vw);
-    min-height:clamp(360px, calc(100vh - 250px), 1000px);
-    background:url('assets/home-banner.jpg') center / cover fixed no-repeat;
+  /* ===== Home tab — full-page photo backdrop =====
+     On Home the photo becomes the page canvas itself, spanning to the
+     very top behind the floating nav pill — exactly like Cirrus's fixed
+     cloudy-sky background. #tab-home is just a spacer that holds page
+     height so the footer stays at the bottom. */
+  body.home-tab{
+    background-image:url('assets/home-banner.jpg');
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
   }
+  #tab-home{min-height:clamp(360px, calc(100vh - 200px), 1000px)}
 
   /* ===== Dashboard panels — Cirrus cards ===== */
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden;
