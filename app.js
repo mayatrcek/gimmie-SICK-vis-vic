@@ -1319,15 +1319,6 @@ function toggleFullLegend(){
   if(d.hidden){ d.hidden=false; d.innerHTML=legendImageFallback(); if(b) b.textContent='Hide full Seamap classes'; }
   else { d.hidden=true; d.innerHTML=''; if(b) b.textContent='Show full Seamap classes'; }
 }
-function setTheme(dark){
-  document.body.classList.toggle('dark', dark);
-  try{ localStorage.setItem('vicdive-theme', dark?'dark':'light'); }catch(e){}
-  var t=document.getElementById('themeToggle'); if(t) t.checked=dark;
-}
-function restoreTheme(){
-  var dark=false; try{ dark=localStorage.getItem('vicdive-theme')==='dark'; }catch(e){}
-  setTheme(dark);
-}
 // top-level tabs; the parents (conditions/live/geo) remember their last-open sub-tab
 var TOP_TABS=['home','conditions','fish','live','geo','about','feedback'];
 var activeSub={conditions:'divesites', live:'chl', geo:'habitat'};
@@ -1370,4 +1361,3 @@ populateSelect();
 renderFish();
 document.getElementById('stamp').textContent='Updated '+new Date().toLocaleString();
 DEFAULTS.forEach(function(id){ addSpot(id); });
-restoreTheme();
