@@ -1328,25 +1328,37 @@ function restoreTheme(){
   var dark=false; try{ dark=localStorage.getItem('vicdive-theme')==='dark'; }catch(e){}
   setTheme(dark);
 }
+// top-level tabs; the parents (conditions/live/geo) remember their last-open sub-tab
+var TOP_TABS=['home','conditions','fish','live','geo','about','feedback'];
+var activeSub={conditions:'divesites', live:'chl', geo:'habitat'};
 function showTab(t){
-  document.getElementById('tab-conditions').hidden=(t!=='conditions');
-  document.getElementById('tab-windmap').hidden=(t!=='windmap');
-  document.getElementById('tab-fish').hidden=(t!=='fish');
-  document.getElementById('tab-live').hidden=(t!=='live');
-  document.getElementById('tab-geo').hidden=(t!=='geo');
-  document.getElementById('tab-about').hidden=(t!=='about');
-  document.getElementById('tab-feedback').hidden=(t!=='feedback');
-  document.getElementById('btn-conditions').classList.toggle('active',t==='conditions');
-  document.getElementById('btn-windmap').classList.toggle('active',t==='windmap');
-  document.getElementById('btn-fish').classList.toggle('active',t==='fish');
-  document.getElementById('btn-live').classList.toggle('active',t==='live');
-  document.getElementById('btn-geo').classList.toggle('active',t==='geo');
-  document.getElementById('btn-about').classList.toggle('active',t==='about');
-  document.getElementById('btn-feedback').classList.toggle('active',t==='feedback');
-  if(t==='conditions'){ setTimeout(function(){ try{map.invalidateSize();}catch(e){} },60); }
-  if(t==='windmap'){ setTimeout(function(){ try{ windMap.invalidateSize(); if(!wmShown){ wmShown=true; windMap.setView(WM_HOME, WM_HOME_ZOOM); loadWindFields(); } }catch(e){} },80); }
-  if(t==='live'){ loadLiveTab(); setTimeout(function(){ try{compMap.invalidateSize();}catch(e){} fitLiveEmbed(); },60); }
-  if(t==='geo'){ setTimeout(function(){ try{geoMap.invalidateSize();}catch(e){} if(!geoBasesAdded){geoBasesAdded=true; addGeoBase(geoMap,'habitat.png',habitatLayer,0.62,250); addGeoBase(geoMap,'contours.png',contourLayer,0.95,255);} if(!('IntersectionObserver' in window)){ try{bathyMap.invalidateSize();}catch(e){} } },60); }
+  TOP_TABS.forEach(function(name){
+    var p=document.getElementById('tab-'+name), btn=document.getElementById('btn-'+name);
+    if(p) p.hidden=(name!==t);
+    if(btn) btn.classList.toggle('active', name===t);
+  });
+  if(activeSub[t]) showSub(t, activeSub[t]);
+}
+function showSub(parent, s){
+  activeSub[parent]=s;
+  var panel=document.getElementById('tab-'+parent); if(!panel) return;
+  var subs=panel.getElementsByClassName('subpanel');
+  for(var i=0;i<subs.length;i++) subs[i].hidden=(subs[i].id!=='sub-'+s);
+  var btns=panel.getElementsByClassName('subtab');
+  for(var j=0;j<btns.length;j++) btns[j].classList.toggle('active', btns[j].getAttribute('data-sub')===s);
+  subSetup(s);
+}
+// size/load the right map or feed when a section becomes visible (maps init hidden -> need invalidateSize)
+function subSetup(s){
+  setTimeout(function(){ try{
+    if(s==='divesites'){ map.invalidateSize(); }
+    else if(s==='windmap'){ windMap.invalidateSize(); if(!wmShown){ wmShown=true; windMap.setView(WM_HOME, WM_HOME_ZOOM); loadWindFields(); } }
+    else if(s==='chl'){ loadLiveTab(); compMap.invalidateSize(); }
+    else if(s==='nepean'){ loadLiveTab(); fitLiveEmbed(); }
+    else if(s==='sst'){ loadLiveTab(); }
+    else if(s==='habitat'){ geoMap.invalidateSize(); if(!geoBasesAdded){ geoBasesAdded=true; addGeoBase(geoMap,'habitat.png',habitatLayer,0.62,250); addGeoBase(geoMap,'contours.png',contourLayer,0.95,255); } }
+    else if(s==='depth'){ bathyMap.invalidateSize(); if(!('IntersectionObserver' in window)){ /* observer handles base load when supported */ } }
+  }catch(e){} }, 70);
 }
 
 initMap();

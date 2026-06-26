@@ -32,8 +32,8 @@
 
   <div class="tabs">
     <div class="tabs-inner">
-      <button id="btn-conditions" class="tab active" onclick="showTab('conditions')">Conditions</button>
-      <button id="btn-windmap" class="tab" onclick="showTab('windmap')">Wind map</button>
+      <button id="btn-home" class="tab active" onclick="showTab('home')">Home</button>
+      <button id="btn-conditions" class="tab" onclick="showTab('conditions')">Conditions</button>
       <button id="btn-fish" class="tab" onclick="showTab('fish')">Fish guide</button>
       <button id="btn-live" class="tab" onclick="showTab('live')">Live data</button>
       <button id="btn-geo" class="tab" onclick="showTab('geo')">Underwater geography</button>
@@ -42,7 +42,21 @@
     </div>
   </div>
 
-  <div id="tab-conditions" class="tabpanel">
+  <div id="tab-home" class="tabpanel">
+    <div class="panel">
+      <div class="panel-hd"><span class="dot" style="background:var(--accent)"></span><span class="panel-ttl">Home</span></div>
+      <div class="panel-bd" style="padding:18px 20px;line-height:1.6">
+        <p style="margin:0">Welcome to your Victorian dive &amp; ocean dashboard. Pick a section from the tabs above — <b>Conditions</b> (dive sites &amp; the wind map), <b>Fish guide</b>, <b>Live data</b> and <b>Underwater geography</b>. (This landing page is a placeholder for now.)</p>
+      </div>
+    </div>
+  </div><!-- /tab-home -->
+
+  <div id="tab-conditions" class="tabpanel" hidden>
+    <div class="subtabs">
+      <button class="subtab active" data-sub="divesites" onclick="showSub('conditions','divesites')">Dive sites</button>
+      <button class="subtab" data-sub="windmap" onclick="showSub('conditions','windmap')">Wind map</button>
+    </div>
+    <div id="sub-divesites" class="subpanel">
   <h2 class="sec"><span class="dot" style="background:var(--accent)"></span>Dive sites</h2>
   <div class="picker">
     <label for="spotSelect">Add a location</label>
@@ -80,9 +94,8 @@
     over the Victorian coast, Australia&rsquo;s IMOS OceanCurrent is the local source &rarr;
     <a href="https://oceancurrent.aodn.org.au/sealevel_nrt.php" target="_blank" rel="noopener">oceancurrent.aodn.org.au &#8599;</a>
   </div>
-  </div><!-- /tab-conditions -->
-
-  <div id="tab-windmap" class="tabpanel" hidden>
+    </div><!-- /sub-divesites -->
+    <div id="sub-windmap" class="subpanel" hidden>
     <div class="sub" style="margin-top:6px">Live animated wind, swell and wave fields over Victoria and northern Tasmania, from free Open-Meteo data. Switch the field with the buttons top-right; click anywhere offshore for a 48-hour point forecast.</div>
     <div class="wm-mapwrap wm-full">
       <div id="windmap"></div>
@@ -112,7 +125,8 @@
       </div>
     </div>
     <div class="sub" style="font-size:12px;margin-top:8px">The map is shaded by the selected field; the particles show its direction. Nearshore and inside-Port-Phillip cells can read blank — the wave model is coarse close to land.</div>
-  </div><!-- /tab-windmap -->
+    </div><!-- /sub-windmap -->
+  </div><!-- /tab-conditions -->
 
   <div id="tab-fish" class="tabpanel" hidden>
     <div class="sub" style="margin-top:6px">Species worth targeting around Victoria, shore or boat. Green = likely worth a go around now. Always check current <a href="https://vfa.vic.gov.au/recreational-fishing/recreational-fishing-guide" target="_blank" rel="noopener">VFA size &amp; bag limits and closed seasons</a> before keeping anything — the illustrations are stylised, not photos.</div>
@@ -127,7 +141,12 @@
   </div><!-- /tab-fish -->
 
   <div id="tab-live" class="tabpanel" hidden>
-    <div class="sub" style="margin-top:6px">Live Point Nepean wave buoy (Ports Victoria) and NOAA satellite layers.</div>
+    <div class="subtabs">
+      <button class="subtab active" data-sub="chl" onclick="showSub('live','chl')">Chlorophyll</button>
+      <button class="subtab" data-sub="nepean" onclick="showSub('live','nepean')">Point Nepean</button>
+      <button class="subtab" data-sub="sst" onclick="showSub('live','sst')">Sea temperature</button>
+    </div>
+    <div id="sub-chl" class="subpanel">
     <div class="panel">
       <div class="panel-hd"><span class="dot" style="background:var(--green)"></span><span class="panel-ttl">Chlorophyll composite</span><span class="panel-meta">NOAA VIIRS &middot; ~4&nbsp;km</span></div>
       <div class="panel-bd flush">
@@ -135,6 +154,8 @@
         <div id="compmap" style="height:420px;border-top:1px solid var(--line)"></div>
       </div>
     </div>
+    </div><!-- /sub-chl -->
+    <div id="sub-nepean" class="subpanel" hidden>
     <div class="panel">
       <div class="panel-hd"><span class="dot" style="background:var(--accent)"></span><span class="panel-ttl">Point Nepean &mdash; live waves</span><span class="panel-meta">Ports Victoria / OMC</span></div>
       <div class="panel-bd">
@@ -142,6 +163,8 @@
         <div class="liveframe"><iframe src="https://portweather-public.omcinternational.com/d/f28ef6a7-b2b9-4906-82b2-d48264b69f35/point-nepean?kiosk&amp;theme=light" loading="lazy" referrerpolicy="no-referrer" title="Point Nepean live wave data"></iframe></div>
       </div>
     </div>
+    </div><!-- /sub-nepean -->
+    <div id="sub-sst" class="subpanel" hidden>
     <div class="panel">
       <div class="panel-hd"><span class="dot" style="background:var(--warm)"></span><span class="panel-ttl">Sea surface temperature</span><span class="panel-meta" id="sst-range" style="font-weight:400"></span></div>
       <div class="panel-bd">
@@ -151,10 +174,15 @@
         <div class="foot"><span>NASA JPL MUR &middot; data: <span id="sst-date">…</span></span><a id="sstlink" target="_blank" rel="noopener">Open data &#8599;</a></div>
       </div>
     </div>
+    </div><!-- /sub-sst -->
   </div><!-- /tab-live -->
 
   <div id="tab-geo" class="tabpanel" hidden>
-    <div class="sub" style="margin-top:6px">Depth (bathymetry) for Victorian waters with indicative seabed environments. Depth shading is Esri's Ocean basemap; the environment markers are curated/indicative — for detailed seabed habitat mapping see <a href="https://www.marineandcoasts.vic.gov.au/" target="_blank" rel="noopener">Marine &amp; Coasts Victoria (CoastKit)</a>.</div>
+    <div class="subtabs">
+      <button class="subtab active" data-sub="habitat" onclick="showSub('geo','habitat')">Seabed habitat</button>
+      <button class="subtab" data-sub="depth" onclick="showSub('geo','depth')">Depth detail</button>
+    </div>
+    <div id="sub-habitat" class="subpanel">
     <div class="panel">
       <div class="panel-hd"><span class="dot" style="background:var(--accent)"></span><span class="panel-ttl">Underwater geography &amp; depth</span><span class="panel-meta">Seamap Australia &middot; Esri Ocean</span></div>
       <div class="panel-bd">
@@ -164,6 +192,8 @@
         </div>
       </div>
     </div>
+    </div><!-- /sub-habitat -->
+    <div id="sub-depth" class="subpanel" hidden>
     <div class="panel">
       <div class="panel-hd"><span class="dot" style="background:var(--accent)"></span><span class="panel-ttl">Depth detail &mdash; coloured bathymetry &amp; contours</span><span class="panel-meta">DEECA CoastKit</span></div>
       <div class="panel-bd">
@@ -171,6 +201,7 @@
         <div id="bathymap"></div>
       </div>
     </div>
+    </div><!-- /sub-depth -->
   </div><!-- /tab-geo -->
 
   <div id="tab-about" class="tabpanel" hidden>
