@@ -325,13 +325,16 @@
   .env p{font-size:12.5px;color:var(--muted);line-height:1.5;margin:2px 0}
   .env .sp{font-size:12px;color:var(--accent);font-weight:600;margin-top:5px}
 
-  /* ===== Home tab — full-photo hero ===== */
+  /* ===== Home tab — full-bleed photo backdrop =====
+     Behaves like Cirrus's cloudy sky: edge-to-edge and fixed to the
+     viewport (background-attachment:fixed), so it reads as the page
+     canvas rather than a framed card. */
   #tab-home{
-    background:url('assets/home-banner.jpg') center/cover no-repeat;
-    border:1px solid var(--line);
-    border-radius:var(--radius-card);
-    box-shadow:var(--shadow-1);
-    min-height:clamp(360px, calc(100vh - 290px), 880px);
+    width:100vw;
+    margin-left:calc(50% - 50vw);
+    margin-right:calc(50% - 50vw);
+    min-height:clamp(360px, calc(100vh - 250px), 1000px);
+    background:url('assets/home-banner.jpg') center / cover fixed no-repeat;
   }
 
   /* ===== Dashboard panels — Cirrus cards ===== */
