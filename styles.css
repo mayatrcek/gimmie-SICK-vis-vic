@@ -325,6 +325,15 @@
   .env p{font-size:12.5px;color:var(--muted);line-height:1.5;margin:2px 0}
   .env .sp{font-size:12px;color:var(--accent);font-weight:600;margin-top:5px}
 
+  /* ===== Home tab — full-photo hero ===== */
+  #tab-home{
+    background:url('assets/home-banner.jpg') center/cover no-repeat;
+    border:1px solid var(--line);
+    border-radius:var(--radius-card);
+    box-shadow:var(--shadow-1);
+    min-height:clamp(360px, calc(100vh - 290px), 880px);
+  }
+
   /* ===== Dashboard panels — Cirrus cards ===== */
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden;
     box-shadow:var(--shadow-1);margin:0 0 16px}
