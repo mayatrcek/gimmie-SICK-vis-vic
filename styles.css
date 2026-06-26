@@ -340,7 +340,15 @@
     background-repeat:no-repeat;
     background-attachment:fixed;
   }
-  #tab-home{min-height:clamp(360px, calc(100vh - 200px), 1000px)}
+  #tab-home{min-height:clamp(360px, calc(100vh - 200px), 1000px);
+    display:flex;align-items:center;justify-content:center;padding:32px 24px;text-align:center}
+  /* Cirrus hero title overlaid on the photo: Inter Tight display with one
+     Instrument Serif italic accent. */
+  .home-title{font-family:var(--font-display);font-weight:700;margin:0;max-width:16ch;
+    font-size:clamp(40px, 7vw, 84px);line-height:1.02;letter-spacing:-.025em;
+    color:#fff;text-shadow:0 2px 28px rgba(14,17,22,.5);text-wrap:balance}
+  .home-accent{font-family:var(--font-serif);font-style:italic;font-weight:400;
+    font-size:1.06em;letter-spacing:-.01em;color:#cfe1f6}
 
   /* ===== Dashboard panels — Cirrus cards ===== */
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden;
