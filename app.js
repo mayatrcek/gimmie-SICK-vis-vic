@@ -1330,6 +1330,19 @@ function showTab(t){
   });
   document.body.classList.toggle('home-tab', t==='home'); // photo backdrop only on Home
   if(activeSub[t]) showSub(t, activeSub[t]);
+  closeNav(); // collapse the mobile hamburger menu after any navigation
+}
+// Mobile hamburger: the top tab strip is hidden behind a toggle under 560px.
+function toggleNav(){
+  var tabs=document.querySelector('.tabs'); if(!tabs) return;
+  var open=tabs.classList.toggle('nav-open');
+  var b=tabs.querySelector('.nav-toggle'); if(b) b.setAttribute('aria-expanded', open?'true':'false');
+  if(!open) closeDDMenus(); // also collapse any expanded accordion
+}
+function closeNav(){
+  var tabs=document.querySelector('.tabs'); if(!tabs || !tabs.classList.contains('nav-open')) return;
+  tabs.classList.remove('nav-open');
+  var b=tabs.querySelector('.nav-toggle'); if(b) b.setAttribute('aria-expanded','false');
 }
 function showSub(parent, s){
   activeSub[parent]=s;
@@ -1368,6 +1381,13 @@ document.addEventListener('click', function(e){
     var dd=document.getElementById('dd-'+tab);
     if(dd && !dd.contains(e.target)){ dd.classList.remove('open'); var b=document.getElementById('btn-'+tab); if(b) b.setAttribute('aria-expanded','false'); }
   });
+  // close the mobile hamburger menu when tapping outside the nav
+  var tabs=document.querySelector('.tabs');
+  if(tabs && tabs.classList.contains('nav-open') && !tabs.contains(e.target)) closeNav();
+});
+// Escape closes any open dropdown / the mobile hamburger menu
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape'){ closeDDMenus(); closeNav(); }
 });
 // size/load the right map or feed when a section becomes visible (maps init hidden -> need invalidateSize)
 function subSetup(s){
