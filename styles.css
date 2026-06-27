@@ -357,7 +357,7 @@
   }
   #tab-home{min-height:clamp(360px, calc(100vh - 200px), 1000px);
     display:flex;align-items:flex-start;justify-content:center;
-    padding:clamp(90px, 18vh, 220px) 24px 24px;text-align:center}
+    padding:clamp(64px, 13vh, 160px) 24px 24px;text-align:center}
   /* the ID display rule above outranks [hidden]{display:none}, so restore hiding */
   #tab-home[hidden]{display:none}
   /* Cirrus hero title overlaid on the photo: Inter Tight display with one
@@ -410,6 +410,7 @@
     .tabs-inner{position:absolute;top:calc(100% + 8px);left:12px;
       display:flex;flex-direction:column;align-items:stretch;gap:2px;
       width:min(300px,calc(100vw - 24px));max-width:none;padding:8px;border-radius:20px;
+      max-height:calc(100vh - 84px);max-height:calc(100dvh - 84px);overflow-y:auto;
       transform-origin:top left;transform:scale(.9);opacity:0;visibility:hidden;pointer-events:none;
       transition:opacity .16s var(--ease),transform .16s var(--ease),visibility .16s}
     .tabs.nav-open .tabs-inner{transform:scale(1);opacity:1;visibility:visible;pointer-events:auto}

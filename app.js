@@ -1385,6 +1385,10 @@ document.addEventListener('click', function(e){
   var tabs=document.querySelector('.tabs');
   if(tabs && tabs.classList.contains('nav-open') && !tabs.contains(e.target)) closeNav();
 });
+// Escape closes any open dropdown / the mobile hamburger menu
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape'){ closeDDMenus(); closeNav(); }
+});
 // size/load the right map or feed when a section becomes visible (maps init hidden -> need invalidateSize)
 function subSetup(s){
   setTimeout(function(){ try{
