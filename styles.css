@@ -108,7 +108,9 @@
   .wm-landmask{filter:brightness(0) invert(0.82)}
   /* wind map (nested under Conditions): full-bleed width, tall, in normal flow so the sub-tab bar stays above it */
   .wm-full{position:relative;width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw)}
-  .wm-full #windmap{height:calc(100vh - 172px);min-height:440px;width:100%;border-radius:0;border:0;box-shadow:none}
+  /* dvh tracks the *visible* viewport on mobile (excludes the address bar),
+     so the bottom time bar isn't hidden behind it; vh is the desktop fallback. */
+  .wm-full #windmap{height:calc(100vh - 172px);height:calc(100dvh - 172px);min-height:440px;width:100%;border-radius:0;border:0;box-shadow:none}
   .wm-full .wm-legend{position:absolute;left:10px;bottom:62px;z-index:1000;max-width:230px;
     background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:16px;padding:10px 12px;box-shadow:var(--shadow-1)}
   /* push Leaflet's bottom controls (scale + attribution) above the time bar */
@@ -173,22 +175,9 @@
   @media(max-width:860px){.geolegendbox{flex:none;max-width:100%;width:100%;max-height:none}}
   .geolegendbox img{max-width:100%}
 
-  /* Phone layout: stop the tab bar from overflowing, shrink maps, add side gutters */
-  @media(max-width:560px){
-    .wrap{box-sizing:border-box;padding:0 12px}
-    h1{font-size:26px}
-    .tabs-inner{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;gap:4px;scrollbar-width:none;padding-left:12px;padding-right:12px}
-    .tabs-inner::-webkit-scrollbar{display:none}
-    .tab{white-space:nowrap;flex:0 0 auto;padding:8px 13px;font-size:14px}
-    #map{height:340px}
-    #geomap{height:380px}
-    #bathymap{height:340px}
-    #compmap{height:320px!important}
-    #windmap{height:380px}
-    .surfframe{height:620px}
-    .geolegendbox{max-height:none}
-    .geoinfo{max-width:calc(100% - 20px)}
-  }
+  /* Phone layout (hamburger nav + smaller maps) lives at the END of this file —
+     it MUST come after the base .tabs/.tab/.tab-menu rules so its overrides win
+     the cascade (equal specificity => later source position wins). */
 
   .picker{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
   .picker label{font-size:13px;font-weight:500;color:var(--muted)}
@@ -282,6 +271,8 @@
   .tabs{position:fixed;top:14px;left:0;right:0;z-index:600;display:flex;justify-content:center;padding:0 12px;pointer-events:none}
   .tabs-inner{pointer-events:auto;display:inline-flex;gap:4px;padding:6px;max-width:calc(100vw - 24px);
         background:var(--color-cloud);border:1px solid var(--line);border-radius:var(--radius-pill);box-shadow:var(--shadow-1)}
+  /* Hamburger toggle is mobile-only; the media query reveals it under 560px */
+  .nav-toggle{display:none}
   .tab{border:none;background:transparent;border-radius:var(--radius-pill);padding:9px 16px;color:var(--muted);
        font-weight:500;font-size:15px;cursor:pointer;transition:background-color .18s var(--ease),color .18s var(--ease)}
   .tab:hover{color:var(--ink);background:rgba(14,17,22,.05)}
@@ -357,6 +348,13 @@
     background-repeat:no-repeat;
     background-attachment:fixed;
   }
+  /* background-attachment:fixed is ignored/janky on iOS Safari and most touch
+     browsers (blank or wildly zoomed image, stuttering scroll). On pointer:coarse
+     devices fall back to scroll so the sky gradient and Home photo render cleanly. */
+  @media (hover:none) and (pointer:coarse){
+    body{background-attachment:scroll}
+    body.home-tab{background-attachment:scroll}
+  }
   #tab-home{min-height:clamp(360px, calc(100vh - 200px), 1000px);
     display:flex;align-items:flex-start;justify-content:center;
     padding:clamp(90px, 18vh, 220px) 24px 24px;text-align:center}
@@ -380,3 +378,70 @@
   .panel-bd.flush{padding:0}
   /* maps/iframes inside a panel shed their own chrome to avoid a box-in-a-box */
   .panel-bd #map{margin:0;border:0;border-radius:0;box-shadow:none}
+
+  /* =============================================================
+     Phone layout (<=560px). Placed LAST on purpose: these rules
+     override the base .tabs / .tab / .tab-menu definitions above,
+     and at equal specificity the later rule wins the cascade.
+     Earlier this block sat before those base rules, so the desktop
+     .nav-toggle{display:none} clobbered it and the hamburger never
+     showed on phones. Keep this at the end of the file.
+     ============================================================= */
+  @media(max-width:560px){
+    .wrap{box-sizing:border-box;padding:0 12px}
+    h1{font-size:26px}
+
+    /* --- Hamburger nav: a small round icon button in the top-left corner --- */
+    .tabs{z-index:1200;justify-content:flex-start} /* above the wind-map overlay controls (z 1000+) */
+    .nav-toggle{display:inline-flex;align-items:center;justify-content:center;gap:0;
+      width:46px;height:46px;padding:0;pointer-events:auto;cursor:pointer;color:var(--ink);
+      background:var(--color-cloud);border:1px solid var(--line);border-radius:50%;box-shadow:var(--shadow-1)}
+    .nav-toggle-label{display:none} /* icon-only on mobile */
+    .nav-burger{position:relative;display:block;width:18px;height:2px;background:var(--ink);border-radius:2px}
+    .nav-burger::before,.nav-burger::after{content:"";position:absolute;left:0;width:18px;height:2px;
+      background:var(--ink);border-radius:2px;transition:transform .2s var(--ease)}
+    .nav-burger::before{top:-6px}
+    .nav-burger::after{top:6px}
+    .tabs.nav-open .nav-burger{background:transparent}
+    .tabs.nav-open .nav-burger::before{transform:translateY(6px) rotate(45deg)}
+    .tabs.nav-open .nav-burger::after{transform:translateY(-6px) rotate(-45deg)}
+
+    /* the round button expands into a vertical menu card anchored under it, top-left */
+    .tabs-inner{position:absolute;top:calc(100% + 8px);left:12px;
+      display:flex;flex-direction:column;align-items:stretch;gap:2px;
+      width:min(300px,calc(100vw - 24px));max-width:none;padding:8px;border-radius:20px;
+      transform-origin:top left;transform:scale(.9);opacity:0;visibility:hidden;pointer-events:none;
+      transition:opacity .16s var(--ease),transform .16s var(--ease),visibility .16s}
+    .tabs.nav-open .tabs-inner{transform:scale(1);opacity:1;visibility:visible;pointer-events:auto}
+    .tab{white-space:normal;width:100%;text-align:left;justify-content:flex-start;
+      padding:12px 16px;font-size:15px;border-radius:12px}
+
+    /* dropdown groups -> inline accordions (reuse the .open toggle) */
+    .tab-dd{position:static;display:flex;flex-direction:column;width:100%}
+    .tab-dd>.tab{width:100%}
+    .tab-caret{margin-left:auto}
+    .tab-menu{position:static;transform:none;box-shadow:none;border:0;background:transparent;
+      min-width:0;width:auto;padding:2px 0 4px 12px;display:none}
+    .tab-menu::before{display:none}
+    .tab-dd.open .tab-menu{display:flex;flex-direction:column;gap:2px;transform:none;
+      opacity:1;visibility:visible;pointer-events:auto}
+    .tab-menu-item{width:100%;padding:11px 14px;border-radius:10px}
+
+    /* roomier tap targets on the in-panel sub-tabs and wind-map controls */
+    .subtab{padding:10px 14px}
+    .wm-tab{padding:10px 16px}
+    .wm-time-now{padding:9px 16px}
+    .wmf-close{font-size:26px;padding:4px 10px}
+    .sbclose{padding:9px 16px}
+
+    #map{height:340px}
+    #geomap{height:380px}
+    #bathymap{height:340px}
+    #compmap{height:320px!important}
+    #windmap{height:380px}
+    .surfframe{height:620px}
+    .geolegendbox{max-height:none}
+    .geoinfo{max-width:calc(100% - 20px)}
+    /* guard against horizontal page scroll from the full-bleed wind map's 100vw */
+    html,body{overflow-x:hidden}
+  }
