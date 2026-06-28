@@ -857,11 +857,11 @@ var wmFcAxis={ id:'wmFcAxis',
     var ctx=chart.ctx, area=chart.chartArea, pts=chart.getDatasetMeta(0).data; if(!pts||!pts.length) return;
     ctx.save();
     // dotted vertical line at each column boundary — matches the table's hour gridlines
-    ctx.setLineDash([1,3]); ctx.strokeStyle='#dde4ec'; ctx.lineWidth=1;
+    ctx.setLineDash([1,3]); ctx.strokeStyle='#b3bece'; ctx.lineWidth=1;
     for(var j=1;j<pts.length;j++){ if(!pts[j]||!pts[j-1]) continue; var gx=(pts[j-1].x+pts[j].x)/2; ctx.beginPath(); ctx.moveTo(gx,area.top); ctx.lineTo(gx,area.bottom); ctx.stroke(); }
     ctx.setLineDash([]);
     // solid divider at each day boundary, drawn over the dotted line at that column
-    ctx.strokeStyle='#c2ccd8'; ctx.lineWidth=1;
+    ctx.strokeStyle='#95a3b4'; ctx.lineWidth=1;
     for(var i=1;i<times.length;i++){ if(new Date(times[i-1]).getDate()!==new Date(times[i]).getDate() && pts[i] && pts[i-1]){ var sx=(pts[i-1].x+pts[i].x)/2; ctx.beginPath(); ctx.moveTo(sx,area.top); ctx.lineTo(sx,area.bottom); ctx.stroke(); } }
     ctx.restore();
   },
