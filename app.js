@@ -541,9 +541,9 @@ function wmSetStep(v){
   wmStep=+v; wmCurHour=Math.min(wmTimes.length-1, wmStep*wmStepHours);
   updateWmTimeLabel();
   clearTimeout(wmStepTimer);
-  wmStepTimer=setTimeout(function(){ if(wmReady) wmRebuildField(wmActive); }, 50);
+  wmStepTimer=setTimeout(function(){ if(wmReady){ wmRebuildField(wmActive); wmRefreshCallout(); } }, 50);
 }
-function wmJumpNow(){ wmInitSlider(); if(wmReady) wmRebuildField(wmActive); }
+function wmJumpNow(){ wmInitSlider(); if(wmReady){ wmRebuildField(wmActive); wmRefreshCallout(); } }
 function updateWmTimeLabel(){ var el=document.getElementById('wmTimeLabel'); if(el) el.textContent=wmStepLabel(wmCurHour); }
 function wmStepLabel(hourIdx){
   var t=wmTimes[hourIdx]; if(!t) return '—';
@@ -695,13 +695,52 @@ function wmNearestIdx(ll){
   c=Math.max(0,Math.min(g.nx-1,c)); r=Math.max(0,Math.min(g.ny-1,r));
   return r*g.nx+c;
 }
-var wmSelDot=null;
+var wmSelDot=null, wmCallout=null, wmSelLL=null;
 function wmDotIcon(){ return L.divIcon({className:'wm-seldot-wrap',html:'<span class="wm-seldot"></span>',iconSize:[24,24],iconAnchor:[12,12]}); }
 // drop/move the selection dot at the clicked point (the values live in the forecast panel)
+// 16-point compass from a meteorological "from" bearing
+function wmCompass(deg){ if(deg==null||isNaN(deg)) return ''; var n=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW']; return n[Math.round(deg/22.5)%16]; }
+// sample a field's averaged value at the current slider hour, for the grid cell nearest ll
+function wmSampleAt(key, ll){
+  if(!wmRaw[key] || !wmGridCache) return null;
+  var cells=averageModels(modelsAtStep(key, wmCurHour)), g=wmGridCache, W=WINDMAP;
+  var col=Math.round((ll.lng-W.lonMin)/W.step), row=Math.round((W.latMax-ll.lat)/W.step);
+  if(col<0||col>=g.nx||row<0||row>=g.ny) return null;
+  var cell=cells[row*g.nx+col];
+  if(cell && cell.mag!=null && !isNaN(cell.mag)) return {mag:cell.mag, dir:cell.dir};
+  // marine fields read null nearshore — fall back to the nearest valid cell
+  var best=null, bd=Infinity;
+  for(var r=0;r<g.ny;r++) for(var c=0;c<g.nx;c++){
+    var cc=cells[r*g.nx+c]; if(!cc||cc.mag==null||isNaN(cc.mag)) continue;
+    var dr=r-row, dc=c-col, d=dr*dr+dc*dc; if(d<bd){ bd=d; best=cc; }
+  }
+  return best?{mag:best.mag, dir:best.dir}:null;
+}
+var WM_CL_ICONS={
+  wind:'<path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/><path d="M17.7 7.7A2.5 2.5 0 1 1 19.5 12H2"/>',
+  swell:'<path d="M2 12c2.5-5 5.5-5 8 0s5.5 5 8 0"/>',
+  waves:'<path d="M2 9c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/><path d="M2 15c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/>'
+};
+function wmCalloutRow(key, label, val){
+  return '<div class="wm-cl-row"><span class="wm-cl-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+WM_CL_ICONS[key]+'</svg></span>'+
+         '<span class="wm-cl-lbl">'+label+'</span><span class="wm-cl-val">'+val+'</span></div>';
+}
+function wmCalloutHtml(ll){
+  var wind=wmSampleAt('wind',ll), swell=wmSampleAt('swell',ll), waves=wmSampleAt('waves',ll);
+  var w = wind ? Math.round(wind.mag)+' km/h '+wmCompass(wind.dir) : '—';
+  var s = swell ? swell.mag.toFixed(1)+' m '+wmCompass(swell.dir) : '—';
+  var v = waves ? waves.mag.toFixed(1)+' m '+wmCompass(waves.dir) : '—';
+  return '<div class="wm-cl">'+wmCalloutRow('wind','Wind',w)+wmCalloutRow('swell','Swell',s)+wmCalloutRow('waves','Waves',v)+'</div>';
+}
+function wmRefreshCallout(){ if(wmCallout && wmSelLL && windMap && windMap.hasLayer(wmCallout)) wmCallout.setContent(wmCalloutHtml(wmSelLL)); }
 function wmShowReadout(ll){
   if(!wmReady) return;
+  wmSelLL=ll;
   if(!wmSelDot) wmSelDot=L.marker(ll,{icon:wmDotIcon(),interactive:false,keyboard:false,zIndexOffset:1000}).addTo(windMap);
   else wmSelDot.setLatLng(ll);
+  if(!wmCallout) wmCallout=L.popup({closeButton:false,autoClose:false,closeOnClick:false,autoPan:false,className:'wm-callout',offset:[0,-12]});
+  wmCallout.setLatLng(ll).setContent(wmCalloutHtml(ll));
+  if(!windMap.hasLayer(wmCallout)) wmCallout.openOn(windMap);
 }
 // nearest known dive site -> borrow its onshore bearing so the off-spot dive rating is sensible
 function nearestSpot(lat,lon){
@@ -741,7 +780,10 @@ function openWmForecast(ll){
     document.getElementById('wmfBody').innerHTML='<div class="pad" style="padding:14px;color:var(--muted);font-size:13px">Couldn’t load the forecast for this point — try another cell.</div>';
   });
 }
-function closeWmForecast(){ var b=document.getElementById('wmforecast'); if(b) b.hidden=true; wmfReq++; destroyWmCharts(); wmRestoreLock(); }
+function closeWmForecast(){ var b=document.getElementById('wmforecast'); if(b) b.hidden=true; wmfReq++; destroyWmCharts(); wmRestoreLock();
+  if(wmCallout && windMap) windMap.closePopup(wmCallout);
+  if(wmSelDot && windMap){ windMap.removeLayer(wmSelDot); wmSelDot=null; }
+  wmSelLL=null; }
 // pan so the clicked point sits a bit below the centre of the area above the
 // forecast panel, keeping it (and its popup) clear of the table. Relaxes the
 // region lock for the pan.
@@ -750,9 +792,8 @@ function wmCenterSelected(ll){
   var size=windMap.getSize();
   var panelFootprint=524;                 // forecast panel: ~460px (table + 2 charts) + 62px bottom offset
   var avail=size.y-panelFootprint;        // vertical room above the forecast panel
-  // ~83% down that room (about halfway between centre-low and the panel top),
-  // but kept clear of the panel top
-  var desiredY=Math.max(50,Math.min(avail-24,avail*0.83));
+  // ~90% down that room (close to the panel top), but kept clear of it
+  var desiredY=Math.max(50,Math.min(avail-24,avail*0.9));
   var z=windMap.getZoom();
   windMap.setMaxBounds(null);             // relax the lock so the centring pan isn't clamped back
   var ptPx=windMap.project(ll,z);
