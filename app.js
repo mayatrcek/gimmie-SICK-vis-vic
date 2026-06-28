@@ -829,23 +829,32 @@ function windArrowCell(speed, dir, cls){
     '<path d="M12 21 V4 M6 10 L12 3 L18 10" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
     '<span class="wmf-ws">'+fmt(speed,0)+'</span></div></td>';
 }
-// local maxima/minima of the tide series -> labelled high/low points
-function tidePeaks(times, vals){
-  var peaks=[];
-  for(var i=1;i<vals.length-1;i++){
-    if(vals[i]==null||vals[i-1]==null||vals[i+1]==null) continue;
-    if(vals[i]>vals[i-1] && vals[i]>=vals[i+1]) peaks.push({idx:i,type:'H',time:hourLabel(times[i])});
-    else if(vals[i]<vals[i-1] && vals[i]<=vals[i+1]) peaks.push({idx:i,type:'L',time:hourLabel(times[i])});
+function tideClock(ms){ var d=new Date(ms), h=d.getHours(), mn=d.getMinutes(), ap=h<12?'a':'p', h12=h%12; if(h12===0)h12=12; return h12+':'+String(mn).padStart(2,'0')+ap; }
+// exact high/low tides: scan the FULL hourly tide series over the shown window and
+// parabolic-interpolate each peak for a sub-hour time. t = fractional column index
+// (cols are 3-hourly) so the marker can be placed precisely on the 3-hourly chart.
+function exactTidePeaks(times, mh, mIdx, cols){
+  var s=cols[0], e=cols[cols.length-1], peaks=[];
+  function val(k){ var mk=mIdx[times[k]]; return (mk!=null)?mh.sea_level_height_msl[mk]:null; }
+  for(var k=s+1;k<e;k++){
+    var a=val(k-1), b=val(k), c=val(k+1); if(a==null||b==null||c==null) continue;
+    var isH=b>a&&b>=c, isL=b<a&&b<=c; if(!isH&&!isL) continue;
+    var den=a-2*b+c, off=den!==0?0.5*(a-c)/den:0; if(off>0.5)off=0.5; if(off<-0.5)off=-0.5;
+    var A=(a+c)/2-b, B=(c-a)/2, pv=A*off*off+B*off+b;
+    peaks.push({t:(k+off-cols[0])/3, type:isH?'H':'L', val:pv, label:tideClock(new Date(times[k]).getTime()+off*3600000)});
   }
   return peaks;
 }
 var wmTidePeaks={ id:'wmTidePeaks', afterDatasetsDraw:function(chart){
-  var peaks=chart.$peaks; if(!peaks||!peaks.length) return; var meta=chart.getDatasetMeta(0), ctx=chart.ctx, area=chart.chartArea;
+  var peaks=chart.$peaks; if(!peaks||!peaks.length) return;
+  var pts=chart.getDatasetMeta(0).data, ctx=chart.ctx, area=chart.chartArea, ys=chart.scales.y; if(!pts.length) return;
   ctx.save(); ctx.textAlign='center'; ctx.font='bold 9px sans-serif';
-  peaks.forEach(function(p){ var pt=meta.data[p.idx]; if(!pt) return; var isH=p.type==='H', c=isH?'#1b6ca8':'#c47f2e';
-    ctx.fillStyle=c; ctx.beginPath(); ctx.arc(pt.x,pt.y,3,0,2*Math.PI); ctx.fill();
-    var ly=isH?Math.max(area.top+8,pt.y-6):Math.min(area.bottom-3,pt.y+13);
-    ctx.fillText((isH?'H ':'L ')+p.time, pt.x, ly);
+  peaks.forEach(function(p){ var j=Math.floor(p.t); if(j<0||j>=pts.length) return;
+    var p1=pts[Math.min(j+1,pts.length-1)], x=pts[j].x+(p1.x-pts[j].x)*(p.t-j);
+    var y=ys?ys.getPixelForValue(p.val):pts[j].y, isH=p.type==='H', c=isH?'#1b6ca8':'#c47f2e';
+    ctx.fillStyle=c; ctx.beginPath(); ctx.arc(x,y,3,0,2*Math.PI); ctx.fill();
+    var ly=isH?Math.max(area.top+8,y-6):Math.min(area.bottom-3,y+13);
+    ctx.fillText((isH?'H ':'L ')+p.label, x, ly);
   });
   ctx.restore();
 }};
@@ -862,15 +871,31 @@ var wmFcAxis={ id:'wmFcAxis',
       ctx.textBaseline='bottom'; ctx.fillText(fmt(mn,1), area.left+2, area.bottom-1); ctx.restore(); }
   }
 };
+// faint horizontal gridline + label at each whole metre on the swell/waves chart,
+// drawn without a real y-axis so the plot still fills the width (column alignment kept)
+var wmMetreAxis={ id:'wmMetreAxis',
+  beforeDatasetsDraw:function(chart){
+    var ctx=chart.ctx, area=chart.chartArea, ys=chart.scales.y; if(!ys) return;
+    ctx.save(); ctx.strokeStyle='#e6ebf1'; ctx.lineWidth=1;
+    for(var m=0;m<=Math.ceil(ys.max);m++){ var y=ys.getPixelForValue(m); if(y<area.top-0.5||y>area.bottom+0.5) continue; var yy=Math.round(y)+0.5; ctx.beginPath(); ctx.moveTo(area.left,yy); ctx.lineTo(area.right,yy); ctx.stroke(); }
+    ctx.restore();
+  },
+  afterDraw:function(chart){
+    var ctx=chart.ctx, area=chart.chartArea, ys=chart.scales.y; if(!ys) return;
+    ctx.save(); ctx.fillStyle='#9aa6b4'; ctx.font='9px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='bottom';
+    for(var m=0;m<=Math.ceil(ys.max);m++){ var y=ys.getPixelForValue(m); if(y<area.top+4||y>area.bottom+0.5) continue; ctx.fillText(m+'m', area.left+2, y-1.5); }
+    ctx.restore();
+  }
+};
 // chart options: y-axis hidden so the plot fills the canvas and lines up exactly with the table columns
-function wmFcOpts(p1, p2){
+function wmFcOpts(p1, p2, yMin){
   return {responsive:true,maintainAspectRatio:false,layout:{padding:{top:3,right:1,bottom:3,left:0}},interaction:{mode:'index',intersect:false},
     plugins:{legend:{display:false},tooltip:{callbacks:{
       title:function(items){ var t=items[0].chart.$times[items[0].dataIndex], d=new Date(t); return d.toLocaleDateString(undefined,{weekday:'short'})+' '+d.toLocaleTimeString(undefined,{hour:'numeric'}); },
       afterLabel:(p1?function(ctx){ var p=(ctx.datasetIndex===0?p1:p2)[ctx.dataIndex]; return (p==null)?'':('period '+fmt(p,0)+' s'); }:undefined)
     }}},
     scales:{ x:{type:'category',offset:true,ticks:{display:false},grid:{display:false},border:{display:false}},
-      y:{display:false,grace:'8%'} }};
+      y:{display:false,grace:'8%',min:(yMin!=null?yMin:undefined)} }};
 }
 function buildWmCharts(times, wh, mh, mIdx, cols){
   if(typeof Chart==='undefined') return;
@@ -884,14 +909,14 @@ function buildWmCharts(times, wh, mh, mIdx, cols){
   if(c1){ var ch=new Chart(c1.getContext('2d'),{type:'line',data:{labels:L,datasets:[
       {label:'Swell',data:swH,borderColor:'#3b6fb0',backgroundColor:'#3b6fb022',borderWidth:2,pointRadius:0,tension:0.35,fill:true},
       {label:'Waves',data:wvH,borderColor:'#2e7d6b',borderWidth:2,pointRadius:0,tension:0.35}
-    ]},options:wmFcOpts(swP,wvP),plugins:[wmFcAxis]});
+    ]},options:wmFcOpts(swP,wvP,0),plugins:[wmMetreAxis]});
     ch.$times=L; ch.update('none'); wmFcCharts['sw']=ch;
   }
   var c2=document.getElementById('wmf-tide');
   if(c2){ var ch2=new Chart(c2.getContext('2d'),{type:'line',data:{labels:L,datasets:[
       {label:'Tide',data:tide,borderColor:'#6a9bcc',backgroundColor:'#6a9bcc22',borderWidth:2,pointRadius:0,tension:0.4,fill:true}
     ]},options:wmFcOpts(),plugins:[wmFcAxis,wmTidePeaks]});
-    ch2.$times=L; ch2.$peaks=tidePeaks(L,tide); ch2.update('none'); wmFcCharts['tide']=ch2;
+    ch2.$times=L; ch2.$peaks=exactTidePeaks(times, mh, mIdx, cols); ch2.update('none'); wmFcCharts['tide']=ch2;
   }
 }
 function renderWmForecast(ll, wRes, mRes){
