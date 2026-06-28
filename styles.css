@@ -106,7 +106,7 @@
   .wm-mapwrap{position:relative}
   .wm-landshade{mix-blend-mode:multiply}
   .wm-landmask{filter:brightness(0) invert(0.82)}
-  /* wind map (nested under Conditions): full-bleed width, tall, in normal flow so the sub-tab bar stays above it */
+  /* wind map (nested under Forecast): full-bleed width, tall, in normal flow */
   .wm-full{position:relative;width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw)}
   /* dvh tracks the *visible* viewport on mobile (excludes the address bar),
      so the bottom time bar isn't hidden behind it; vh is the desktop fallback. */

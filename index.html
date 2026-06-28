@@ -7,7 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231b6ca8'/><g fill='none' stroke='%23ffffff' stroke-width='2.4' stroke-linecap='round'><path d='M5 12c3 0 3-2.5 6-2.5s3 2.5 6 2.5 3-2.5 6-2.5 3 2.5 6 2.5'/><path d='M5 18c3 0 3-2.5 6-2.5s3 2.5 6 2.5 3-2.5 6-2.5 3 2.5 6 2.5'/><path d='M5 24c3 0 3-2.5 6-2.5s3 2.5 6 2.5 3-2.5 6-2.5 3 2.5 6 2.5'/></g></svg>">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet-velocity@1.7.0/dist/leaflet-velocity.css">
-<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body>
 <div class="wrap">
@@ -15,7 +15,13 @@
     <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="primary-nav" onclick="toggleNav()"><span class="nav-burger" aria-hidden="true"></span><span class="nav-toggle-label">Menu</span></button>
     <div class="tabs-inner" id="primary-nav">
       <button id="btn-home" class="tab active" onclick="showTab('home')">Home</button>
-      <button id="btn-conditions" class="tab" onclick="showTab('conditions')">Conditions</button>
+      <div class="tab-dd" id="dd-forecast">
+        <button id="btn-forecast" class="tab" onclick="toggleDDMenu(event,'forecast')" aria-haspopup="true" aria-expanded="false">Forecast<span class="tab-caret" aria-hidden="true">&#9662;</span></button>
+        <div class="tab-menu" id="forecast-menu" role="menu" aria-label="Forecast">
+          <button class="tab-menu-item active" role="menuitem" data-sub="divesites" onclick="gotoSub('forecast','divesites')">Dive sites</button>
+          <button class="tab-menu-item" role="menuitem" data-sub="windmap" onclick="gotoSub('forecast','windmap')">Wind map</button>
+        </div>
+      </div>
       <button id="btn-fish" class="tab" onclick="showTab('fish')">Fish guide</button>
       <div class="tab-dd" id="dd-live">
         <button id="btn-live" class="tab" onclick="toggleDDMenu(event,'live')" aria-haspopup="true" aria-expanded="false">Live data<span class="tab-caret" aria-hidden="true">&#9662;</span></button>
@@ -41,11 +47,7 @@
     <h1 class="home-title">Daily Ocean &amp; Dive Map for <span class="home-accent">Victoria</span></h1>
   </div><!-- /tab-home -->
 
-  <div id="tab-conditions" class="tabpanel" hidden>
-    <div class="subtabs">
-      <button class="subtab active" data-sub="divesites" onclick="showSub('conditions','divesites')">Dive sites</button>
-      <button class="subtab" data-sub="windmap" onclick="showSub('conditions','windmap')">Wind map</button>
-    </div>
+  <div id="tab-forecast" class="tabpanel" hidden>
     <div id="sub-divesites" class="subpanel">
   <h2 class="sec"><span class="dot" style="background:var(--accent)"></span>Dive sites</h2>
   <div class="picker">
@@ -102,7 +104,7 @@
     </div>
     <div class="sub" style="font-size:12px;margin-top:8px">The map is shaded by the selected field; the particles show its direction. Nearshore and inside-Port-Phillip cells can read blank — the wave model is coarse close to land.</div>
     </div><!-- /sub-windmap -->
-  </div><!-- /tab-conditions -->
+  </div><!-- /tab-forecast -->
 
   <div id="tab-fish" class="tabpanel" hidden>
     <div class="sub" style="margin-top:6px">Species worth targeting around Victoria, shore or boat. Green = likely worth a go around now. Always check current <a href="https://vfa.vic.gov.au/recreational-fishing/recreational-fishing-guide" target="_blank" rel="noopener">VFA size &amp; bag limits and closed seasons</a> before keeping anything — the illustrations are stylised, not photos.</div>
@@ -111,7 +113,7 @@
       <div class="panel-hd"><span class="dot" style="background:var(--accent)"></span><span class="panel-ttl">Target species</span><span class="panel-meta">Shore or boat &middot; Victoria</span></div>
       <div class="panel-bd">
         <div class="fishgrid" id="fishcards"></div>
-        <p class="sub" style="margin:12px 0 0">Each pinned site on the <b>Conditions</b> map now carries its habitat (reef type) and what to target &mdash; click a marker to see it.</p>
+        <p class="sub" style="margin:12px 0 0">Each pinned site on the <b>Forecast</b> map now carries its habitat (reef type) and what to target &mdash; click a marker to see it.</p>
       </div>
     </div>
   </div><!-- /tab-fish -->
@@ -204,6 +206,6 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-velocity@1.7.0/dist/leaflet-velocity.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="app.js?v=6"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>

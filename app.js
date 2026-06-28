@@ -762,7 +762,7 @@ function wmHourCell(d, showDay){
   var day=showDay?('<span class="wmf-d">'+d.toLocaleDateString(undefined,{weekday:'short'})+'</span>'):'';
   return day+h12+ap;
 }
-// forecast-panel charts live in their own registry so they don't collide with the Conditions tab's
+// forecast-panel charts live in their own registry so they don't collide with the dive-site cards'
 var wmFcCharts={};
 function destroyWmCharts(){ for(var k in wmFcCharts){ try{wmFcCharts[k].destroy();}catch(e){} } wmFcCharts={}; }
 function hourLabel(t){ var d=new Date(t), h=d.getHours(), ap=h<12?'a':'p', h12=h%12; if(h12===0) h12=12; return h12+ap; }
@@ -1319,9 +1319,9 @@ function toggleFullLegend(){
   if(d.hidden){ d.hidden=false; d.innerHTML=legendImageFallback(); if(b) b.textContent='Hide full Seamap classes'; }
   else { d.hidden=true; d.innerHTML=''; if(b) b.textContent='Show full Seamap classes'; }
 }
-// top-level tabs; the parents (conditions/live/geo) remember their last-open sub-tab
-var TOP_TABS=['home','conditions','fish','live','geo','about','feedback'];
-var activeSub={conditions:'divesites', live:'chl', geo:'habitat'};
+// top-level tabs; the parents (forecast/live/geo) remember their last-open sub-tab
+var TOP_TABS=['home','forecast','fish','live','geo','about','feedback'];
+var activeSub={forecast:'divesites', live:'chl', geo:'habitat'};
 function showTab(t){
   TOP_TABS.forEach(function(name){
     var p=document.getElementById('tab-'+name), btn=document.getElementById('btn-'+name);
@@ -1354,8 +1354,8 @@ function showSub(parent, s){
   markDDMenu(parent, s);
   subSetup(s);
 }
-// Dropdown tabs (Live data, Underwater geography): the top pill opens a menu of nested views
-var DD_TABS=['live','geo'];
+// Dropdown tabs (Forecast, Live data, Underwater geography): the top pill opens a menu of nested views
+var DD_TABS=['forecast','live','geo'];
 function toggleDDMenu(ev, tab){
   ev.stopPropagation();
   var dd=document.getElementById('dd-'+tab); if(!dd) return;
