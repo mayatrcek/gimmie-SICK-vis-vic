@@ -374,13 +374,17 @@
     padding:clamp(64px, 13vh, 160px) 24px 24px;text-align:center}
   /* the ID display rule above outranks [hidden]{display:none}, so restore hiding */
   #tab-home[hidden]{display:none}
-  /* Cirrus hero title overlaid on the photo: Inter Tight display with one
-     Instrument Serif italic accent. */
-  .home-title{font-family:var(--font-display);font-weight:700;margin:0;max-width:16ch;
-    font-size:clamp(40px, 7vw, 84px);line-height:1.02;letter-spacing:-.025em;
+  /* Cirrus hero overlaid on the photo: the DiveByte brand in Inter Tight display,
+     with a tagline beneath carrying the one Instrument Serif italic accent. */
+  .home-hero{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.4vh,16px)}
+  .home-title{font-family:var(--font-display);font-weight:700;margin:0;max-width:18ch;
+    font-size:clamp(46px, 8vw, 92px);line-height:1.0;letter-spacing:-.03em;
     color:#fff;text-shadow:0 2px 28px rgba(14,17,22,.5);text-wrap:balance}
+  .home-tagline{font-family:var(--font-display);font-weight:600;margin:0;max-width:22ch;
+    font-size:clamp(17px, 2.5vw, 28px);line-height:1.2;letter-spacing:-.01em;
+    color:#fff;text-shadow:0 2px 20px rgba(14,17,22,.5);text-wrap:balance}
   .home-accent{font-family:var(--font-serif);font-style:italic;font-weight:400;
-    font-size:1.06em;letter-spacing:-.01em;color:#cfe1f6}
+    font-size:1.08em;letter-spacing:-.01em;color:#cfe1f6}
 
   /* ===== Dashboard panels — Cirrus cards ===== */
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden;
