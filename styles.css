@@ -160,11 +160,10 @@
   .wmf-table th{position:sticky;left:0;width:56px;box-sizing:border-box;background:var(--panel);text-align:left;color:var(--muted);font-weight:600;font-size:11px;text-transform:none;letter-spacing:0;padding:6px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
   .wmf-table td{padding:6px 8px;text-align:center;border-bottom:1px solid var(--color-edge-soft);white-space:nowrap;color:var(--ink)}
   .wmf-time td{font-weight:600}
-  /* alternating day-title pills overlaying the time scale */
-  .wmf-dayrow td{padding:1px 3px 4px;text-align:center}
-  .wmf-daybox span{display:inline-block;padding:2px 12px;border-radius:999px;font-weight:700;font-size:11px;white-space:nowrap}
-  .wmf-day-a span{background:rgba(46,125,239,.14);color:var(--accent)}
-  .wmf-day-b span{background:rgba(255,122,61,.16);color:#c4622a}
+  /* day-title row: each day's cell fully filled, alternating white / grey */
+  .wmf-dayrow td{padding:3px 4px;text-align:center;font-weight:700;font-size:11px;color:var(--ink)}
+  .wmf-day-a{background:#ffffff}
+  .wmf-day-b{background:#e9eef4}
   /* subtle dotted hour gridlines on the data rows; solid divider at each day boundary */
   .wmf-table tbody tr:not(.wmf-dayrow) td{border-left:1px dotted #dde4ec}
   .wmf-table tbody tr:not(.wmf-dayrow) td.wmf-sep{border-left:1.5px solid #c2ccd8}

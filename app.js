@@ -849,20 +849,31 @@ var wmTidePeaks={ id:'wmTidePeaks', afterDatasetsDraw:function(chart){
   });
   ctx.restore();
 }};
-// day separators + tiny corner max/min labels (no axis, no now line — the Time row is the shared axis)
-var wmFcAxis={ id:'wmFcAxis', afterDraw:function(chart){
-  var times=chart.$times; if(!times||!times.length) return; var ctx=chart.ctx, area=chart.chartArea, pts=chart.getDatasetMeta(0).data; if(!pts||!pts.length) return;
-  ctx.save();
-  // draw the day divider at the band boundary (midpoint between points) so it lines
-  // up with the table's column-edge day separators above
-  for(var i=1;i<times.length;i++){ if(new Date(times[i-1]).getDate()!==new Date(times[i]).getDate() && pts[i] && pts[i-1]){ var sx=(pts[i-1].x+pts[i].x)/2; ctx.strokeStyle='#c2ccd8'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(sx,area.top); ctx.lineTo(sx,area.bottom); ctx.stroke(); } }
-  var mx=-Infinity, mn=Infinity;
-  chart.data.datasets.forEach(function(ds){ ds.data.forEach(function(v){ if(v!=null&&!isNaN(v)){ if(v>mx)mx=v; if(v<mn)mn=v; } }); });
-  if(mx>-Infinity){ ctx.fillStyle='#9aa6b4'; ctx.font='9px sans-serif'; ctx.textAlign='left';
-    ctx.textBaseline='top'; ctx.fillText(fmt(mx,1), area.left+2, area.top+1);
-    ctx.textBaseline='bottom'; ctx.fillText(fmt(mn,1), area.left+2, area.bottom-1); }
-  ctx.restore();
-}};
+// shared chart grid: dotted hour lines + solid day dividers (drawn under the data so
+// they line up with the table columns above), plus tiny corner max/min labels on top.
+var wmFcAxis={ id:'wmFcAxis',
+  beforeDatasetsDraw:function(chart){
+    var times=chart.$times; if(!times||!times.length) return;
+    var ctx=chart.ctx, area=chart.chartArea, pts=chart.getDatasetMeta(0).data; if(!pts||!pts.length) return;
+    ctx.save();
+    // dotted vertical line at each column boundary — matches the table's hour gridlines
+    ctx.setLineDash([1,3]); ctx.strokeStyle='#dde4ec'; ctx.lineWidth=1;
+    for(var j=1;j<pts.length;j++){ if(!pts[j]||!pts[j-1]) continue; var gx=(pts[j-1].x+pts[j].x)/2; ctx.beginPath(); ctx.moveTo(gx,area.top); ctx.lineTo(gx,area.bottom); ctx.stroke(); }
+    ctx.setLineDash([]);
+    // solid divider at each day boundary, drawn over the dotted line at that column
+    ctx.strokeStyle='#c2ccd8'; ctx.lineWidth=1;
+    for(var i=1;i<times.length;i++){ if(new Date(times[i-1]).getDate()!==new Date(times[i]).getDate() && pts[i] && pts[i-1]){ var sx=(pts[i-1].x+pts[i].x)/2; ctx.beginPath(); ctx.moveTo(sx,area.top); ctx.lineTo(sx,area.bottom); ctx.stroke(); } }
+    ctx.restore();
+  },
+  afterDraw:function(chart){
+    var ctx=chart.ctx, area=chart.chartArea;
+    var mx=-Infinity, mn=Infinity;
+    chart.data.datasets.forEach(function(ds){ ds.data.forEach(function(v){ if(v!=null&&!isNaN(v)){ if(v>mx)mx=v; if(v<mn)mn=v; } }); });
+    if(mx>-Infinity){ ctx.save(); ctx.fillStyle='#9aa6b4'; ctx.font='9px sans-serif'; ctx.textAlign='left';
+      ctx.textBaseline='top'; ctx.fillText(fmt(mx,1), area.left+2, area.top+1);
+      ctx.textBaseline='bottom'; ctx.fillText(fmt(mn,1), area.left+2, area.bottom-1); ctx.restore(); }
+  }
+};
 // chart options: y-axis hidden so the plot fills the canvas and lines up exactly with the table columns
 function wmFcOpts(p1, p2){
   return {responsive:true,maintainAspectRatio:false,layout:{padding:{top:3,right:1,bottom:3,left:0}},interaction:{mode:'index',intersect:false},
