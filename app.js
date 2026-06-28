@@ -1329,6 +1329,7 @@ function showTab(t){
     if(btn) btn.classList.toggle('active', name===t);
   });
   document.body.classList.toggle('home-tab', t==='home'); // photo backdrop only on Home
+  document.body.classList.remove('wm-fs'); // showSub re-adds it if the active sub is the wind map
   if(activeSub[t]) showSub(t, activeSub[t]);
   closeNav(); // collapse the mobile hamburger menu after any navigation
 }
@@ -1352,6 +1353,7 @@ function showSub(parent, s){
   var btns=panel.getElementsByClassName('subtab');
   for(var j=0;j<btns.length;j++) btns[j].classList.toggle('active', btns[j].getAttribute('data-sub')===s);
   markDDMenu(parent, s);
+  document.body.classList.toggle('wm-fs', s==='windmap'); // full-screen, no-scroll wind map
   subSetup(s);
 }
 // Dropdown tabs (Forecast, Live data, Underwater geography): the top pill opens a menu of nested views

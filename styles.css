@@ -111,6 +111,12 @@
   /* dvh tracks the *visible* viewport on mobile (excludes the address bar),
      so the bottom time bar isn't hidden behind it; vh is the desktop fallback. */
   .wm-full #windmap{height:calc(100vh - 172px);height:calc(100dvh - 172px);min-height:440px;width:100%;border-radius:0;border:0;box-shadow:none}
+  /* Wind-map full-screen mode (body.wm-fs, toggled by JS when the Wind map
+     view is open): the map covers the whole viewport behind the floating nav
+     pill, and the page itself stops scrolling. */
+  body.wm-fs{overflow:hidden}
+  body.wm-fs .wm-full{position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;margin:0;z-index:500}
+  body.wm-fs .wm-full #windmap{height:100%;min-height:0}
   .wm-full .wm-legend{position:absolute;left:10px;bottom:62px;z-index:1000;max-width:230px;
     background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:16px;padding:10px 12px;box-shadow:var(--shadow-1)}
   /* push Leaflet's bottom controls (scale + attribution) above the time bar */
