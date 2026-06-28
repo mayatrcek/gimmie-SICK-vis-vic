@@ -808,7 +808,7 @@ function wmRestoreLock(){ if(windMap){ windMap.setMaxBounds(WM_BOUNDS); windMap.
 function wmRelDay(d){
   var today=new Date(); today.setHours(0,0,0,0); var dd=new Date(d); dd.setHours(0,0,0,0);
   var diff=Math.round((dd-today)/86400000);
-  return diff===0?'Today':(diff===1?'Tmrw':d.toLocaleDateString(undefined,{weekday:'short'}));
+  return diff===0?'Today':d.toLocaleDateString(undefined,{weekday:'short'});
 }
 function wmHourCell(d){
   var h=d.getHours(), ap=h<12?'am':'pm', h12=h%12; if(h12===0) h12=12;
@@ -853,7 +853,9 @@ var wmTidePeaks={ id:'wmTidePeaks', afterDatasetsDraw:function(chart){
 var wmFcAxis={ id:'wmFcAxis', afterDraw:function(chart){
   var times=chart.$times; if(!times||!times.length) return; var ctx=chart.ctx, area=chart.chartArea, pts=chart.getDatasetMeta(0).data; if(!pts||!pts.length) return;
   ctx.save();
-  for(var i=1;i<times.length;i++){ if(new Date(times[i-1]).getDate()!==new Date(times[i]).getDate() && pts[i]){ ctx.strokeStyle='#e2e8ee'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pts[i].x,area.top); ctx.lineTo(pts[i].x,area.bottom); ctx.stroke(); } }
+  // draw the day divider at the band boundary (midpoint between points) so it lines
+  // up with the table's column-edge day separators above
+  for(var i=1;i<times.length;i++){ if(new Date(times[i-1]).getDate()!==new Date(times[i]).getDate() && pts[i] && pts[i-1]){ var sx=(pts[i-1].x+pts[i].x)/2; ctx.strokeStyle='#c2ccd8'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(sx,area.top); ctx.lineTo(sx,area.bottom); ctx.stroke(); } }
   var mx=-Infinity, mn=Infinity;
   chart.data.datasets.forEach(function(ds){ ds.data.forEach(function(v){ if(v!=null&&!isNaN(v)){ if(v>mx)mx=v; if(v<mn)mn=v; } }); });
   if(mx>-Infinity){ ctx.fillStyle='#9aa6b4'; ctx.font='9px sans-serif'; ctx.textAlign='left';
