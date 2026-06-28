@@ -1350,8 +1350,6 @@ function showSub(parent, s){
   var panel=document.getElementById('tab-'+parent); if(!panel) return;
   var subs=panel.getElementsByClassName('subpanel');
   for(var i=0;i<subs.length;i++) subs[i].hidden=(subs[i].id!=='sub-'+s);
-  var btns=panel.getElementsByClassName('subtab');
-  for(var j=0;j<btns.length;j++) btns[j].classList.toggle('active', btns[j].getAttribute('data-sub')===s);
   markDDMenu(parent, s);
   document.body.classList.toggle('wm-fs', s==='windmap'); // full-screen, no-scroll wind map
   subSetup(s);

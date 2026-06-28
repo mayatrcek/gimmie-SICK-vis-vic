@@ -284,16 +284,6 @@
   .tab:hover{color:var(--ink);background:rgba(14,17,22,.05)}
   .tab.active{color:#fff;background:var(--ink);box-shadow:var(--shadow-2)}
 
-  /* Second-level sub-tabs (inside Conditions / Live data / Underwater geography) */
-  .subtabs{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 16px}
-  .subtab{border:none;background:transparent;padding:8px 14px;color:var(--muted);font-weight:500;font-size:13px;cursor:pointer;border-radius:var(--radius-pill)}
-  .subtab:hover{color:var(--ink);background:rgba(14,17,22,.05)}
-  .subtab.active{color:#fff;background:var(--ink)}
-  @media(max-width:560px){
-    .subtabs{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-    .subtabs::-webkit-scrollbar{display:none}
-    .subtab{white-space:nowrap;flex:0 0 auto;padding:8px 12px}
-  }
   /* Dropdown tab (Live data) — the top pill opens a small cloud menu of nested views */
   .tab-dd{position:relative;display:inline-flex}
   .tab-caret{display:inline-block;font-size:10px;margin-left:6px;opacity:.65;transition:transform .18s var(--ease)}
@@ -434,8 +424,7 @@
       opacity:1;visibility:visible;pointer-events:auto}
     .tab-menu-item{width:100%;padding:11px 14px;border-radius:10px}
 
-    /* roomier tap targets on the in-panel sub-tabs and wind-map controls */
-    .subtab{padding:10px 14px}
+    /* roomier tap targets on the wind-map controls */
     .wm-tab{padding:10px 16px}
     .wm-time-now{padding:9px 16px}
     .wmf-close{font-size:26px;padding:4px 10px}
