@@ -742,13 +742,16 @@ function openWmForecast(ll){
   });
 }
 function closeWmForecast(){ var b=document.getElementById('wmforecast'); if(b) b.hidden=true; wmfReq++; destroyWmCharts(); wmRestoreLock(); }
-// pan so the clicked point rises to the centre of the area above the forecast panel,
-// keeping it (and its popup) clear of the table. Relaxes the region lock for the pan.
+// pan so the clicked point sits a bit below the centre of the area above the
+// forecast panel, keeping it (and its popup) clear of the table. Relaxes the
+// region lock for the pan.
 function wmCenterSelected(ll){
   if(!windMap) return;
   var size=windMap.getSize();
   var panelFootprint=524;                 // forecast panel: ~460px (table + 2 charts) + 62px bottom offset
-  var desiredY=Math.max(50,(size.y-panelFootprint)/2);
+  var avail=size.y-panelFootprint;        // vertical room above the forecast panel
+  // ~two-thirds down that room (lower than centre), but kept clear of the panel top
+  var desiredY=Math.max(50,Math.min(avail-24,avail*0.66));
   var z=windMap.getZoom();
   windMap.setMaxBounds(null);             // relax the lock so the centring pan isn't clamped back
   var ptPx=windMap.project(ll,z);
