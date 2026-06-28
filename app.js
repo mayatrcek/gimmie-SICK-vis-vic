@@ -749,14 +749,17 @@ function nearestSpot(lat,lon){
   return best;
 }
 // WMO weather code -> glyph
-function weatherIcon(c){
+function weatherIcon(c, isDay){
   if(c==null||isNaN(c)) return '·';
-  if(c===0) return '☀️'; if(c<=2) return '🌤️'; if(c===3) return '☁️';
+  var night = isDay===0; // Open-Meteo is_day: 1 = day, 0 = night
+  if(c===0) return night?'🌙':'☀️';
+  if(c<=2)  return night?'🌙':'🌤️';   // clear / mainly clear / partly cloudy
+  if(c===3) return '☁️';
   if(c<=48) return '🌫️'; if(c<=57) return '🌧️'; if(c<=67) return '🌧️';
-  if(c<=77) return '🌨️'; if(c<=82) return '🌦️'; if(c<=86) return '🌨️'; return '⛈️';
+  if(c<=77) return '🌨️'; if(c<=82) return night?'🌧️':'🌦️'; if(c<=86) return '🌨️'; return '⛈️';
 }
 function fetchPointForecast(lat,lon){
-  var w=WEATHER+'?latitude='+lat+'&longitude='+lon+'&hourly=weather_code,wind_speed_10m,wind_direction_10m&timezone='+TZ+'&forecast_days=3';
+  var w=WEATHER+'?latitude='+lat+'&longitude='+lon+'&hourly=weather_code,wind_speed_10m,wind_direction_10m,is_day&timezone='+TZ+'&forecast_days=3';
   var m=MARINE+'?latitude='+lat+'&longitude='+lon+'&hourly=wave_height,wave_period,swell_wave_height,swell_wave_period,sea_level_height_msl&timezone='+TZ+'&forecast_days=3';
   return Promise.all([fetch(w).then(wmJson), fetch(m).then(wmJson)]);
 }
@@ -802,16 +805,14 @@ function wmCenterSelected(ll){
 }
 // re-apply the Victoria + N Tasmania lock and snap the view back to it
 function wmRestoreLock(){ if(windMap){ windMap.setMaxBounds(WM_BOUNDS); windMap.panInsideBounds(WM_BOUNDS,{animate:true}); } }
-function wmHourCell(d, showDay){
-  var h=d.getHours(), ap=h<12?'a':'p', h12=h%12; if(h12===0) h12=12;
-  var day='';
-  if(showDay){
-    var today=new Date(); today.setHours(0,0,0,0); var dd=new Date(d); dd.setHours(0,0,0,0);
-    var diff=Math.round((dd-today)/86400000);
-    var lbl = diff===0?'Today':(diff===1?'Tmrw':d.toLocaleDateString(undefined,{weekday:'short'}));
-    day='<span class="wmf-d">'+lbl+'</span>';
-  }
-  return day+h12+ap;
+function wmRelDay(d){
+  var today=new Date(); today.setHours(0,0,0,0); var dd=new Date(d); dd.setHours(0,0,0,0);
+  var diff=Math.round((dd-today)/86400000);
+  return diff===0?'Today':(diff===1?'Tmrw':d.toLocaleDateString(undefined,{weekday:'short'}));
+}
+function wmHourCell(d){
+  var h=d.getHours(), ap=h<12?'am':'pm', h12=h%12; if(h12===0) h12=12;
+  return h12+':00 '+ap;
 }
 // forecast-panel charts live in their own registry so they don't collide with the dive-site cards'
 var wmFcCharts={};
@@ -902,16 +903,24 @@ function renderWmForecast(ll, wRes, mRes){
   var cols=[]; for(i=start;i<times.length && cols.length<16;i+=3){ cols.push(i); }
   var spot=nearestSpot(ll.lat, ll.lng), onshore=spot?spot.onshore:200;
   function row(label, cls, fn){ return '<tr'+(cls?' class="'+cls+'"':'')+'><th>'+label+'</th>'+cols.map(fn).join('')+'</tr>'; }
-  // mark each column that starts a new day so every row can draw a day separator
+  // group consecutive columns by day for the alternating day-title pills
+  var dayGroups=[];
+  cols.forEach(function(k){ var d=new Date(times[k]), key=d.toDateString();
+    if(!dayGroups.length || dayGroups[dayGroups.length-1].key!==key) dayGroups.push({key:key, label:wmRelDay(d), span:1});
+    else dayGroups[dayGroups.length-1].span++;
+  });
+  // mark each column that starts a new day (solid divider in the body)
   var sepCols={}, pdn=null;
   cols.forEach(function(k, idx){ var dn=new Date(times[k]).getDate(); if(idx>0 && dn!==pdn) sepCols[k]=true; pdn=dn; });
   function sepCls(k, extra){ var c=sepCols[k]?'wmf-sep':''; if(extra) c+=(c?' ':'')+extra; return c; }
-  var prevDay=null;
+  var dayRow='<tr class="wmf-dayrow"><th></th>'+dayGroups.map(function(g,i){
+    return '<td colspan="'+g.span+'" class="wmf-daybox '+(i%2?'wmf-day-b':'wmf-day-a')+'"><span>'+g.label+'</span></td>';
+  }).join('')+'</tr>';
   var timeRow='<tr class="wmf-time"><th>Time</th>'+cols.map(function(k){
-    var d=new Date(times[k]), dk=d.getDate(), show=(dk!==prevDay); prevDay=dk;
-    var c=sepCls(k); return '<td'+(c?' class="'+c+'"':'')+'>'+wmHourCell(d, show)+'</td>';
+    var c=sepCls(k); return '<td'+(c?' class="'+c+'"':'')+'>'+wmHourCell(new Date(times[k]))+'</td>';
   }).join('')+'</tr>';
   var H='<div class="wmf-grid"><table class="wmf-table"><tbody>';
+  H+=dayRow;
   H+=timeRow;
   H+=row('Dive','',function(k){
     var t=times[k], mk=mIdx[t];
@@ -920,7 +929,7 @@ function renderWmForecast(ll, wRes, mRes){
     var rt=classify(swH, swP, wind, wdir, onshore, null, false), sc=DIVE_SCORE[rt.label]||0;
     var c=sepCls(k); return '<td'+(c?' class="'+c+'"':'')+'><span class="wmf-rate" style="background:'+rt.col+'" title="'+rt.label+'">'+sc+'</span></td>';
   });
-  H+=row('Sky','',function(k){ return '<td class="'+sepCls(k,'wmf-sky')+'">'+weatherIcon(wh.weather_code?wh.weather_code[k]:null)+'</td>'; });
+  H+=row('Sky','',function(k){ return '<td class="'+sepCls(k,'wmf-sky')+'">'+weatherIcon(wh.weather_code?wh.weather_code[k]:null, wh.is_day?wh.is_day[k]:1)+'</td>'; });
   H+=row('Wind','wmf-windrow',function(k){ return windArrowCell(wh.wind_speed_10m?wh.wind_speed_10m[k]:null, wh.wind_direction_10m?wh.wind_direction_10m[k]:null, sepCls(k)); });
   H+='</tbody></table>';
   H+='<div class="wmf-crow"><div class="wmf-clabel"><span class="wmf-leg" style="color:#3b6fb0"><i style="background:#3b6fb0"></i>Swell</span><span class="wmf-leg" style="color:#2e7d6b"><i style="background:#2e7d6b"></i>Waves</span></div><div class="wmf-cbox"><canvas id="wmf-sw"></canvas></div></div>';
