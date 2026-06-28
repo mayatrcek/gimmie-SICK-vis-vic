@@ -155,18 +155,18 @@
   .wmf-close{border:none;background:none;color:var(--muted);font-size:22px;line-height:1;cursor:pointer;padding:0 4px;flex-shrink:0}
   .wmf-close:hover{color:var(--poor)}
   .wmf-wrap{overflow:auto;flex:1}
-  .wmf-grid{min-width:680px}
+  .wmf-grid{min-width:680px;position:relative}
   .wmf-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
-  .wmf-table th{position:sticky;left:0;width:56px;box-sizing:border-box;background:var(--panel);text-align:left;color:var(--muted);font-weight:600;font-size:11px;text-transform:none;letter-spacing:0;padding:6px 6px;border-bottom:none;white-space:nowrap}
+  .wmf-table th{position:sticky;left:0;z-index:3;width:56px;box-sizing:border-box;background:var(--panel);text-align:left;color:var(--muted);font-weight:600;font-size:11px;text-transform:none;letter-spacing:0;padding:6px 6px;border-bottom:none;white-space:nowrap}
   .wmf-table td{padding:6px 8px;text-align:center;border-bottom:none;white-space:nowrap;color:var(--ink)}
   .wmf-time td{font-weight:600}
   /* day-title row: each day's cell fully filled, alternating white / grey */
   .wmf-dayrow td{padding:3px 4px;text-align:center;font-weight:700;font-size:11px;color:var(--ink)}
   .wmf-day-a{background:#ffffff}
   .wmf-day-b{background:#e9eef4}
-  /* dotted hour gridlines on the data rows; solid divider at each day boundary */
-  .wmf-table tbody tr:not(.wmf-dayrow) td{border-left:1px dotted #b3bece}
-  .wmf-table tbody tr:not(.wmf-dayrow) td.wmf-sep{border-left:1.5px solid #95a3b4}
+  /* vertical hour/day gridlines: one continuous SVG overlay (built in JS) so the
+     lines are seamless across the table rows and the charts */
+  .wmf-vlines{position:absolute;left:0;pointer-events:none;z-index:1}
   .wmf-rate{display:inline-block;min-width:22px;color:#fff;font-weight:600;border-radius:var(--radius-pill);padding:2px 9px}
   .wmf-sky{font-size:15px}
   .wmf-windrow td{padding:3px 8px}

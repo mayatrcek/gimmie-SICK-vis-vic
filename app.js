@@ -849,22 +849,10 @@ var wmTidePeaks={ id:'wmTidePeaks', afterDatasetsDraw:function(chart){
   });
   ctx.restore();
 }};
-// shared chart grid: dotted hour lines + solid day dividers (drawn under the data so
-// they line up with the table columns above), plus tiny corner max/min labels on top.
+// tiny corner max/min labels. The vertical day/hour lines are drawn as one
+// continuous SVG overlay (wmDrawGridLines) so they're seamless across the table
+// rows and the charts, rather than per-cell borders + per-canvas strokes.
 var wmFcAxis={ id:'wmFcAxis',
-  beforeDatasetsDraw:function(chart){
-    var times=chart.$times; if(!times||!times.length) return;
-    var ctx=chart.ctx, area=chart.chartArea, pts=chart.getDatasetMeta(0).data; if(!pts||!pts.length) return;
-    ctx.save();
-    // dotted vertical line at each column boundary — matches the table's hour gridlines
-    ctx.setLineDash([1,3]); ctx.strokeStyle='#b3bece'; ctx.lineWidth=1;
-    for(var j=1;j<pts.length;j++){ if(!pts[j]||!pts[j-1]) continue; var gx=(pts[j-1].x+pts[j].x)/2; ctx.beginPath(); ctx.moveTo(gx,area.top); ctx.lineTo(gx,area.bottom); ctx.stroke(); }
-    ctx.setLineDash([]);
-    // solid divider at each day boundary, drawn over the dotted line at that column
-    ctx.strokeStyle='#95a3b4'; ctx.lineWidth=1;
-    for(var i=1;i<times.length;i++){ if(new Date(times[i-1]).getDate()!==new Date(times[i]).getDate() && pts[i] && pts[i-1]){ var sx=(pts[i-1].x+pts[i].x)/2; ctx.beginPath(); ctx.moveTo(sx,area.top); ctx.lineTo(sx,area.bottom); ctx.stroke(); } }
-    ctx.restore();
-  },
   afterDraw:function(chart){
     var ctx=chart.ctx, area=chart.chartArea;
     var mx=-Infinity, mn=Infinity;
@@ -950,7 +938,31 @@ function renderWmForecast(ll, wRes, mRes){
   H+='</div>';
   document.getElementById('wmfBody').innerHTML=H;
   buildWmCharts(times, wh, mh, mIdx, cols);
+  wmDrawGridLines();
 }
+// One continuous SVG overlay of vertical lines spanning the table rows + charts,
+// so the hour/day gridlines link up seamlessly (no per-row dash breaks or seams).
+function wmDrawGridLines(){
+  var grid=document.querySelector('#wmfBody .wmf-grid'); if(!grid) return;
+  var ex=grid.querySelector('.wmf-vlines'); if(ex) ex.remove();
+  var timeRow=grid.querySelector('.wmf-time'); if(!timeRow) return;
+  var cells=[].slice.call(timeRow.querySelectorAll('td')); if(!cells.length) return;
+  var gr=grid.getBoundingClientRect();
+  var top=Math.round(timeRow.getBoundingClientRect().top-gr.top); // start at the time row, below the day band
+  var w=grid.scrollWidth, height=grid.scrollHeight-top;
+  var NS='http://www.w3.org/2000/svg', svg=document.createElementNS(NS,'svg');
+  svg.setAttribute('class','wmf-vlines'); svg.setAttribute('width',w); svg.setAttribute('height',height); svg.style.top=top+'px';
+  cells.forEach(function(td,idx){ if(idx===0) return; // skip the label/first-column edge
+    var x=Math.round(td.getBoundingClientRect().left-gr.left)+0.5, day=td.classList.contains('wmf-sep');
+    var ln=document.createElementNS(NS,'line');
+    ln.setAttribute('x1',x); ln.setAttribute('x2',x); ln.setAttribute('y1',0); ln.setAttribute('y2',height);
+    ln.setAttribute('stroke', day?'#95a3b4':'#b3bece'); ln.setAttribute('stroke-width', day?1.5:1);
+    if(!day) ln.setAttribute('stroke-dasharray','1.5 3');
+    svg.appendChild(ln);
+  });
+  grid.appendChild(svg);
+}
+window.addEventListener('resize', function(){ var f=document.getElementById('wmforecast'); if(f && !f.hidden) requestAnimationFrame(wmDrawGridLines); });
 
 /* ---- 2-day chlorophyll composite (stacked image overlays) ---- */
 var compMap, compLayers=[];
