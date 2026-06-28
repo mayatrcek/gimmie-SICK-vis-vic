@@ -84,8 +84,10 @@
   #windmap .leaflet-container{cursor:crosshair}
 
   /* Wind-map field toggle — white pill, ink-filled active tab */
-  .wm-toggle{position:absolute;top:10px;right:10px;z-index:1000;display:inline-flex;gap:4px;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:var(--radius-pill);padding:4px;box-shadow:var(--shadow-1)}
-  .wm-tab{border:none;background:none;padding:7px 15px;border-radius:var(--radius-pill);font-size:13px;font-weight:500;color:var(--muted);cursor:pointer}
+  /* field switcher: a vertical stack of icon buttons, top-right of the map */
+  .wm-toggle{position:absolute;top:calc(var(--tabh) + 10px);right:10px;z-index:1000;display:inline-flex;flex-direction:column;gap:4px;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:16px;padding:4px;box-shadow:var(--shadow-1)}
+  .wm-tab{display:flex;align-items:center;gap:8px;padding:8px 14px;border:none;background:none;border-radius:12px;color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;transition:background-color .18s var(--ease),color .18s var(--ease)}
+  .wm-tab svg{width:20px;height:20px;display:block;flex:0 0 auto}
   .wm-tab:hover{color:var(--ink);background:rgba(14,17,22,.05)}
   .wm-tab.active{background:var(--ink);color:#fff}
   .wm-legend{display:flex;flex-direction:column;gap:3px;max-width:340px}
@@ -101,16 +103,32 @@
   .wm-pop-wind{margin-bottom:1px}
   .wm-pop svg{vertical-align:-2px;margin-right:3px}
   .wm-pop-agree{margin-top:4px;padding-top:4px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
+  /* point callout: compact wind/swell/waves box anchored to the selected dot */
+  .wm-callout .leaflet-popup-content-wrap{border-radius:14px;box-shadow:var(--shadow-2);padding:0}
+  .wm-callout .leaflet-popup-content{margin:0;padding:7px 11px}
+  .wm-cl{font-size:12.5px;line-height:1.4;color:var(--ink);min-width:150px}
+  .wm-cl-row{display:flex;align-items:center;gap:9px;padding:4px 0}
+  .wm-cl-row+.wm-cl-row{border-top:1px solid var(--color-edge-soft)}
+  .wm-cl-ic{flex:0 0 auto;color:var(--muted);display:flex}
+  .wm-cl-ic svg{width:16px;height:16px;display:block}
+  .wm-cl-lbl{color:var(--muted);font-weight:500}
+  .wm-cl-val{margin-left:auto;font-weight:600;font-variant-numeric:tabular-nums}
   .wm-seldot-wrap{background:none;border:none}
   .wm-seldot{display:block;width:18px;height:18px;border-radius:50%;background:var(--accent);border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.6)}
   .wm-mapwrap{position:relative}
   .wm-landshade{mix-blend-mode:multiply}
   .wm-landmask{filter:brightness(0) invert(0.82)}
-  /* wind map (nested under Conditions): full-bleed width, tall, in normal flow so the sub-tab bar stays above it */
+  /* wind map (nested under Forecast): full-bleed width, tall, in normal flow */
   .wm-full{position:relative;width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw)}
   /* dvh tracks the *visible* viewport on mobile (excludes the address bar),
      so the bottom time bar isn't hidden behind it; vh is the desktop fallback. */
   .wm-full #windmap{height:calc(100vh - 172px);height:calc(100dvh - 172px);min-height:440px;width:100%;border-radius:0;border:0;box-shadow:none}
+  /* Wind-map full-screen mode (body.wm-fs, toggled by JS when the Wind map
+     view is open): the map covers the whole viewport behind the floating nav
+     pill, and the page itself stops scrolling. */
+  body.wm-fs{overflow:hidden}
+  body.wm-fs .wm-full{position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;margin:0;z-index:500}
+  body.wm-fs .wm-full #windmap{height:100%;min-height:0}
   .wm-full .wm-legend{position:absolute;left:10px;bottom:62px;z-index:1000;max-width:230px;
     background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:16px;padding:10px 12px;box-shadow:var(--shadow-1)}
   /* push Leaflet's bottom controls (scale + attribution) above the time bar */
@@ -137,25 +155,31 @@
   .wmf-close{border:none;background:none;color:var(--muted);font-size:22px;line-height:1;cursor:pointer;padding:0 4px;flex-shrink:0}
   .wmf-close:hover{color:var(--poor)}
   .wmf-wrap{overflow:auto;flex:1}
-  .wmf-grid{min-width:680px}
+  .wmf-grid{min-width:680px;position:relative}
   .wmf-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
-  .wmf-table th{position:sticky;left:0;width:62px;box-sizing:border-box;background:var(--panel);text-align:left;color:var(--muted);font-weight:600;font-size:11px;text-transform:none;letter-spacing:0;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
-  .wmf-table td{padding:6px 8px;text-align:center;border-bottom:1px solid var(--color-edge-soft);white-space:nowrap;color:var(--ink)}
+  .wmf-table th{position:sticky;left:0;z-index:3;width:56px;box-sizing:border-box;background:var(--panel);text-align:left;color:var(--muted);font-weight:600;font-size:11px;text-transform:none;letter-spacing:0;padding:6px 6px;border-bottom:none;white-space:nowrap}
+  .wmf-table td{padding:6px 8px;text-align:center;border-bottom:none;white-space:nowrap;color:var(--ink)}
   .wmf-time td{font-weight:600}
-  .wmf-d{font-size:10px;color:var(--muted);display:block}
+  /* day-title row: each day's cell fully filled, alternating white / grey */
+  .wmf-dayrow td{padding:3px 4px;text-align:center;font-weight:700;font-size:11px;color:var(--ink)}
+  .wmf-day-a{background:#ffffff}
+  .wmf-day-b{background:#e9eef4}
+  /* vertical hour/day gridlines: one continuous SVG overlay (built in JS) so the
+     lines are seamless across the table rows and the charts */
+  .wmf-vlines{position:absolute;left:0;pointer-events:none;z-index:1}
   .wmf-rate{display:inline-block;min-width:22px;color:#fff;font-weight:600;border-radius:var(--radius-pill);padding:2px 9px}
   .wmf-sky{font-size:15px}
   .wmf-windrow td{padding:3px 8px}
   .wmf-windcell{display:flex;flex-direction:column;align-items:center;gap:0}
   .wmf-arrow{width:17px;height:17px;display:block;transform-origin:center center}
   .wmf-ws{font-size:10px;color:var(--muted);line-height:1.1}
-  .wmf-crow{display:flex;border-top:1px solid var(--line)}
-  .wmf-clabel{flex:0 0 62px;box-sizing:border-box;padding:6px 10px;font-size:11px;font-weight:600;color:var(--muted);
+  .wmf-crow{display:flex}
+  .wmf-clabel{flex:0 0 56px;min-width:0;overflow:hidden;box-sizing:border-box;padding:6px 6px;font-size:11px;font-weight:600;color:var(--muted);
     display:flex;flex-direction:column;justify-content:center;line-height:1.4;white-space:nowrap}
   .wmf-clabel i{font-style:normal}
-  .wmf-leg{display:flex;align-items:center;gap:5px;font-weight:600;font-size:11px}
+  .wmf-leg{display:flex;align-items:center;gap:4px;font-weight:600;font-size:10px}
   .wmf-leg+.wmf-leg{margin-top:4px}
-  .wmf-leg i{width:13px;height:3px;border-radius:2px;flex:0 0 13px}
+  .wmf-leg i{width:11px;height:3px;border-radius:2px;flex:0 0 11px}
   .wmf-cbox{flex:1;min-width:0;padding:3px 0 2px 0}
   .wmf-cbox canvas{width:100%!important;height:94px!important}
 
@@ -278,16 +302,6 @@
   .tab:hover{color:var(--ink);background:rgba(14,17,22,.05)}
   .tab.active{color:#fff;background:var(--ink);box-shadow:var(--shadow-2)}
 
-  /* Second-level sub-tabs (inside Conditions / Live data / Underwater geography) */
-  .subtabs{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 16px}
-  .subtab{border:none;background:transparent;padding:8px 14px;color:var(--muted);font-weight:500;font-size:13px;cursor:pointer;border-radius:var(--radius-pill)}
-  .subtab:hover{color:var(--ink);background:rgba(14,17,22,.05)}
-  .subtab.active{color:#fff;background:var(--ink)}
-  @media(max-width:560px){
-    .subtabs{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-    .subtabs::-webkit-scrollbar{display:none}
-    .subtab{white-space:nowrap;flex:0 0 auto;padding:8px 12px}
-  }
   /* Dropdown tab (Live data) — the top pill opens a small cloud menu of nested views */
   .tab-dd{position:relative;display:inline-flex}
   .tab-caret{display:inline-block;font-size:10px;margin-left:6px;opacity:.65;transition:transform .18s var(--ease)}
@@ -360,13 +374,17 @@
     padding:clamp(64px, 13vh, 160px) 24px 24px;text-align:center}
   /* the ID display rule above outranks [hidden]{display:none}, so restore hiding */
   #tab-home[hidden]{display:none}
-  /* Cirrus hero title overlaid on the photo: Inter Tight display with one
-     Instrument Serif italic accent. */
-  .home-title{font-family:var(--font-display);font-weight:700;margin:0;max-width:16ch;
-    font-size:clamp(40px, 7vw, 84px);line-height:1.02;letter-spacing:-.025em;
+  /* Cirrus hero overlaid on the photo: the DiveByte brand in Inter Tight display,
+     with a tagline beneath carrying the one Instrument Serif italic accent. */
+  .home-hero{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.4vh,16px)}
+  .home-title{font-family:var(--font-display);font-weight:700;margin:0;max-width:18ch;
+    font-size:clamp(46px, 8vw, 92px);line-height:1.0;letter-spacing:-.03em;
     color:#fff;text-shadow:0 2px 28px rgba(14,17,22,.5);text-wrap:balance}
+  .home-tagline{font-family:var(--font-display);font-weight:600;margin:0;max-width:22ch;
+    font-size:clamp(17px, 2.5vw, 28px);line-height:1.2;letter-spacing:-.01em;
+    color:#fff;text-shadow:0 2px 20px rgba(14,17,22,.5);text-wrap:balance}
   .home-accent{font-family:var(--font-serif);font-style:italic;font-weight:400;
-    font-size:1.06em;letter-spacing:-.01em;color:#cfe1f6}
+    font-size:1.08em;letter-spacing:-.01em;color:#cfe1f6}
 
   /* ===== Dashboard panels — Cirrus cards ===== */
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden;
@@ -428,9 +446,8 @@
       opacity:1;visibility:visible;pointer-events:auto}
     .tab-menu-item{width:100%;padding:11px 14px;border-radius:10px}
 
-    /* roomier tap targets on the in-panel sub-tabs and wind-map controls */
-    .subtab{padding:10px 14px}
-    .wm-tab{padding:10px 16px}
+    /* roomier tap targets on the wind-map controls */
+    .wm-tab{padding:11px 16px}
     .wm-time-now{padding:9px 16px}
     .wmf-close{font-size:26px;padding:4px 10px}
     .sbclose{padding:9px 16px}

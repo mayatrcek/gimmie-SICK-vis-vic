@@ -532,7 +532,7 @@ function wmBuildDayLabels(){
   for(var d=0;d<nDays;d++){
     var dt=new Date(wmTimes[Math.min(d*24, wmTimes.length-1)]); var dd=new Date(dt); dd.setHours(0,0,0,0);
     var diff=Math.round((dd-today)/86400000);
-    var lbl = diff===0 ? 'Today' : (diff===1 ? 'Tmrw' : dt.toLocaleDateString(undefined,{weekday:'short'})+' '+dt.getDate());
+    var lbl = diff===0 ? 'Today' : dt.toLocaleDateString(undefined,{weekday:'short'})+' '+dt.getDate();
     html+='<span class="wm-day">'+lbl+'</span>';
   }
   el.innerHTML=html;
@@ -541,9 +541,9 @@ function wmSetStep(v){
   wmStep=+v; wmCurHour=Math.min(wmTimes.length-1, wmStep*wmStepHours);
   updateWmTimeLabel();
   clearTimeout(wmStepTimer);
-  wmStepTimer=setTimeout(function(){ if(wmReady) wmRebuildField(wmActive); }, 50);
+  wmStepTimer=setTimeout(function(){ if(wmReady){ wmRebuildField(wmActive); wmRefreshCallout(); } }, 50);
 }
-function wmJumpNow(){ wmInitSlider(); if(wmReady) wmRebuildField(wmActive); }
+function wmJumpNow(){ wmInitSlider(); if(wmReady){ wmRebuildField(wmActive); wmRefreshCallout(); } }
 function updateWmTimeLabel(){ var el=document.getElementById('wmTimeLabel'); if(el) el.textContent=wmStepLabel(wmCurHour); }
 function wmStepLabel(hourIdx){
   var t=wmTimes[hourIdx]; if(!t) return '—';
@@ -695,13 +695,52 @@ function wmNearestIdx(ll){
   c=Math.max(0,Math.min(g.nx-1,c)); r=Math.max(0,Math.min(g.ny-1,r));
   return r*g.nx+c;
 }
-var wmSelDot=null;
+var wmSelDot=null, wmCallout=null, wmSelLL=null;
 function wmDotIcon(){ return L.divIcon({className:'wm-seldot-wrap',html:'<span class="wm-seldot"></span>',iconSize:[24,24],iconAnchor:[12,12]}); }
 // drop/move the selection dot at the clicked point (the values live in the forecast panel)
+// 16-point compass from a meteorological "from" bearing
+function wmCompass(deg){ if(deg==null||isNaN(deg)) return ''; var n=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW']; return n[Math.round(deg/22.5)%16]; }
+// sample a field's averaged value at the current slider hour, for the grid cell nearest ll
+function wmSampleAt(key, ll){
+  if(!wmRaw[key] || !wmGridCache) return null;
+  var cells=averageModels(modelsAtStep(key, wmCurHour)), g=wmGridCache, W=WINDMAP;
+  var col=Math.round((ll.lng-W.lonMin)/W.step), row=Math.round((W.latMax-ll.lat)/W.step);
+  if(col<0||col>=g.nx||row<0||row>=g.ny) return null;
+  var cell=cells[row*g.nx+col];
+  if(cell && cell.mag!=null && !isNaN(cell.mag)) return {mag:cell.mag, dir:cell.dir};
+  // marine fields read null nearshore — fall back to the nearest valid cell
+  var best=null, bd=Infinity;
+  for(var r=0;r<g.ny;r++) for(var c=0;c<g.nx;c++){
+    var cc=cells[r*g.nx+c]; if(!cc||cc.mag==null||isNaN(cc.mag)) continue;
+    var dr=r-row, dc=c-col, d=dr*dr+dc*dc; if(d<bd){ bd=d; best=cc; }
+  }
+  return best?{mag:best.mag, dir:best.dir}:null;
+}
+var WM_CL_ICONS={
+  wind:'<path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/><path d="M17.7 7.7A2.5 2.5 0 1 1 19.5 12H2"/>',
+  swell:'<path d="M2 12c2.5-5 5.5-5 8 0s5.5 5 8 0"/>',
+  waves:'<path d="M2 9c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/><path d="M2 15c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/>'
+};
+function wmCalloutRow(key, label, val){
+  return '<div class="wm-cl-row"><span class="wm-cl-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+WM_CL_ICONS[key]+'</svg></span>'+
+         '<span class="wm-cl-lbl">'+label+'</span><span class="wm-cl-val">'+val+'</span></div>';
+}
+function wmCalloutHtml(ll){
+  var wind=wmSampleAt('wind',ll), swell=wmSampleAt('swell',ll), waves=wmSampleAt('waves',ll);
+  var w = wind ? Math.round(wind.mag)+' km/h '+wmCompass(wind.dir) : '—';
+  var s = swell ? swell.mag.toFixed(1)+' m '+wmCompass(swell.dir) : '—';
+  var v = waves ? waves.mag.toFixed(1)+' m '+wmCompass(waves.dir) : '—';
+  return '<div class="wm-cl">'+wmCalloutRow('wind','Wind',w)+wmCalloutRow('swell','Swell',s)+wmCalloutRow('waves','Waves',v)+'</div>';
+}
+function wmRefreshCallout(){ if(wmCallout && wmSelLL && windMap && windMap.hasLayer(wmCallout)) wmCallout.setContent(wmCalloutHtml(wmSelLL)); }
 function wmShowReadout(ll){
   if(!wmReady) return;
+  wmSelLL=ll;
   if(!wmSelDot) wmSelDot=L.marker(ll,{icon:wmDotIcon(),interactive:false,keyboard:false,zIndexOffset:1000}).addTo(windMap);
   else wmSelDot.setLatLng(ll);
+  if(!wmCallout) wmCallout=L.popup({closeButton:false,autoClose:false,closeOnClick:false,autoPan:false,className:'wm-callout',offset:[0,-12]});
+  wmCallout.setLatLng(ll).setContent(wmCalloutHtml(ll));
+  if(!windMap.hasLayer(wmCallout)) wmCallout.openOn(windMap);
 }
 // nearest known dive site -> borrow its onshore bearing so the off-spot dive rating is sensible
 function nearestSpot(lat,lon){
@@ -710,14 +749,17 @@ function nearestSpot(lat,lon){
   return best;
 }
 // WMO weather code -> glyph
-function weatherIcon(c){
+function weatherIcon(c, isDay){
   if(c==null||isNaN(c)) return '·';
-  if(c===0) return '☀️'; if(c<=2) return '🌤️'; if(c===3) return '☁️';
+  var night = isDay===0; // Open-Meteo is_day: 1 = day, 0 = night
+  if(c===0) return night?'🌙':'☀️';
+  if(c<=2)  return night?'🌙':'🌤️';   // clear / mainly clear / partly cloudy
+  if(c===3) return '☁️';
   if(c<=48) return '🌫️'; if(c<=57) return '🌧️'; if(c<=67) return '🌧️';
-  if(c<=77) return '🌨️'; if(c<=82) return '🌦️'; if(c<=86) return '🌨️'; return '⛈️';
+  if(c<=77) return '🌨️'; if(c<=82) return night?'🌧️':'🌦️'; if(c<=86) return '🌨️'; return '⛈️';
 }
 function fetchPointForecast(lat,lon){
-  var w=WEATHER+'?latitude='+lat+'&longitude='+lon+'&hourly=weather_code,wind_speed_10m,wind_direction_10m&timezone='+TZ+'&forecast_days=3';
+  var w=WEATHER+'?latitude='+lat+'&longitude='+lon+'&hourly=weather_code,wind_speed_10m,wind_direction_10m,is_day&timezone='+TZ+'&forecast_days=3';
   var m=MARINE+'?latitude='+lat+'&longitude='+lon+'&hourly=wave_height,wave_period,swell_wave_height,swell_wave_period,sea_level_height_msl&timezone='+TZ+'&forecast_days=3';
   return Promise.all([fetch(w).then(wmJson), fetch(m).then(wmJson)]);
 }
@@ -741,14 +783,20 @@ function openWmForecast(ll){
     document.getElementById('wmfBody').innerHTML='<div class="pad" style="padding:14px;color:var(--muted);font-size:13px">Couldn’t load the forecast for this point — try another cell.</div>';
   });
 }
-function closeWmForecast(){ var b=document.getElementById('wmforecast'); if(b) b.hidden=true; wmfReq++; destroyWmCharts(); wmRestoreLock(); }
-// pan so the clicked point rises to the centre of the area above the forecast panel,
-// keeping it (and its popup) clear of the table. Relaxes the region lock for the pan.
+function closeWmForecast(){ var b=document.getElementById('wmforecast'); if(b) b.hidden=true; wmfReq++; destroyWmCharts(); wmRestoreLock();
+  if(wmCallout && windMap) windMap.closePopup(wmCallout);
+  if(wmSelDot && windMap){ windMap.removeLayer(wmSelDot); wmSelDot=null; }
+  wmSelLL=null; }
+// pan so the clicked point sits a bit below the centre of the area above the
+// forecast panel, keeping it (and its popup) clear of the table. Relaxes the
+// region lock for the pan.
 function wmCenterSelected(ll){
   if(!windMap) return;
   var size=windMap.getSize();
   var panelFootprint=524;                 // forecast panel: ~460px (table + 2 charts) + 62px bottom offset
-  var desiredY=Math.max(50,(size.y-panelFootprint)/2);
+  var avail=size.y-panelFootprint;        // vertical room above the forecast panel
+  // ~90% down that room (close to the panel top), but kept clear of it
+  var desiredY=Math.max(50,Math.min(avail-24,avail*0.9));
   var z=windMap.getZoom();
   windMap.setMaxBounds(null);             // relax the lock so the centring pan isn't clamped back
   var ptPx=windMap.project(ll,z);
@@ -757,66 +805,101 @@ function wmCenterSelected(ll){
 }
 // re-apply the Victoria + N Tasmania lock and snap the view back to it
 function wmRestoreLock(){ if(windMap){ windMap.setMaxBounds(WM_BOUNDS); windMap.panInsideBounds(WM_BOUNDS,{animate:true}); } }
-function wmHourCell(d, showDay){
-  var h=d.getHours(), ap=h<12?'a':'p', h12=h%12; if(h12===0) h12=12;
-  var day=showDay?('<span class="wmf-d">'+d.toLocaleDateString(undefined,{weekday:'short'})+'</span>'):'';
-  return day+h12+ap;
+function wmRelDay(d){
+  var today=new Date(); today.setHours(0,0,0,0); var dd=new Date(d); dd.setHours(0,0,0,0);
+  var diff=Math.round((dd-today)/86400000);
+  return diff===0?'Today':d.toLocaleDateString(undefined,{weekday:'short'});
 }
-// forecast-panel charts live in their own registry so they don't collide with the Conditions tab's
+function wmHourCell(d){
+  var h=d.getHours(), ap=h<12?'am':'pm', h12=h%12; if(h12===0) h12=12;
+  return h12+':00 '+ap;
+}
+// forecast-panel charts live in their own registry so they don't collide with the dive-site cards'
 var wmFcCharts={};
 function destroyWmCharts(){ for(var k in wmFcCharts){ try{wmFcCharts[k].destroy();}catch(e){} } wmFcCharts={}; }
 function hourLabel(t){ var d=new Date(t), h=d.getHours(), ap=h<12?'a':'p', h12=h%12; if(h12===0) h12=12; return h12+ap; }
 // a colour-coded arrow (colour = speed on the wind scale, pointing the way the wind blows) + the speed
-function windArrowCell(speed, dir){
-  if(speed==null||isNaN(speed)) return '<td>—</td>';
+function windArrowCell(speed, dir, cls){
+  var ca=cls?(' class="'+cls+'"'):'';
+  if(speed==null||isNaN(speed)) return '<td'+ca+'>—</td>';
   var rgb=colorAt(FIELDS.wind.colorScale, speed/FIELDS.wind.maxVelocity), col='rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
   var rot=(dir!=null&&!isNaN(dir))?(dir+180)%360:0; // met dir is "from"; arrow points downwind
-  return '<td><div class="wmf-windcell">'+
+  return '<td'+ca+'><div class="wmf-windcell">'+
     '<svg class="wmf-arrow" viewBox="0 0 24 24" style="transform:rotate('+rot+'deg);color:'+col+'">'+
     '<path d="M12 21 V4 M6 10 L12 3 L18 10" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
     '<span class="wmf-ws">'+fmt(speed,0)+'</span></div></td>';
 }
-// local maxima/minima of the tide series -> labelled high/low points
-function tidePeaks(times, vals){
-  var peaks=[];
-  for(var i=1;i<vals.length-1;i++){
-    if(vals[i]==null||vals[i-1]==null||vals[i+1]==null) continue;
-    if(vals[i]>vals[i-1] && vals[i]>=vals[i+1]) peaks.push({idx:i,type:'H',time:hourLabel(times[i])});
-    else if(vals[i]<vals[i-1] && vals[i]<=vals[i+1]) peaks.push({idx:i,type:'L',time:hourLabel(times[i])});
+function tideClock(ms){ var d=new Date(ms), h=d.getHours(), mn=d.getMinutes(), ap=h<12?'a':'p', h12=h%12; if(h12===0)h12=12; return h12+':'+String(mn).padStart(2,'0')+ap; }
+// exact high/low tides: scan the FULL hourly tide series over the shown window and
+// parabolic-interpolate each peak for a sub-hour time. t = fractional column index
+// (cols are 3-hourly) so the marker can be placed precisely on the 3-hourly chart.
+function exactTidePeaks(times, mh, mIdx, cols){
+  var s=cols[0], e=cols[cols.length-1], peaks=[];
+  function val(k){ var mk=mIdx[times[k]]; return (mk!=null)?mh.sea_level_height_msl[mk]:null; }
+  for(var k=s+1;k<e;k++){
+    var a=val(k-1), b=val(k), c=val(k+1); if(a==null||b==null||c==null) continue;
+    var isH=b>a&&b>=c, isL=b<a&&b<=c; if(!isH&&!isL) continue;
+    var den=a-2*b+c, off=den!==0?0.5*(a-c)/den:0; if(off>0.5)off=0.5; if(off<-0.5)off=-0.5;
+    var A=(a+c)/2-b, B=(c-a)/2, pv=A*off*off+B*off+b;
+    peaks.push({t:(k+off-cols[0])/3, type:isH?'H':'L', val:pv, label:tideClock(new Date(times[k]).getTime()+off*3600000)});
   }
   return peaks;
 }
 var wmTidePeaks={ id:'wmTidePeaks', afterDatasetsDraw:function(chart){
-  var peaks=chart.$peaks; if(!peaks||!peaks.length) return; var meta=chart.getDatasetMeta(0), ctx=chart.ctx, area=chart.chartArea;
+  var peaks=chart.$peaks; if(!peaks||!peaks.length) return;
+  var pts=chart.getDatasetMeta(0).data, ctx=chart.ctx, area=chart.chartArea, ys=chart.scales.y; if(!pts.length) return;
   ctx.save(); ctx.textAlign='center'; ctx.font='bold 9px sans-serif';
-  peaks.forEach(function(p){ var pt=meta.data[p.idx]; if(!pt) return; var isH=p.type==='H', c=isH?'#1b6ca8':'#c47f2e';
-    ctx.fillStyle=c; ctx.beginPath(); ctx.arc(pt.x,pt.y,3,0,2*Math.PI); ctx.fill();
-    var ly=isH?Math.max(area.top+8,pt.y-6):Math.min(area.bottom-3,pt.y+13);
-    ctx.fillText((isH?'H ':'L ')+p.time, pt.x, ly);
+  peaks.forEach(function(p){ var j=Math.floor(p.t); if(j<0||j>=pts.length) return;
+    var p1=pts[Math.min(j+1,pts.length-1)], x=pts[j].x+(p1.x-pts[j].x)*(p.t-j);
+    var y=ys?ys.getPixelForValue(p.val):pts[j].y, isH=p.type==='H', c=isH?'#1b6ca8':'#c47f2e';
+    ctx.fillStyle=c; ctx.beginPath(); ctx.arc(x,y,3,0,2*Math.PI); ctx.fill();
+    // label above the dot for a high / below for a low; flip to the other side if
+    // there isn't ~9px of room, so it never sits on top of the point
+    var above=y-9, below=y+9, ly, base;
+    if(isH){ if(above-9>=area.top){ ly=above; base='bottom'; } else { ly=below; base='top'; } }
+    else   { if(below+9<=area.bottom){ ly=below; base='top'; } else { ly=above; base='bottom'; } }
+    ctx.textBaseline=base; ctx.fillText((isH?'H ':'L ')+p.label, x, ly);
   });
   ctx.restore();
 }};
-// day separators + tiny corner max/min labels (no axis, no now line — the Time row is the shared axis)
-var wmFcAxis={ id:'wmFcAxis', afterDraw:function(chart){
-  var times=chart.$times; if(!times||!times.length) return; var ctx=chart.ctx, area=chart.chartArea, pts=chart.getDatasetMeta(0).data; if(!pts||!pts.length) return;
-  ctx.save();
-  for(var i=1;i<times.length;i++){ if(new Date(times[i-1]).getDate()!==new Date(times[i]).getDate() && pts[i]){ ctx.strokeStyle='#e2e8ee'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pts[i].x,area.top); ctx.lineTo(pts[i].x,area.bottom); ctx.stroke(); } }
-  var mx=-Infinity, mn=Infinity;
-  chart.data.datasets.forEach(function(ds){ ds.data.forEach(function(v){ if(v!=null&&!isNaN(v)){ if(v>mx)mx=v; if(v<mn)mn=v; } }); });
-  if(mx>-Infinity){ ctx.fillStyle='#9aa6b4'; ctx.font='9px sans-serif'; ctx.textAlign='left';
-    ctx.textBaseline='top'; ctx.fillText(fmt(mx,1), area.left+2, area.top+1);
-    ctx.textBaseline='bottom'; ctx.fillText(fmt(mn,1), area.left+2, area.bottom-1); }
-  ctx.restore();
-}};
+// tiny corner max/min labels. The vertical day/hour lines are drawn as one
+// continuous SVG overlay (wmDrawGridLines) so they're seamless across the table
+// rows and the charts, rather than per-cell borders + per-canvas strokes.
+var wmFcAxis={ id:'wmFcAxis',
+  afterDraw:function(chart){
+    var ctx=chart.ctx, area=chart.chartArea;
+    var mx=-Infinity, mn=Infinity;
+    chart.data.datasets.forEach(function(ds){ ds.data.forEach(function(v){ if(v!=null&&!isNaN(v)){ if(v>mx)mx=v; if(v<mn)mn=v; } }); });
+    if(mx>-Infinity){ ctx.save(); ctx.fillStyle='#9aa6b4'; ctx.font='9px sans-serif'; ctx.textAlign='left';
+      ctx.textBaseline='top'; ctx.fillText(fmt(mx,1), area.left+2, area.top+1);
+      ctx.textBaseline='bottom'; ctx.fillText(fmt(mn,1), area.left+2, area.bottom-1); ctx.restore(); }
+  }
+};
+// faint horizontal gridline + label at each whole metre on the swell/waves chart,
+// drawn without a real y-axis so the plot still fills the width (column alignment kept)
+var wmMetreAxis={ id:'wmMetreAxis',
+  beforeDatasetsDraw:function(chart){
+    var ctx=chart.ctx, area=chart.chartArea, ys=chart.scales.y; if(!ys) return;
+    ctx.save(); ctx.strokeStyle='#e6ebf1'; ctx.lineWidth=1;
+    for(var m=0;m<=Math.ceil(ys.max);m++){ var y=ys.getPixelForValue(m); if(y<area.top-0.5||y>area.bottom+0.5) continue; var yy=Math.round(y)+0.5; ctx.beginPath(); ctx.moveTo(area.left,yy); ctx.lineTo(area.right,yy); ctx.stroke(); }
+    ctx.restore();
+  },
+  afterDraw:function(chart){
+    var ctx=chart.ctx, area=chart.chartArea, ys=chart.scales.y; if(!ys) return;
+    ctx.save(); ctx.fillStyle='#9aa6b4'; ctx.font='9px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='bottom';
+    for(var m=0;m<=Math.ceil(ys.max);m++){ var y=ys.getPixelForValue(m); if(y<area.top+4||y>area.bottom+0.5) continue; ctx.fillText(m+'m', area.left+2, y-1.5); }
+    ctx.restore();
+  }
+};
 // chart options: y-axis hidden so the plot fills the canvas and lines up exactly with the table columns
-function wmFcOpts(p1, p2){
+function wmFcOpts(p1, p2, yMin){
   return {responsive:true,maintainAspectRatio:false,layout:{padding:{top:3,right:1,bottom:3,left:0}},interaction:{mode:'index',intersect:false},
     plugins:{legend:{display:false},tooltip:{callbacks:{
       title:function(items){ var t=items[0].chart.$times[items[0].dataIndex], d=new Date(t); return d.toLocaleDateString(undefined,{weekday:'short'})+' '+d.toLocaleTimeString(undefined,{hour:'numeric'}); },
       afterLabel:(p1?function(ctx){ var p=(ctx.datasetIndex===0?p1:p2)[ctx.dataIndex]; return (p==null)?'':('period '+fmt(p,0)+' s'); }:undefined)
     }}},
     scales:{ x:{type:'category',offset:true,ticks:{display:false},grid:{display:false},border:{display:false}},
-      y:{display:false,grace:'8%'} }};
+      y:{display:false,grace:'8%',min:(yMin!=null?yMin:undefined)} }};
 }
 function buildWmCharts(times, wh, mh, mIdx, cols){
   if(typeof Chart==='undefined') return;
@@ -830,14 +913,14 @@ function buildWmCharts(times, wh, mh, mIdx, cols){
   if(c1){ var ch=new Chart(c1.getContext('2d'),{type:'line',data:{labels:L,datasets:[
       {label:'Swell',data:swH,borderColor:'#3b6fb0',backgroundColor:'#3b6fb022',borderWidth:2,pointRadius:0,tension:0.35,fill:true},
       {label:'Waves',data:wvH,borderColor:'#2e7d6b',borderWidth:2,pointRadius:0,tension:0.35}
-    ]},options:wmFcOpts(swP,wvP),plugins:[wmFcAxis]});
+    ]},options:wmFcOpts(swP,wvP,0),plugins:[wmMetreAxis]});
     ch.$times=L; ch.update('none'); wmFcCharts['sw']=ch;
   }
   var c2=document.getElementById('wmf-tide');
   if(c2){ var ch2=new Chart(c2.getContext('2d'),{type:'line',data:{labels:L,datasets:[
       {label:'Tide',data:tide,borderColor:'#6a9bcc',backgroundColor:'#6a9bcc22',borderWidth:2,pointRadius:0,tension:0.4,fill:true}
     ]},options:wmFcOpts(),plugins:[wmFcAxis,wmTidePeaks]});
-    ch2.$times=L; ch2.$peaks=tidePeaks(L,tide); ch2.update('none'); wmFcCharts['tide']=ch2;
+    ch2.$times=L; ch2.$peaks=exactTidePeaks(times, mh, mIdx, cols); ch2.update('none'); wmFcCharts['tide']=ch2;
   }
 }
 function renderWmForecast(ll, wRes, mRes){
@@ -850,28 +933,65 @@ function renderWmForecast(ll, wRes, mRes){
   var cols=[]; for(i=start;i<times.length && cols.length<16;i+=3){ cols.push(i); }
   var spot=nearestSpot(ll.lat, ll.lng), onshore=spot?spot.onshore:200;
   function row(label, cls, fn){ return '<tr'+(cls?' class="'+cls+'"':'')+'><th>'+label+'</th>'+cols.map(fn).join('')+'</tr>'; }
-  var prevDay=null;
+  // group consecutive columns by day for the alternating day-title pills
+  var dayGroups=[];
+  cols.forEach(function(k){ var d=new Date(times[k]), key=d.toDateString();
+    if(!dayGroups.length || dayGroups[dayGroups.length-1].key!==key) dayGroups.push({key:key, label:wmRelDay(d), span:1});
+    else dayGroups[dayGroups.length-1].span++;
+  });
+  // mark each column that starts a new day (solid divider in the body)
+  var sepCols={}, pdn=null;
+  cols.forEach(function(k, idx){ var dn=new Date(times[k]).getDate(); if(idx>0 && dn!==pdn) sepCols[k]=true; pdn=dn; });
+  function sepCls(k, extra){ var c=sepCols[k]?'wmf-sep':''; if(extra) c+=(c?' ':'')+extra; return c; }
+  var dayRow='<tr class="wmf-dayrow"><th></th>'+dayGroups.map(function(g,i){
+    return '<td colspan="'+g.span+'" class="wmf-daybox '+(i%2?'wmf-day-b':'wmf-day-a')+'"><span>'+g.label+'</span></td>';
+  }).join('')+'</tr>';
   var timeRow='<tr class="wmf-time"><th>Time</th>'+cols.map(function(k){
-    var d=new Date(times[k]), dk=d.getDate(), show=(dk!==prevDay); prevDay=dk; return '<td>'+wmHourCell(d, show)+'</td>';
+    var c=sepCls(k); return '<td'+(c?' class="'+c+'"':'')+'>'+wmHourCell(new Date(times[k]))+'</td>';
   }).join('')+'</tr>';
   var H='<div class="wmf-grid"><table class="wmf-table"><tbody>';
+  H+=dayRow;
   H+=timeRow;
   H+=row('Dive','',function(k){
     var t=times[k], mk=mIdx[t];
     var swH=(mk!=null)?mh.swell_wave_height[mk]:null, swP=(mk!=null)?mh.swell_wave_period[mk]:null;
     var wind=wh.wind_speed_10m?wh.wind_speed_10m[k]:null, wdir=wh.wind_direction_10m?wh.wind_direction_10m[k]:null;
     var rt=classify(swH, swP, wind, wdir, onshore, null, false), sc=DIVE_SCORE[rt.label]||0;
-    return '<td><span class="wmf-rate" style="background:'+rt.col+'" title="'+rt.label+'">'+sc+'</span></td>';
+    var c=sepCls(k); return '<td'+(c?' class="'+c+'"':'')+'><span class="wmf-rate" style="background:'+rt.col+'" title="'+rt.label+'">'+sc+'</span></td>';
   });
-  H+=row('Sky','',function(k){ return '<td class="wmf-sky">'+weatherIcon(wh.weather_code?wh.weather_code[k]:null)+'</td>'; });
-  H+=row('Wind','wmf-windrow',function(k){ return windArrowCell(wh.wind_speed_10m?wh.wind_speed_10m[k]:null, wh.wind_direction_10m?wh.wind_direction_10m[k]:null); });
+  H+=row('Sky','',function(k){ return '<td class="'+sepCls(k,'wmf-sky')+'">'+weatherIcon(wh.weather_code?wh.weather_code[k]:null, wh.is_day?wh.is_day[k]:1)+'</td>'; });
+  H+=row('Wind','wmf-windrow',function(k){ return windArrowCell(wh.wind_speed_10m?wh.wind_speed_10m[k]:null, wh.wind_direction_10m?wh.wind_direction_10m[k]:null, sepCls(k)); });
   H+='</tbody></table>';
   H+='<div class="wmf-crow"><div class="wmf-clabel"><span class="wmf-leg" style="color:#3b6fb0"><i style="background:#3b6fb0"></i>Swell</span><span class="wmf-leg" style="color:#2e7d6b"><i style="background:#2e7d6b"></i>Waves</span></div><div class="wmf-cbox"><canvas id="wmf-sw"></canvas></div></div>';
   H+='<div class="wmf-crow"><div class="wmf-clabel">Tide</div><div class="wmf-cbox"><canvas id="wmf-tide"></canvas></div></div>';
   H+='</div>';
   document.getElementById('wmfBody').innerHTML=H;
   buildWmCharts(times, wh, mh, mIdx, cols);
+  wmDrawGridLines();
 }
+// One continuous SVG overlay of vertical lines spanning the table rows + charts,
+// so the hour/day gridlines link up seamlessly (no per-row dash breaks or seams).
+function wmDrawGridLines(){
+  var grid=document.querySelector('#wmfBody .wmf-grid'); if(!grid) return;
+  var ex=grid.querySelector('.wmf-vlines'); if(ex) ex.remove();
+  var timeRow=grid.querySelector('.wmf-time'); if(!timeRow) return;
+  var cells=[].slice.call(timeRow.querySelectorAll('td')); if(!cells.length) return;
+  var gr=grid.getBoundingClientRect();
+  var top=Math.round(timeRow.getBoundingClientRect().top-gr.top); // start at the time row, below the day band
+  var w=grid.scrollWidth, height=grid.scrollHeight-top;
+  var NS='http://www.w3.org/2000/svg', svg=document.createElementNS(NS,'svg');
+  svg.setAttribute('class','wmf-vlines'); svg.setAttribute('width',w); svg.setAttribute('height',height); svg.style.top=top+'px';
+  cells.forEach(function(td,idx){ if(idx===0) return; // skip the label/first-column edge
+    var x=Math.round(td.getBoundingClientRect().left-gr.left)+0.5, day=td.classList.contains('wmf-sep');
+    var ln=document.createElementNS(NS,'line');
+    ln.setAttribute('x1',x); ln.setAttribute('x2',x); ln.setAttribute('y1',0); ln.setAttribute('y2',height);
+    ln.setAttribute('stroke', day?'#95a3b4':'#b3bece'); ln.setAttribute('stroke-width', day?1.5:1);
+    if(!day) ln.setAttribute('stroke-dasharray','1.5 3');
+    svg.appendChild(ln);
+  });
+  grid.appendChild(svg);
+}
+window.addEventListener('resize', function(){ var f=document.getElementById('wmforecast'); if(f && !f.hidden) requestAnimationFrame(wmDrawGridLines); });
 
 /* ---- 2-day chlorophyll composite (stacked image overlays) ---- */
 var compMap, compLayers=[];
@@ -1319,9 +1439,9 @@ function toggleFullLegend(){
   if(d.hidden){ d.hidden=false; d.innerHTML=legendImageFallback(); if(b) b.textContent='Hide full Seamap classes'; }
   else { d.hidden=true; d.innerHTML=''; if(b) b.textContent='Show full Seamap classes'; }
 }
-// top-level tabs; the parents (conditions/live/geo) remember their last-open sub-tab
-var TOP_TABS=['home','conditions','fish','live','geo','about','feedback'];
-var activeSub={conditions:'divesites', live:'chl', geo:'habitat'};
+// top-level tabs; the parents (forecast/live/geo) remember their last-open sub-tab
+var TOP_TABS=['home','forecast','fish','live','geo','about','feedback'];
+var activeSub={forecast:'divesites', live:'chl', geo:'habitat'};
 function showTab(t){
   TOP_TABS.forEach(function(name){
     var p=document.getElementById('tab-'+name), btn=document.getElementById('btn-'+name);
@@ -1329,6 +1449,7 @@ function showTab(t){
     if(btn) btn.classList.toggle('active', name===t);
   });
   document.body.classList.toggle('home-tab', t==='home'); // photo backdrop only on Home
+  document.body.classList.remove('wm-fs'); // showSub re-adds it if the active sub is the wind map
   if(activeSub[t]) showSub(t, activeSub[t]);
   closeNav(); // collapse the mobile hamburger menu after any navigation
 }
@@ -1349,13 +1470,12 @@ function showSub(parent, s){
   var panel=document.getElementById('tab-'+parent); if(!panel) return;
   var subs=panel.getElementsByClassName('subpanel');
   for(var i=0;i<subs.length;i++) subs[i].hidden=(subs[i].id!=='sub-'+s);
-  var btns=panel.getElementsByClassName('subtab');
-  for(var j=0;j<btns.length;j++) btns[j].classList.toggle('active', btns[j].getAttribute('data-sub')===s);
   markDDMenu(parent, s);
+  document.body.classList.toggle('wm-fs', s==='windmap'); // full-screen, no-scroll wind map
   subSetup(s);
 }
-// Dropdown tabs (Live data, Underwater geography): the top pill opens a menu of nested views
-var DD_TABS=['live','geo'];
+// Dropdown tabs (Forecast, Live data, Underwater geography): the top pill opens a menu of nested views
+var DD_TABS=['forecast','live','geo'];
 function toggleDDMenu(ev, tab){
   ev.stopPropagation();
   var dd=document.getElementById('dd-'+tab); if(!dd) return;
