@@ -853,8 +853,12 @@ var wmTidePeaks={ id:'wmTidePeaks', afterDatasetsDraw:function(chart){
     var p1=pts[Math.min(j+1,pts.length-1)], x=pts[j].x+(p1.x-pts[j].x)*(p.t-j);
     var y=ys?ys.getPixelForValue(p.val):pts[j].y, isH=p.type==='H', c=isH?'#1b6ca8':'#c47f2e';
     ctx.fillStyle=c; ctx.beginPath(); ctx.arc(x,y,3,0,2*Math.PI); ctx.fill();
-    var ly=isH?Math.max(area.top+8,y-6):Math.min(area.bottom-3,y+13);
-    ctx.fillText((isH?'H ':'L ')+p.label, x, ly);
+    // label above the dot for a high / below for a low; flip to the other side if
+    // there isn't ~9px of room, so it never sits on top of the point
+    var above=y-9, below=y+9, ly, base;
+    if(isH){ if(above-9>=area.top){ ly=above; base='bottom'; } else { ly=below; base='top'; } }
+    else   { if(below+9<=area.bottom){ ly=below; base='top'; } else { ly=above; base='bottom'; } }
+    ctx.textBaseline=base; ctx.fillText((isH?'H ':'L ')+p.label, x, ly);
   });
   ctx.restore();
 }};
