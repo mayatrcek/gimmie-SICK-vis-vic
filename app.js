@@ -532,7 +532,7 @@ function wmBuildDayLabels(){
   for(var d=0;d<nDays;d++){
     var dt=new Date(wmTimes[Math.min(d*24, wmTimes.length-1)]); var dd=new Date(dt); dd.setHours(0,0,0,0);
     var diff=Math.round((dd-today)/86400000);
-    var lbl = diff===0 ? 'Today' : (diff===1 ? 'Tmrw' : dt.toLocaleDateString(undefined,{weekday:'short'})+' '+dt.getDate());
+    var lbl = diff===0 ? 'Today' : dt.toLocaleDateString(undefined,{weekday:'short'})+' '+dt.getDate();
     html+='<span class="wm-day">'+lbl+'</span>';
   }
   el.innerHTML=html;
