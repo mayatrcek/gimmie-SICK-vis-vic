@@ -84,8 +84,10 @@
   #windmap .leaflet-container{cursor:crosshair}
 
   /* Wind-map field toggle — white pill, ink-filled active tab */
-  .wm-toggle{position:absolute;top:10px;right:10px;z-index:1000;display:inline-flex;gap:4px;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:var(--radius-pill);padding:4px;box-shadow:var(--shadow-1)}
-  .wm-tab{border:none;background:none;padding:7px 15px;border-radius:var(--radius-pill);font-size:13px;font-weight:500;color:var(--muted);cursor:pointer}
+  /* field switcher: a vertical stack of icon buttons, top-right of the map */
+  .wm-toggle{position:absolute;top:10px;right:10px;z-index:1000;display:inline-flex;flex-direction:column;gap:4px;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:16px;padding:4px;box-shadow:var(--shadow-1)}
+  .wm-tab{display:flex;align-items:center;justify-content:center;width:40px;height:40px;padding:0;border:none;background:none;border-radius:12px;color:var(--muted);cursor:pointer;transition:background-color .18s var(--ease),color .18s var(--ease)}
+  .wm-tab svg{width:21px;height:21px;display:block}
   .wm-tab:hover{color:var(--ink);background:rgba(14,17,22,.05)}
   .wm-tab.active{background:var(--ink);color:#fff}
   .wm-legend{display:flex;flex-direction:column;gap:3px;max-width:340px}
@@ -425,7 +427,7 @@
     .tab-menu-item{width:100%;padding:11px 14px;border-radius:10px}
 
     /* roomier tap targets on the wind-map controls */
-    .wm-tab{padding:10px 16px}
+    .wm-tab{width:44px;height:44px}
     .wm-time-now{padding:9px 16px}
     .wmf-close{font-size:26px;padding:4px 10px}
     .sbclose{padding:9px 16px}
