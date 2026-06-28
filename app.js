@@ -804,7 +804,13 @@ function wmCenterSelected(ll){
 function wmRestoreLock(){ if(windMap){ windMap.setMaxBounds(WM_BOUNDS); windMap.panInsideBounds(WM_BOUNDS,{animate:true}); } }
 function wmHourCell(d, showDay){
   var h=d.getHours(), ap=h<12?'a':'p', h12=h%12; if(h12===0) h12=12;
-  var day=showDay?('<span class="wmf-d">'+d.toLocaleDateString(undefined,{weekday:'short'})+'</span>'):'';
+  var day='';
+  if(showDay){
+    var today=new Date(); today.setHours(0,0,0,0); var dd=new Date(d); dd.setHours(0,0,0,0);
+    var diff=Math.round((dd-today)/86400000);
+    var lbl = diff===0?'Today':(diff===1?'Tmrw':d.toLocaleDateString(undefined,{weekday:'short'}));
+    day='<span class="wmf-d">'+lbl+'</span>';
+  }
   return day+h12+ap;
 }
 // forecast-panel charts live in their own registry so they don't collide with the dive-site cards'
@@ -812,11 +818,12 @@ var wmFcCharts={};
 function destroyWmCharts(){ for(var k in wmFcCharts){ try{wmFcCharts[k].destroy();}catch(e){} } wmFcCharts={}; }
 function hourLabel(t){ var d=new Date(t), h=d.getHours(), ap=h<12?'a':'p', h12=h%12; if(h12===0) h12=12; return h12+ap; }
 // a colour-coded arrow (colour = speed on the wind scale, pointing the way the wind blows) + the speed
-function windArrowCell(speed, dir){
-  if(speed==null||isNaN(speed)) return '<td>—</td>';
+function windArrowCell(speed, dir, cls){
+  var ca=cls?(' class="'+cls+'"'):'';
+  if(speed==null||isNaN(speed)) return '<td'+ca+'>—</td>';
   var rgb=colorAt(FIELDS.wind.colorScale, speed/FIELDS.wind.maxVelocity), col='rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
   var rot=(dir!=null&&!isNaN(dir))?(dir+180)%360:0; // met dir is "from"; arrow points downwind
-  return '<td><div class="wmf-windcell">'+
+  return '<td'+ca+'><div class="wmf-windcell">'+
     '<svg class="wmf-arrow" viewBox="0 0 24 24" style="transform:rotate('+rot+'deg);color:'+col+'">'+
     '<path d="M12 21 V4 M6 10 L12 3 L18 10" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
     '<span class="wmf-ws">'+fmt(speed,0)+'</span></div></td>';
@@ -895,9 +902,14 @@ function renderWmForecast(ll, wRes, mRes){
   var cols=[]; for(i=start;i<times.length && cols.length<16;i+=3){ cols.push(i); }
   var spot=nearestSpot(ll.lat, ll.lng), onshore=spot?spot.onshore:200;
   function row(label, cls, fn){ return '<tr'+(cls?' class="'+cls+'"':'')+'><th>'+label+'</th>'+cols.map(fn).join('')+'</tr>'; }
+  // mark each column that starts a new day so every row can draw a day separator
+  var sepCols={}, pdn=null;
+  cols.forEach(function(k, idx){ var dn=new Date(times[k]).getDate(); if(idx>0 && dn!==pdn) sepCols[k]=true; pdn=dn; });
+  function sepCls(k, extra){ var c=sepCols[k]?'wmf-sep':''; if(extra) c+=(c?' ':'')+extra; return c; }
   var prevDay=null;
   var timeRow='<tr class="wmf-time"><th>Time</th>'+cols.map(function(k){
-    var d=new Date(times[k]), dk=d.getDate(), show=(dk!==prevDay); prevDay=dk; return '<td>'+wmHourCell(d, show)+'</td>';
+    var d=new Date(times[k]), dk=d.getDate(), show=(dk!==prevDay); prevDay=dk;
+    var c=sepCls(k); return '<td'+(c?' class="'+c+'"':'')+'>'+wmHourCell(d, show)+'</td>';
   }).join('')+'</tr>';
   var H='<div class="wmf-grid"><table class="wmf-table"><tbody>';
   H+=timeRow;
@@ -906,10 +918,10 @@ function renderWmForecast(ll, wRes, mRes){
     var swH=(mk!=null)?mh.swell_wave_height[mk]:null, swP=(mk!=null)?mh.swell_wave_period[mk]:null;
     var wind=wh.wind_speed_10m?wh.wind_speed_10m[k]:null, wdir=wh.wind_direction_10m?wh.wind_direction_10m[k]:null;
     var rt=classify(swH, swP, wind, wdir, onshore, null, false), sc=DIVE_SCORE[rt.label]||0;
-    return '<td><span class="wmf-rate" style="background:'+rt.col+'" title="'+rt.label+'">'+sc+'</span></td>';
+    var c=sepCls(k); return '<td'+(c?' class="'+c+'"':'')+'><span class="wmf-rate" style="background:'+rt.col+'" title="'+rt.label+'">'+sc+'</span></td>';
   });
-  H+=row('Sky','',function(k){ return '<td class="wmf-sky">'+weatherIcon(wh.weather_code?wh.weather_code[k]:null)+'</td>'; });
-  H+=row('Wind','wmf-windrow',function(k){ return windArrowCell(wh.wind_speed_10m?wh.wind_speed_10m[k]:null, wh.wind_direction_10m?wh.wind_direction_10m[k]:null); });
+  H+=row('Sky','',function(k){ return '<td class="'+sepCls(k,'wmf-sky')+'">'+weatherIcon(wh.weather_code?wh.weather_code[k]:null)+'</td>'; });
+  H+=row('Wind','wmf-windrow',function(k){ return windArrowCell(wh.wind_speed_10m?wh.wind_speed_10m[k]:null, wh.wind_direction_10m?wh.wind_direction_10m[k]:null, sepCls(k)); });
   H+='</tbody></table>';
   H+='<div class="wmf-crow"><div class="wmf-clabel"><span class="wmf-leg" style="color:#3b6fb0"><i style="background:#3b6fb0"></i>Swell</span><span class="wmf-leg" style="color:#2e7d6b"><i style="background:#2e7d6b"></i>Waves</span></div><div class="wmf-cbox"><canvas id="wmf-sw"></canvas></div></div>';
   H+='<div class="wmf-crow"><div class="wmf-clabel">Tide</div><div class="wmf-cbox"><canvas id="wmf-tide"></canvas></div></div>';
