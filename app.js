@@ -783,6 +783,8 @@ function openWmForecast(ll){
     document.getElementById('wmfBody').innerHTML='<div class="pad" style="padding:14px;color:var(--muted);font-size:13px">Couldn’t load the forecast for this point — try another cell.</div>';
   });
 }
+// scroll the point-forecast table/charts horizontally (mobile arrow buttons)
+function wmfScroll(dir){ var w=document.querySelector('#wmforecast .wmf-wrap'); if(w) w.scrollBy({left:dir*Math.round(w.clientWidth*0.7), behavior:'smooth'}); }
 function closeWmForecast(){ var b=document.getElementById('wmforecast'); if(b) b.hidden=true; wmfReq++; destroyWmCharts(); wmRestoreLock();
   if(wmCallout && windMap) windMap.closePopup(wmCallout);
   if(wmSelDot && windMap){ windMap.removeLayer(wmSelDot); wmSelDot=null; }
@@ -811,8 +813,7 @@ function wmRelDay(d){
   return diff===0?'Today':d.toLocaleDateString(undefined,{weekday:'short'});
 }
 function wmHourCell(d){
-  var h=d.getHours(), ap=h<12?'am':'pm', h12=h%12; if(h12===0) h12=12;
-  return h12+':00 '+ap;
+  return d.getHours()+':00'; // 24h, compact and unambiguous across the 48h table
 }
 // forecast-panel charts live in their own registry so they don't collide with the dive-site cards'
 var wmFcCharts={};

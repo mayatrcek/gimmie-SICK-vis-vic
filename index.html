@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="assets/brand/alpha-dive-flag-32.png?v=26">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet-velocity@1.7.0/dist/leaflet-velocity.css">
-<link rel="stylesheet" href="styles.css?v=30">
+<link rel="stylesheet" href="styles.css?v=31">
 </head>
 <body>
 <div class="wrap">
@@ -102,6 +102,8 @@
           <button class="wmf-close" onclick="closeWmForecast()" title="Close point forecast" aria-label="Close point forecast">&times;</button>
         </div>
         <div class="wmf-wrap"><div id="wmfBody"></div></div>
+        <button class="wmf-scroll wmf-scroll-l" type="button" onclick="wmfScroll(-1)" aria-label="Scroll table left">&#8249;</button>
+        <button class="wmf-scroll wmf-scroll-r" type="button" onclick="wmfScroll(1)" aria-label="Scroll table right">&#8250;</button>
       </div>
     </div>
     </div><!-- /sub-windmap -->
@@ -207,6 +209,6 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-velocity@1.7.0/dist/leaflet-velocity.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="app.js?v=29"></script>
+<script src="app.js?v=31"></script>
 </body>
 </html>
