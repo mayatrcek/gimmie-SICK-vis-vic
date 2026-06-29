@@ -410,7 +410,7 @@ var WM_HOME=[-38.10,144.83], WM_HOME_ZOOM=8; // default view: centred on Port Ph
 var DIVE_SCORE={Amazing:5, Good:4, Marginal:2, Poor:1};
 var FIELDS={
   wind:{label:'Wind', unit:'km/h', maxVelocity:65, velocityScale:0.0035, spreadHi:8, src:'GFS · ECMWF',
-        colorScale:['#4a7fb5','#5cc6c9','#7ed957','#f4e04d','#f0a93b','#e8553a','#b23aa8'],
+        colorScale:['#1b3a6b','#4a7fb5','#5cc6c9','#7ed957','#f4e04d','#f0a93b','#e8553a','#b23aa8'],
         legend:['0','15','30','45','60+'],
         api:'weather', mag:'wind_speed_10m', dir:'wind_direction_10m'},
   swell:{label:'Swell', unit:'m', maxVelocity:4, velocityScale:0.03, spreadHi:0.6, src:'gwam · Météo-France',
@@ -523,7 +523,52 @@ function wmInitSlider(){
   wmStep=best; wmCurHour=best*wmStepHours;
   var sl=document.getElementById('wmTime'); if(sl){ sl.min=0; sl.max=wmStepCount-1; sl.value=wmStep; }
   wmBuildDayLabels();
+  wmBuildScrub();
   updateWmTimeLabel();
+  wmScrubTo(wmStep);
+}
+// Windy-style draggable timeline (mobile): a scroll-snap strip of hour ticks you
+// slide under a fixed centre marker; the centred tick is the selected step. Native
+// scroll does the dragging/inertia/snap — we just read which tick is centred.
+function wmBuildScrub(){
+  var el=document.getElementById('wmScrub'); if(!el) return;
+  var h='', prev=null;
+  for(var s=0;s<wmStepCount;s++){
+    var d=new Date(wmTimes[Math.min(s*wmStepHours, wmTimes.length-1)]);
+    var dk=d.toDateString(), day=(dk!==prev)?wmRelDay(d):''; prev=dk;
+    h+='<div class="wm-tick"><span class="wm-tick-day">'+day+'</span><span class="wm-tick-hr">'+d.getHours()+'</span></div>';
+  }
+  el.innerHTML=h;
+}
+function wmScrubTo(step){
+  var el=document.getElementById('wmScrub'); if(!el || !el.children[step]) return;
+  var er=el.getBoundingClientRect(), tr=el.children[step].getBoundingClientRect();
+  el.scrollLeft += (tr.left+tr.width/2) - (er.left+el.clientWidth/2); // centre the tick exactly under the marker
+}
+var wmScrubT=null;
+// fractional tick index currently under the centre marker (0 = first tick centred)
+function wmScrubCenterFrac(el){
+  var c0=el.children[0]; if(!c0) return 0; var r=c0.getBoundingClientRect();
+  return ((el.getBoundingClientRect().left+el.clientWidth/2)-(r.left+r.width/2))/r.width;
+}
+// minute-precise time readout for a fractional step (the strip scrubs by the minute)
+function wmScrubLabel(frac){
+  var d=new Date(new Date(wmTimes[0]).getTime()+frac*wmStepHours*3600000);
+  var today=new Date(); today.setHours(0,0,0,0); var dd=new Date(d); dd.setHours(0,0,0,0);
+  var diff=Math.round((dd-today)/86400000);
+  var day=diff===0?'Today':(diff===1?'Tomorrow':d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'}));
+  var h=d.getHours(), m=d.getMinutes(), ap=h<12?'am':'pm', h12=h%12; if(h12===0)h12=12;
+  return day+' · '+h12+':'+String(m).padStart(2,'0')+' '+ap;
+}
+function wmScrubOnScroll(){
+  clearTimeout(wmScrubT);
+  wmScrubT=setTimeout(function(){
+    var el=document.getElementById('wmScrub'); if(!el||!el.children.length||!wmTimes.length) return;
+    var frac=Math.max(0,Math.min(wmStepCount-1, wmScrubCenterFrac(el)));
+    var step=Math.round(frac);
+    if(step!==wmStep) wmSetStep(step); // map field uses the nearest hour (data is hourly)
+    var lbl=document.getElementById('wmTimeLabel'); if(lbl) lbl.textContent=wmScrubLabel(frac); // minute-precise (after wmSetStep's hourly label)
+  }, 30);
 }
 // a label per forecast day under the slider, each cell spanning that day's 24h
 function wmBuildDayLabels(){
@@ -608,7 +653,7 @@ function toVelocityData(cells, nx, ny){
 function makeVelocityLayer(key, data){
   var f=FIELDS[key];
   return L.velocityLayer({
-    displayValues:false, data:data, maxVelocity:f.maxVelocity, velocityScale:f.velocityScale,
+    displayValues:false, data:data, maxVelocity:f.maxVelocity, velocityScale:f.velocityScale*0.75, // 0.75 = a bit slower drift
     colorScale:f.colorScale, particleAge:90, lineWidth:1.4, particleMultiplier:1/600, frameRate:18
   });
 }
@@ -767,6 +812,7 @@ var wmfReq=0;
 function openWmForecast(ll){
   var box=document.getElementById('wmforecast'); if(!box) return;
   box.hidden=false;
+  var mw=document.querySelector('.wm-mapwrap'); if(mw) mw.classList.add('wmf-open'); // table overlays the time bar
   document.getElementById('wmfName').textContent='Loading…';
   document.getElementById('wmfCoord').textContent=ll.lat.toFixed(3)+', '+ll.lng.toFixed(3)+' · 48-hour outlook, 3-hourly';
   document.getElementById('wmfBody').innerHTML='<div class="pad" style="padding:14px;color:var(--muted);font-size:13px">Loading point forecast…</div>';
@@ -783,7 +829,10 @@ function openWmForecast(ll){
     document.getElementById('wmfBody').innerHTML='<div class="pad" style="padding:14px;color:var(--muted);font-size:13px">Couldn’t load the forecast for this point — try another cell.</div>';
   });
 }
+// scroll the point-forecast table/charts horizontally (mobile arrow buttons)
+function wmfScroll(dir){ var w=document.querySelector('#wmforecast .wmf-wrap'); if(w) w.scrollBy({left:dir*Math.round(w.clientWidth*0.7), behavior:'smooth'}); }
 function closeWmForecast(){ var b=document.getElementById('wmforecast'); if(b) b.hidden=true; wmfReq++; destroyWmCharts(); wmRestoreLock();
+  var mw=document.querySelector('.wm-mapwrap'); if(mw) mw.classList.remove('wmf-open');
   if(wmCallout && windMap) windMap.closePopup(wmCallout);
   if(wmSelDot && windMap){ windMap.removeLayer(wmSelDot); wmSelDot=null; }
   wmSelLL=null; }
@@ -811,8 +860,7 @@ function wmRelDay(d){
   return diff===0?'Today':d.toLocaleDateString(undefined,{weekday:'short'});
 }
 function wmHourCell(d){
-  var h=d.getHours(), ap=h<12?'am':'pm', h12=h%12; if(h12===0) h12=12;
-  return h12+':00 '+ap;
+  return d.getHours()+':00'; // 24h, compact and unambiguous across the 48h table
 }
 // forecast-panel charts live in their own registry so they don't collide with the dive-site cards'
 var wmFcCharts={};
