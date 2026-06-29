@@ -155,6 +155,15 @@
   .wm-time-now{flex:0 0 auto;font:inherit;font-size:12px;font-weight:500;color:#fff;background:rgba(255,255,255,.14);
     border:1px solid rgba(255,255,255,.4);border-radius:var(--radius-pill);padding:6px 14px;cursor:pointer}
   .wm-time-now:hover{background:rgba(255,255,255,.26);color:#fff}
+  /* On phones the time bar stacks: selected time centred on top, then a
+     full-width slider (with Now) below — easier to read and drag. */
+  @media(max-width:560px){
+    .wm-timebar{flex-wrap:wrap;gap:5px 10px;padding:7px 14px 10px}
+    .wm-timelabel{order:-1;flex:0 0 100%;min-width:0;text-align:center;font-size:14px}
+    .wm-time-now{order:1}
+    .wm-time-track{order:2;flex:1 1 auto}
+    .wm-time-range{height:7px}
+  }
   #wmforecast{position:absolute;left:10px;right:10px;bottom:62px;z-index:1000;max-height:58%;display:flex;flex-direction:column;
     background:rgba(255,255,255,.97);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow-2);overflow:hidden}
   #wmforecast[hidden]{display:none}
