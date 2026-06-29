@@ -523,7 +523,33 @@ function wmInitSlider(){
   wmStep=best; wmCurHour=best*wmStepHours;
   var sl=document.getElementById('wmTime'); if(sl){ sl.min=0; sl.max=wmStepCount-1; sl.value=wmStep; }
   wmBuildDayLabels();
+  wmBuildScrub();
   updateWmTimeLabel();
+  wmScrubTo(wmStep);
+}
+// Windy-style draggable timeline (mobile): a scroll-snap strip of hour ticks you
+// slide under a fixed centre marker; the centred tick is the selected step. Native
+// scroll does the dragging/inertia/snap — we just read which tick is centred.
+function wmBuildScrub(){
+  var el=document.getElementById('wmScrub'); if(!el) return;
+  var h='', prev=null;
+  for(var s=0;s<wmStepCount;s++){
+    var d=new Date(wmTimes[Math.min(s*wmStepHours, wmTimes.length-1)]);
+    var dk=d.toDateString(), day=(dk!==prev)?wmRelDay(d):''; prev=dk;
+    h+='<div class="wm-tick"><span class="wm-tick-day">'+day+'</span><span class="wm-tick-hr">'+d.getHours()+'</span></div>';
+  }
+  el.innerHTML=h;
+}
+function wmScrubTo(step){ var el=document.getElementById('wmScrub'); if(el && el.children[step]) el.children[step].scrollIntoView({inline:'center',block:'nearest'}); }
+var wmScrubT=null;
+function wmScrubOnScroll(){
+  clearTimeout(wmScrubT);
+  wmScrubT=setTimeout(function(){
+    var el=document.getElementById('wmScrub'); if(!el||!el.children.length) return;
+    var cx=el.getBoundingClientRect().left+el.clientWidth/2, best=0, bd=1e9, ch=el.children;
+    for(var i=0;i<ch.length;i++){ var r=ch[i].getBoundingClientRect(); var d=Math.abs((r.left+r.width/2)-cx); if(d<bd){ bd=d; best=i; } }
+    if(best!==wmStep) wmSetStep(best); // re-applies map + time label; doesn't re-scroll, so no loop
+  }, 50);
 }
 // a label per forecast day under the slider, each cell spanning that day's 24h
 function wmBuildDayLabels(){

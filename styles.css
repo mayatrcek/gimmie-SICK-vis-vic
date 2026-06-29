@@ -155,16 +155,26 @@
   .wm-time-now{flex:0 0 auto;font:inherit;font-size:12px;font-weight:500;color:#fff;background:rgba(255,255,255,.14);
     border:1px solid rgba(255,255,255,.4);border-radius:var(--radius-pill);padding:6px 14px;cursor:pointer}
   .wm-time-now:hover{background:rgba(255,255,255,.26);color:#fff}
-  /* On phones the time bar stacks: selected time centred on top, then a
-     full-width slider (with Now) below — easier to read and drag. */
+  .wm-scrub,.wm-scrub-marker{display:none} /* Windy-style timeline strip: mobile only */
+  /* On phones the time bar stacks: selected time centred on top, then a Windy-style
+     draggable timeline strip (slide the bar under a fixed centre marker) below. */
   @media(max-width:560px){
     .wm-timebar{flex-wrap:wrap;gap:6px 10px;padding:8px 14px 11px}
     .wm-timelabel{order:-1;flex:0 0 100%;min-width:0;text-align:center}
     .wm-timelabel #wmTimeLabel{display:inline-block;background:rgba(255,255,255,.18);color:#fff;
       font-size:14px;font-weight:700;padding:3px 14px;border-radius:var(--radius-pill)}
     .wm-time-now{order:1}
-    .wm-time-track{order:2;flex:1 1 auto}
-    .wm-time-range{height:10px}
+    .wm-time-track{order:2;flex:1 1 auto;position:relative}
+    .wm-time-range,.wm-time-days{display:none} /* replaced by the scrub strip */
+    .wm-scrub{display:block;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;
+      -webkit-overflow-scrolling:touch;scrollbar-width:none;white-space:nowrap;padding:0 50%}
+    .wm-scrub::-webkit-scrollbar{display:none}
+    .wm-tick{display:inline-flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;
+      width:40px;height:32px;scroll-snap-align:center;vertical-align:bottom}
+    .wm-tick-day{font-size:10px;font-weight:700;color:#fff;white-space:nowrap;line-height:1}
+    .wm-tick-hr{font-size:11px;color:rgba(255,255,255,.6);line-height:1;font-variant-numeric:tabular-nums}
+    .wm-scrub-marker{display:block;position:absolute;left:50%;top:0;bottom:0;transform:translateX(-50%);
+      border-left:2px solid var(--accent);pointer-events:none;z-index:2}
   }
   #wmforecast{position:absolute;left:10px;right:10px;bottom:0;z-index:1200;max-height:62%;display:flex;flex-direction:column;
     background:rgba(255,255,255,.97);border:1px solid var(--line);border-radius:20px 20px 0 0;box-shadow:var(--shadow-2);overflow:hidden}
