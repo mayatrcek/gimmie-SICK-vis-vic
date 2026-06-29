@@ -540,7 +540,11 @@ function wmBuildScrub(){
   }
   el.innerHTML=h;
 }
-function wmScrubTo(step){ var el=document.getElementById('wmScrub'); if(el && el.children[step]) el.children[step].scrollIntoView({inline:'center',block:'nearest'}); }
+function wmScrubTo(step){
+  var el=document.getElementById('wmScrub'); if(!el || !el.children[step]) return;
+  var er=el.getBoundingClientRect(), tr=el.children[step].getBoundingClientRect();
+  el.scrollLeft += (tr.left+tr.width/2) - (er.left+el.clientWidth/2); // centre the tick exactly under the marker
+}
 var wmScrubT=null;
 function wmScrubOnScroll(){
   clearTimeout(wmScrubT);
