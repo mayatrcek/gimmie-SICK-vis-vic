@@ -165,6 +165,8 @@
     .wm-leg-note{display:none} /* drop the disagreement note on mobile to save height */
     .wm-timebar{bottom:70px} /* sit above the ~67px scale strip */
     .wm-full .leaflet-bottom{margin-bottom:160px} /* keep attribution/scale above the taller bottom stack */
+    /* point-forecast table floats above the scale strip as a rounded card (not flush-cut at the edge) */
+    #wmforecast{bottom:70px;border-radius:20px;max-height:54%}
     .wm-timebar{flex-wrap:wrap;gap:6px 10px;padding:8px 14px 11px}
     .wm-timelabel{order:-1;flex:0 0 100%;min-width:0;text-align:center}
     .wm-timelabel #wmTimeLabel{display:inline-block;background:rgba(255,255,255,.18);color:#fff;
@@ -185,8 +187,8 @@
   #wmforecast{position:absolute;left:10px;right:10px;bottom:0;z-index:1200;max-height:62%;display:flex;flex-direction:column;
     background:rgba(255,255,255,.97);border:1px solid var(--line);border-radius:20px 20px 0 0;box-shadow:var(--shadow-2);overflow:hidden}
   #wmforecast[hidden]{display:none}
-  /* the point-forecast table overlays (hides) the time slider + scale while open */
-  .wm-mapwrap.wmf-open .wm-timebar,.wm-mapwrap.wmf-open .wm-legend{display:none}
+  /* the point-forecast table overlays (hides) the time slider while open */
+  .wm-mapwrap.wmf-open .wm-timebar{display:none}
   .wmf-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:12px 14px 10px;border-bottom:1px solid var(--line)}
   .wmf-title{font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--ink)}
   .wmf-coord{font-size:11px;color:var(--muted);margin-top:1px;font-variant-numeric:tabular-nums}
