@@ -166,7 +166,7 @@
     .wm-time-now{order:1}
     .wm-time-track{order:2;flex:1 1 auto;min-width:0;position:relative} /* min-width:0 lets it shrink so the strip scrolls */
     .wm-time-range,.wm-time-days{display:none} /* replaced by the scrub strip */
-    .wm-scrub{display:block;min-width:0;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;
+    .wm-scrub{display:block;min-width:0;overflow-x:auto;overflow-y:hidden;
       -webkit-overflow-scrolling:touch;scrollbar-width:none;white-space:nowrap;padding:0 50%}
     .wm-scrub::-webkit-scrollbar{display:none}
     .wm-tick{display:inline-flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;

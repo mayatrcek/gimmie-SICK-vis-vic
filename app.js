@@ -546,14 +546,29 @@ function wmScrubTo(step){
   el.scrollLeft += (tr.left+tr.width/2) - (er.left+el.clientWidth/2); // centre the tick exactly under the marker
 }
 var wmScrubT=null;
+// fractional tick index currently under the centre marker (0 = first tick centred)
+function wmScrubCenterFrac(el){
+  var c0=el.children[0]; if(!c0) return 0; var r=c0.getBoundingClientRect();
+  return ((el.getBoundingClientRect().left+el.clientWidth/2)-(r.left+r.width/2))/r.width;
+}
+// minute-precise time readout for a fractional step (the strip scrubs by the minute)
+function wmScrubLabel(frac){
+  var d=new Date(new Date(wmTimes[0]).getTime()+frac*wmStepHours*3600000);
+  var today=new Date(); today.setHours(0,0,0,0); var dd=new Date(d); dd.setHours(0,0,0,0);
+  var diff=Math.round((dd-today)/86400000);
+  var day=diff===0?'Today':(diff===1?'Tomorrow':d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'}));
+  var h=d.getHours(), m=d.getMinutes(), ap=h<12?'am':'pm', h12=h%12; if(h12===0)h12=12;
+  return day+' · '+h12+':'+String(m).padStart(2,'0')+' '+ap;
+}
 function wmScrubOnScroll(){
   clearTimeout(wmScrubT);
   wmScrubT=setTimeout(function(){
-    var el=document.getElementById('wmScrub'); if(!el||!el.children.length) return;
-    var cx=el.getBoundingClientRect().left+el.clientWidth/2, best=0, bd=1e9, ch=el.children;
-    for(var i=0;i<ch.length;i++){ var r=ch[i].getBoundingClientRect(); var d=Math.abs((r.left+r.width/2)-cx); if(d<bd){ bd=d; best=i; } }
-    if(best!==wmStep) wmSetStep(best); // re-applies map + time label; doesn't re-scroll, so no loop
-  }, 50);
+    var el=document.getElementById('wmScrub'); if(!el||!el.children.length||!wmTimes.length) return;
+    var frac=Math.max(0,Math.min(wmStepCount-1, wmScrubCenterFrac(el)));
+    var step=Math.round(frac);
+    if(step!==wmStep) wmSetStep(step); // map field uses the nearest hour (data is hourly)
+    var lbl=document.getElementById('wmTimeLabel'); if(lbl) lbl.textContent=wmScrubLabel(frac); // minute-precise (after wmSetStep's hourly label)
+  }, 30);
 }
 // a label per forecast day under the slider, each cell spanning that day's 24h
 function wmBuildDayLabels(){
