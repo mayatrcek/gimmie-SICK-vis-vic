@@ -410,7 +410,7 @@ var WM_HOME=[-38.10,144.83], WM_HOME_ZOOM=8; // default view: centred on Port Ph
 var DIVE_SCORE={Amazing:5, Good:4, Marginal:2, Poor:1};
 var FIELDS={
   wind:{label:'Wind', unit:'km/h', maxVelocity:65, velocityScale:0.0035, spreadHi:8, src:'GFS · ECMWF',
-        colorScale:['#4a7fb5','#5cc6c9','#7ed957','#f4e04d','#f0a93b','#e8553a','#b23aa8'],
+        colorScale:['#1b3a6b','#4a7fb5','#5cc6c9','#7ed957','#f4e04d','#f0a93b','#e8553a','#b23aa8'],
         legend:['0','15','30','45','60+'],
         api:'weather', mag:'wind_speed_10m', dir:'wind_direction_10m'},
   swell:{label:'Swell', unit:'m', maxVelocity:4, velocityScale:0.03, spreadHi:0.6, src:'gwam · Météo-France',
@@ -608,7 +608,7 @@ function toVelocityData(cells, nx, ny){
 function makeVelocityLayer(key, data){
   var f=FIELDS[key];
   return L.velocityLayer({
-    displayValues:false, data:data, maxVelocity:f.maxVelocity, velocityScale:f.velocityScale,
+    displayValues:false, data:data, maxVelocity:f.maxVelocity, velocityScale:f.velocityScale*0.75, // 0.75 = a bit slower drift
     colorScale:f.colorScale, particleAge:90, lineWidth:1.4, particleMultiplier:1/600, frameRate:18
   });
 }
