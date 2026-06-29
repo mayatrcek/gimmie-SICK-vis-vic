@@ -767,6 +767,7 @@ var wmfReq=0;
 function openWmForecast(ll){
   var box=document.getElementById('wmforecast'); if(!box) return;
   box.hidden=false;
+  var mw=document.querySelector('.wm-mapwrap'); if(mw) mw.classList.add('wmf-open'); // table overlays the time bar
   document.getElementById('wmfName').textContent='Loading…';
   document.getElementById('wmfCoord').textContent=ll.lat.toFixed(3)+', '+ll.lng.toFixed(3)+' · 48-hour outlook, 3-hourly';
   document.getElementById('wmfBody').innerHTML='<div class="pad" style="padding:14px;color:var(--muted);font-size:13px">Loading point forecast…</div>';
@@ -786,6 +787,7 @@ function openWmForecast(ll){
 // scroll the point-forecast table/charts horizontally (mobile arrow buttons)
 function wmfScroll(dir){ var w=document.querySelector('#wmforecast .wmf-wrap'); if(w) w.scrollBy({left:dir*Math.round(w.clientWidth*0.7), behavior:'smooth'}); }
 function closeWmForecast(){ var b=document.getElementById('wmforecast'); if(b) b.hidden=true; wmfReq++; destroyWmCharts(); wmRestoreLock();
+  var mw=document.querySelector('.wm-mapwrap'); if(mw) mw.classList.remove('wmf-open');
   if(wmCallout && windMap) windMap.closePopup(wmCallout);
   if(wmSelDot && windMap){ windMap.removeLayer(wmSelDot); wmSelDot=null; }
   wmSelLL=null; }
