@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="assets/brand/alpha-dive-flag-32.png?v=26">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet-velocity@1.7.0/dist/leaflet-velocity.css">
-<link rel="stylesheet" href="styles.css?v=27">
+<link rel="stylesheet" href="styles.css?v=29">
 </head>
 <body>
 <div class="wrap">
@@ -80,9 +80,9 @@
     <div class="wm-mapwrap wm-full">
       <div id="windmap"></div>
       <div class="wm-toggle" role="tablist" aria-label="Map field">
-        <button id="wmtab-wind" class="wm-tab active" onclick="setWmField('wind')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/><path d="M17.7 7.7A2.5 2.5 0 1 1 19.5 12H2"/></svg><span class="wm-tab-label">Wind</span></button>
-        <button id="wmtab-swell" class="wm-tab" onclick="setWmField('swell')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12c2.5-5 5.5-5 8 0s5.5 5 8 0"/></svg><span class="wm-tab-label">Swell</span></button>
-        <button id="wmtab-waves" class="wm-tab" onclick="setWmField('waves')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/><path d="M2 15c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/></svg><span class="wm-tab-label">Waves</span></button>
+        <button id="wmtab-wind" class="wm-tab active" onclick="setWmField('wind')"><span class="wm-tab-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/><path d="M17.7 7.7A2.5 2.5 0 1 1 19.5 12H2"/></svg></span><span class="wm-tab-label">Wind</span></button>
+        <button id="wmtab-swell" class="wm-tab" onclick="setWmField('swell')"><span class="wm-tab-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12c2.5-5 5.5-5 8 0s5.5 5 8 0"/></svg></span><span class="wm-tab-label">Swell</span></button>
+        <button id="wmtab-waves" class="wm-tab" onclick="setWmField('waves')"><span class="wm-tab-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/><path d="M2 15c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/></svg></span><span class="wm-tab-label">Waves</span></button>
       </div>
       <div class="wm-legend" id="wmlegend"></div>
       <div class="wm-timebar">
@@ -207,6 +207,6 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-velocity@1.7.0/dist/leaflet-velocity.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="app.js?v=28"></script>
+<script src="app.js?v=29"></script>
 </body>
 </html>

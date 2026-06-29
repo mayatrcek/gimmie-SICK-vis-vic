@@ -84,12 +84,19 @@
   #windmap .leaflet-container{cursor:crosshair}
 
   /* Wind-map field toggle — white pill, ink-filled active tab */
-  /* field switcher: a vertical stack of icon buttons, top-right of the map */
-  .wm-toggle{position:absolute;top:calc(var(--tabh) + 10px);right:10px;z-index:1000;display:inline-flex;flex-direction:column;gap:4px;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:16px;padding:4px;box-shadow:var(--shadow-1)}
-  .wm-tab{display:flex;align-items:center;gap:8px;padding:8px 14px;border:none;background:none;border-radius:12px;color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;transition:background-color .18s var(--ease),color .18s var(--ease)}
-  .wm-tab svg{width:20px;height:20px;display:block;flex:0 0 auto}
-  .wm-tab:hover{color:var(--ink);background:rgba(14,17,22,.05)}
-  .wm-tab.active{background:var(--ink);color:#fff}
+  /* field switcher: each option is its own pill chip with a circular icon badge */
+  .wm-toggle{position:absolute;top:calc(var(--tabh) + 10px);right:10px;z-index:1000;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+  .wm-tab{display:flex;align-items:center;gap:8px;padding:5px 15px 5px 5px;border:1px solid var(--line);
+    background:var(--color-cloud);border-radius:var(--radius-pill);box-shadow:var(--shadow-1);
+    color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;
+    transition:background-color .18s var(--ease),color .18s var(--ease),border-color .18s var(--ease)}
+  .wm-tab-ic{flex:0 0 auto;width:28px;height:28px;border-radius:50%;background:var(--surface-sunken);color:var(--muted);
+    display:flex;align-items:center;justify-content:center;transition:background-color .18s var(--ease),color .18s var(--ease)}
+  .wm-tab-ic svg{width:17px;height:17px;display:block}
+  .wm-tab:hover{color:var(--ink)}
+  .wm-tab:hover .wm-tab-ic{color:var(--ink)}
+  .wm-tab.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .wm-tab.active .wm-tab-ic{background:rgba(255,255,255,.2);color:#fff}
   .wm-legend{display:flex;flex-direction:column;gap:3px;max-width:340px}
   .wm-leg-label{font-size:12px;font-weight:500;color:var(--muted)}
   .wm-leg-bar{height:10px;border-radius:5px;border:1px solid var(--line)}
@@ -446,8 +453,9 @@
       opacity:1;visibility:visible;pointer-events:auto}
     .tab-menu-item{width:100%;padding:11px 14px;border-radius:10px}
 
-    /* roomier tap targets on the wind-map controls */
-    .wm-tab{padding:11px 16px}
+    /* roomier tap targets on the wind-map field chips */
+    .wm-tab{padding:6px 16px 6px 6px}
+    .wm-tab-ic{width:32px;height:32px}
     .wm-time-now{padding:9px 16px}
     .wmf-close{font-size:26px;padding:4px 10px}
     .sbclose{padding:9px 16px}
