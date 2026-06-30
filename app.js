@@ -1579,3 +1579,28 @@ populateSelect();
 renderFish();
 document.body.classList.add('home-tab'); // Home is the default tab on load
 DEFAULTS.forEach(function(id){ addSpot(id); });
+
+// ===== Home "single scroll" =====
+// On the Home tab a small downward nudge from the hero completes into a smooth
+// jump to the content (summary + nav channels); it re-arms when you return to
+// the very top. Plain page scroll, so it covers wheel and touch alike (both
+// emit scroll). ponytail: a scroll listener, not a scroll-snap container —
+// keeps the global page/footer scroll and the lower sections free (no snap trap).
+(function(){
+  var TABH=60, lastY=window.scrollY, jumping=false, armed=true;
+  function onHome(){ return document.body.classList.contains('home-tab'); }
+  window.addEventListener('scroll', function(){
+    if(!onHome()){ lastY=window.scrollY; return; }
+    var y=window.scrollY, down=y>lastY; lastY=y;
+    if(jumping) return;
+    var content=document.getElementById('homeContent'); if(!content) return;
+    var target=Math.round(content.getBoundingClientRect().top + y - TABH);
+    if(armed && down && y>8 && y < target-4){
+      jumping=true; armed=false;
+      window.scrollTo({top:target, behavior:'smooth'});
+      setTimeout(function(){ jumping=false; lastY=window.scrollY; }, 800);
+    } else if(y<=4){
+      armed=true; // back at the top -> ready to skip again
+    }
+  }, {passive:true});
+})();

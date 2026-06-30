@@ -407,13 +407,9 @@
      very top behind the floating nav pill — exactly like Cirrus's fixed
      cloudy-sky background. #tab-home is just a spacer that holds page
      height so the footer stays at the bottom. */
-  body.home-tab{
-    background-image:url('assets/home-banner.jpg');
-    background-size:cover;
-    background-position:center;
-    background-repeat:no-repeat;
-    background-attachment:fixed;
-  }
+  /* Home is now the pixel "Overworld Oceanic" landing page (Tailwind, see index.html).
+     Parchment fills any area around its full-bleed sections; no photo backdrop. */
+  body.home-tab{background-image:none;background-color:#F2EAD6}
   /* background-attachment:fixed is ignored/janky on iOS Safari and most touch
      browsers (blank or wildly zoomed image, stuttering scroll). On pointer:coarse
      devices fall back to scroll so the sky gradient and Home photo render cleanly. */
@@ -421,22 +417,14 @@
     body{background-attachment:scroll}
     body.home-tab{background-attachment:scroll}
   }
-  #tab-home{min-height:clamp(360px, calc(100vh - 200px), 1000px);
-    display:flex;align-items:flex-start;justify-content:center;
-    padding:clamp(64px, 13vh, 160px) 24px 24px;text-align:center}
+  /* Full-bleed: break out of .wrap to the viewport edges and pull up under the
+     floating nav so the pixel hero reaches the very top (same trick as .wm-full). */
+  /* margin-top cancels the body's extra 18px top padding so the hero starts
+     flush against the bottom of the fixed bar (no parchment gap). */
+  #tab-home{display:block;text-align:left;min-height:0;padding:0;
+    width:100vw;margin-left:calc(50% - 50vw);margin-top:-18px}
   /* the ID display rule above outranks [hidden]{display:none}, so restore hiding */
   #tab-home[hidden]{display:none}
-  /* Cirrus hero overlaid on the photo: the DiveByte brand in Inter Tight display,
-     with a tagline beneath carrying the one Instrument Serif italic accent. */
-  .home-hero{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.4vh,16px)}
-  .home-title{font-family:var(--font-display);font-weight:700;margin:0;max-width:18ch;
-    font-size:clamp(46px, 8vw, 92px);line-height:1.0;letter-spacing:-.03em;
-    color:#fff;text-shadow:0 2px 28px rgba(14,17,22,.5);text-wrap:balance}
-  .home-tagline{font-family:var(--font-display);font-weight:600;margin:0;max-width:22ch;
-    font-size:clamp(17px, 2.5vw, 28px);line-height:1.2;letter-spacing:-.01em;
-    color:#fff;text-shadow:0 2px 20px rgba(14,17,22,.5);text-wrap:balance}
-  .home-accent{font-family:var(--font-serif);font-style:italic;font-weight:400;
-    font-size:1.08em;letter-spacing:-.01em;color:#cfe1f6}
 
   /* ===== Dashboard panels — Cirrus cards ===== */
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden;
@@ -519,4 +507,80 @@
     .geoinfo{max-width:calc(100% - 20px)}
     /* guard against horizontal page scroll from the full-bleed wind map's 100vw */
     html,body{overflow-x:hidden}
+  }
+
+  /* =============================================================
+     Pixel global chrome (Overworld Oceanic) — header + footer.
+     Reskins the existing nav (markup + JS unchanged, so dropdowns,
+     active states and the mobile hamburger still work) and footer
+     into the 16-bit theme. Placed last so it wins the cascade.
+     ============================================================= */
+  :root{--tabh:60px}
+
+  /* Top bar: full-width parchment strip, hard bottom shadow, brand left / links right */
+  .tabs{position:fixed;top:0;left:0;right:0;height:var(--tabh);z-index:600;
+    display:flex;align-items:stretch;justify-content:flex-start;gap:0;padding:0;pointer-events:auto;
+    background:#F2EAD6;border-bottom:2px solid #3A332A;box-shadow:0 4px 0 0 rgba(25,19,16,1)}
+  .nav-brand{display:flex;align-items:center;border:none;background:none;cursor:pointer;
+    padding:0 24px;font-family:'Pixelify Sans',sans-serif;font-weight:700;font-size:26px;
+    letter-spacing:-.02em;text-transform:uppercase;color:#1e1b18;white-space:nowrap;border-radius:0}
+  .nav-brand:hover{background:none;color:#0043bb}
+  .nav-flag{display:block;height:1.15em;width:auto;margin-right:10px;image-rendering:pixelated}
+  .tabs-inner{pointer-events:auto;display:inline-flex;align-items:stretch;gap:2px;margin-left:auto;
+    padding:0;background:none;border:0;border-radius:0;box-shadow:none;max-width:none}
+  .nav-actions{display:flex;align-items:center;gap:14px;padding:0 24px;color:#434654}
+  .nav-actions .material-symbols-outlined{font-size:26px;cursor:pointer}
+  .nav-actions .material-symbols-outlined:first-child{color:#0043bb}
+
+  .tab,.tab-dd>.tab{display:flex;align-items:center;border:none;background:none;border-radius:0;
+    padding:0 14px;font-family:'VT323',monospace;font-size:22px;line-height:1;letter-spacing:.02em;
+    text-transform:uppercase;color:#434654;box-shadow:none}
+  .tab:hover,.tab-dd>.tab:hover{background:none;color:#0043bb;transform:translate(1px,1px)}
+  .tab.active,.tab-dd>.tab.active{color:#0043bb;background:none;box-shadow:inset 0 -4px 0 0 #0043bb}
+  .tab-caret{opacity:.6;margin-left:4px}
+
+  /* dropdown menus: square parchment cards with the hard offset shadow */
+  .tab-menu{top:100%;border-radius:0;background:#F2EAD6;border:2px solid #3A332A;
+    box-shadow:4px 4px 0 0 rgba(25,19,16,1);padding:6px}
+  .tab-menu-item{border-radius:0;font-family:'VT323',monospace;font-size:19px;letter-spacing:.02em;
+    text-transform:uppercase;color:#1e1b18}
+  .tab-menu-item:hover{background:rgba(0,67,187,.12)}
+  .tab-menu-item.active{background:#0043bb;color:#fff}
+
+  /* Footer: full-bleed dark bar with brand / mock links / copyright, data note below */
+  footer{width:100vw;margin-left:calc(50% - 50vw);margin-top:24px;
+    background:#3A332A;border:0;border-top:2px solid #0043bb;border-radius:0;box-shadow:none;
+    color:#F2EAD6;text-align:left;padding:32px 24px;font-family:'Sora',sans-serif}
+  .foot-grid{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:1fr auto 1fr;
+    align-items:center;gap:24px}
+  .foot-brand{border:none;background:none;cursor:pointer;padding:0;text-align:left;
+    font-family:'Pixelify Sans',sans-serif;font-weight:700;font-size:28px;color:#b5c4ff}
+  .foot-brand:hover{background:none;color:#dbe1ff}
+  .foot-links{display:flex;justify-content:center;gap:24px;font-family:'VT323',monospace;font-size:16px;
+    letter-spacing:.1em;text-transform:uppercase;opacity:.75}
+  .foot-links a{color:#F2EAD6;text-decoration:none}
+  .foot-links a:hover{color:#dbe1ff}
+  .foot-meta{text-align:right;font-family:'VT323',monospace;font-size:16px;letter-spacing:.08em;opacity:.5}
+  .foot-note{max-width:900px;margin:24px auto 0;text-align:center;font-family:'VT323',monospace;
+    font-size:16px;letter-spacing:.04em;text-transform:uppercase;color:rgba(242,234,214,.4);line-height:1.6}
+  .foot-note a{color:rgba(242,234,214,.7);text-decoration:none}
+  .foot-note a:hover{color:#dbe1ff}
+
+  /* Pixel chrome on phones: brand left, square hamburger right, menu drops as a notched card */
+  @media(max-width:560px){
+    .tabs{top:0;left:0;right:0;height:56px;justify-content:space-between;align-items:center;padding:0 14px;
+      background:#F2EAD6;border-bottom:2px solid #3A332A;box-shadow:0 4px 0 0 rgba(25,19,16,1)}
+    .nav-brand{padding:0;font-size:22px}
+    .nav-actions{display:none}
+    .nav-toggle{order:2;width:42px;height:42px;border-radius:0;border:2px solid #3A332A;
+      background:#FFFAEF;box-shadow:2px 2px 0 0 rgba(25,19,16,1)}
+    .tabs-inner{top:calc(100% + 8px);right:14px;left:auto;border-radius:0;border:2px solid #3A332A;
+      background:#F2EAD6;box-shadow:4px 4px 0 0 rgba(25,19,16,1);margin-left:0;padding:8px}
+    .tab,.tab-dd>.tab{width:100%;justify-content:flex-start;font-size:20px;padding:11px 14px}
+    .tab.active,.tab-dd>.tab.active{box-shadow:inset 4px 0 0 0 #0043bb}
+    .tab-menu{border:0;box-shadow:none;background:transparent;padding:0 0 4px 12px}
+    .foot-grid{grid-template-columns:1fr;text-align:center;gap:14px}
+    .foot-brand{text-align:center}
+    .foot-links{flex-wrap:wrap}
+    .foot-meta{text-align:center}
   }
