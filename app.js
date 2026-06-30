@@ -438,7 +438,7 @@ function wmJson(r){ return r.json(); }
 function wmNote(msg){ if(windMap) L.popup({closeButton:true,autoPan:true,className:'wm-popup'}).setLatLng(windMap.getCenter()).setContent('<div class="wm-pop">'+msg+'</div>').openOn(windMap); }
 function initWindMap(){
   if(!document.getElementById('windmap')) return;
-  windMap=L.map('windmap',{scrollWheelZoom:true,maxBounds:WM_BOUNDS,maxBoundsViscosity:1.0,minZoom:6,maxZoom:9}).setView(WM_HOME, WM_HOME_ZOOM);
+  windMap=L.map('windmap',{scrollWheelZoom:true,maxBounds:WM_BOUNDS,maxBoundsViscosity:1.0,minZoom:6,maxZoom:14}).setView(WM_HOME, WM_HOME_ZOOM);
   // flat land/ocean canvas (no satellite): land reads as grey, ocean as pale grey, so for the
   // marine fields only the water gets colour-coded and land stays neutral underneath
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',

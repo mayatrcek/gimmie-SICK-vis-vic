@@ -83,6 +83,12 @@
   #windmap{height:460px;width:100%;margin:0 0 10px;border-radius:var(--radius-tile);border:1px solid var(--line);box-shadow:var(--shadow-1);z-index:0;background:var(--surface-sunken)}
   #windmap .leaflet-container{cursor:crosshair}
 
+  /* Floating UI chrome: stop the browser zooming (pinch + double-tap) when a
+     touch lands on a control instead of the map. `none` blocks all gestures;
+     the scrollable forecast panel keeps pan so its table still scrolls. */
+  .tabs-inner,.tab-menu,.wm-toggle,.wm-legend,.wm-timebar,.geoinfo{touch-action:none}
+  #wmforecast{touch-action:pan-x pan-y}
+
   /* Wind-map field toggle — white pill, ink-filled active tab */
   /* field switcher: each option is its own pill chip; the circular icon badge is
      bigger than the chip and overflows it (left + top/bottom) so it "pops" out.
@@ -437,7 +443,8 @@
     box-shadow:var(--shadow-1);margin:0 0 16px}
   .panel-hd{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:16px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
   .panel-ttl{font-family:var(--font-display);font-size:16px;font-weight:600;letter-spacing:-.015em;color:var(--ink)}
-  .panel-meta{margin-left:auto;font-size:13px;color:var(--muted)}
+  /* meta stacks under the title on its own line (no split heading/description header) */
+  .panel-meta{flex-basis:100%;font-size:13px;color:var(--muted)}
   .panel-bd{padding:18px 20px}
   .panel-bd.flush{padding:0}
   /* maps/iframes inside a panel shed their own chrome to avoid a box-in-a-box */
