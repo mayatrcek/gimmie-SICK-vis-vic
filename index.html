@@ -7,11 +7,78 @@
 <link rel="icon" type="image/png" href="assets/brand/alpha-dive-flag-32.png?v=26">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet-velocity@1.7.0/dist/leaflet-velocity.css">
-<link rel="stylesheet" href="styles.css?v=40">
+<link rel="stylesheet" href="styles.css?v=42">
+
+<!-- Pixel homepage (Overworld Oceanic): Tailwind + retro fonts, used only by #tab-home -->
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;700;800&family=Pixelify+Sans:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+  tailwind.config = {
+    corePlugins: { preflight: false }, // preflight off: don't reset the rest of the (non-Tailwind) site
+    theme: { extend: {
+      colors: {
+        "parchment":"#F2EAD6","bone":"#FFFAEF","ink-soft":"#3A332A","border-tan":"#D9CDB3",
+        "primary":"#0043bb","on-primary":"#ffffff","primary-fixed":"#dbe1ff","primary-fixed-dim":"#b5c4ff",
+        "secondary":"#b02f0c","tertiary":"#17593c","bg-tertiary":"#337253",
+        "surface":"#fff8f4","on-surface":"#1e1b18","on-surface-variant":"#434654",
+        "background":"#fff8f4","on-background":"#1e1b18","inverse-on-surface":"#f8efea",
+        "surface-container-highest":"#e9e1db","outline":"#747685"
+      },
+      borderRadius: { "DEFAULT":"0px","lg":"0px","xl":"0px","full":"9999px" },
+      spacing: { "xxxl":"64px","page-max":"1280px","md":"16px","xl":"32px","bleed":"96px","xs":"8px","sm":"12px","gutter":"32px","xxs":"4px","lg":"24px","xxl":"48px" },
+      fontFamily: { "display-font":["Pixelify Sans","sans-serif"],"hud-font":["VT323","monospace"],"body-font":["Sora","sans-serif"],"display-lg":["Pixelify Sans"],"display-xl":["Pixelify Sans"],"display-xxl":["Pixelify Sans"],"headline-lg":["Pixelify Sans"],"headline-md":["Pixelify Sans"],"hud-md":["VT323"],"hud-sm":["VT323"],"body-md":["Sora"] },
+      fontSize: {
+        "display-xxl":["128px",{"lineHeight":"0.92","letterSpacing":"-0.02em","fontWeight":"700"}],
+        "display-xl":["96px",{"lineHeight":"0.94","letterSpacing":"-0.015em","fontWeight":"700"}],
+        "display-lg":["72px",{"lineHeight":"0.96","letterSpacing":"-0.01em","fontWeight":"700"}],
+        "headline-lg":["44px",{"lineHeight":"1.02","fontWeight":"700"}],
+        "headline-md":["28px",{"lineHeight":"1.1","fontWeight":"600"}],
+        "hud-md":["22px",{"lineHeight":"1","letterSpacing":"0.02em","fontWeight":"400"}],
+        "hud-sm":["16px",{"lineHeight":"1","letterSpacing":"0.04em","fontWeight":"400"}],
+        "body-md":["16px",{"lineHeight":"1.6","fontWeight":"400"}]
+      }
+    } }
+  }
+</script>
+<style>
+  /* Pixel-homepage styles, scoped to #tab-home. Re-creates only the preflight
+     bits the template needs (border-style, img block) so Tailwind utilities work
+     without a global reset clobbering the rest of the site. */
+  #tab-home [class*="border-"]{border-style:solid}
+  #tab-home img{display:block;max-width:100%}
+  #tab-home button{border-radius:0}
+  #tab-home a{color:inherit;text-decoration:none}
+  .pixel-corners{clip-path:polygon(0 8px,8px 8px,8px 0,calc(100% - 8px) 0,calc(100% - 8px) 8px,100% 8px,100% calc(100% - 8px),calc(100% - 8px) calc(100% - 8px),calc(100% - 8px) 100%,8px 100%,8px calc(100% - 8px),0 calc(100% - 8px))}
+  .notched-card{clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px)}
+  .quest-star{background-image:radial-gradient(circle at 50% 50%,rgba(0,67,187,.05) 0%,transparent 70%);mask-image:url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 0 L55 45 L100 50 L55 55 L50 100 L45 55 L0 50 L45 45 Z' fill='black'/%3E%3C/svg%3E");mask-size:200px 200px;mask-repeat:no-repeat}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24}
+  @keyframes float-pixel{0%{transform:translateY(0)}25%{transform:translateY(-4px)}50%{transform:translateY(0)}75%{transform:translateY(4px)}100%{transform:translateY(0)}}
+  @keyframes glitch-stagger{0%{transform:translate(12px,-8px);opacity:0;filter:contrast(2)}15%{transform:translate(-12px,8px);opacity:1;filter:contrast(1)}30%{transform:translate(6px,-4px)}45%{transform:translate(-6px,4px)}60%{transform:translate(2px,-2px)}75%{transform:translate(-2px,2px)}90%{transform:translate(0,0)}100%{transform:translate(0,0)}}
+  @keyframes subtle-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+  .hero-title-entrance{animation:glitch-stagger .6s steps(6) forwards,subtle-float 3s ease-in-out infinite .7s}
+  .channel-card-animate{transition:transform .1s steps(2)}
+  .channel-card-animate:hover{animation:float-pixel 1.2s steps(4) infinite}
+  .channel-card-animate:active{animation:none;transform:translate(4px,4px);box-shadow:none}
+  /* Mobile fit: scale the big pixel display type and the full-bleed side padding
+     fluidly with the viewport so long single-word titles (NAV_CHANNELS,
+     FIND_YOUR_DROP) and the cards don't spill off a narrow screen. */
+  html,body{overflow-x:hidden} /* Home is full-bleed (100vw) at all widths now */
+  #tab-home .px-bleed{padding-left:clamp(16px,8vw,96px);padding-right:clamp(16px,8vw,96px)}
+  #tab-home .p-xxl{padding:clamp(20px,5vw,48px)}
+  #tab-home .home-display{font-size:clamp(2.5rem,14vw,128px)}
+  #tab-home .home-h1{font-size:clamp(1.9rem,9.5vw,96px)}
+  #tab-home .home-h2{font-size:clamp(1.6rem,6.5vw,44px)}
+  @media(max-width:560px){
+    #tab-home .home-tagline{padding:10px 14px}
+    #tab-home .home-tagline span{font-size:16px}
+  }
+</style>
 </head>
 <body>
 <div class="wrap">
   <div class="tabs">
+    <button class="nav-brand" type="button" onclick="showTab('home')"><img class="nav-flag" src="assets/brand/alpha-dive-flag-32.png" alt="" aria-hidden="true">DIVEBYTE</button>
     <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="primary-nav" onclick="toggleNav()"><span class="nav-burger" aria-hidden="true"></span><span class="nav-toggle-label">Menu</span></button>
     <div class="tabs-inner" id="primary-nav">
       <button id="btn-home" class="tab active" onclick="showTab('home')">Home</button>
@@ -41,13 +108,106 @@
       <button id="btn-about" class="tab" onclick="showTab('about')">About</button>
       <button id="btn-feedback" class="tab" onclick="showTab('feedback')">Feedback<span class="tab-badge" aria-label="new"></span></button>
     </div>
+    <div class="nav-actions" aria-hidden="true">
+      <span class="material-symbols-outlined">account_circle</span>
+      <span class="material-symbols-outlined">settings</span>
+    </div>
   </div>
 
   <div id="tab-home" class="tabpanel">
-    <div class="home-hero">
-      <h1 class="home-title">Gimme SICK vis</h1>
-      <p class="home-tagline">Daily Ocean &amp; Dive Map for <span class="home-accent">Victoria</span></p>
+    <!-- Quest Star Backdrop -->
+    <div class="fixed inset-0 pointer-events-none opacity-10 flex items-center justify-center"><div class="w-[800px] h-[800px] quest-star"></div></div>
+
+    <!-- Hero -->
+    <section id="homeHero" class="relative min-h-[85vh] flex flex-col items-center justify-center text-center overflow-hidden">
+      <div class="absolute inset-0 z-0">
+        <div class="home-hero-bg w-full h-full bg-cover bg-center" style='background-image:url("https://lh3.googleusercontent.com/aida-public/AB6AXuCm38URIzWfOZJxYBaurCzTAuRp-mUcHAdINfFsc-6rSNw0ZNDUp5yTPhEUP8Nv7vrnDKZHsK3AJmBjntthJsssDefwoxii7eNiqfDvDFsvMEYbfUflTlJjUc0ucxk4d7f3TyD5NLuJE84ASbZxkXYeXVVUadQ9tCQm6JcJB3BSMEzh4KCIeA0Ig3Ss0HIv3VNTcZgBq_kxbESBGCEKBZ62shqCXbTMr18HXIgPJIsHJJtGNa2saqM0c1knGSHIBDw0lZXjTEF-Cr8");image-rendering:pixelated'></div>
+        <div class="absolute inset-0 bg-ink-soft/40 mix-blend-overlay"></div>
+      </div>
+      <div class="relative z-10 px-md w-full">
+        <h1 class="home-display font-display-xxl text-display-xl md:text-display-xxl text-bone drop-shadow-[8px_8px_0px_rgba(25,19,16,1)] mb-xxs hero-title-entrance">GIMME SICK VIS</h1>
+        <div class="home-tagline inline-flex flex-col md:flex-row items-center gap-md bg-ink-soft text-parchment py-sm px-xl border-2 border-primary shadow-[6px_6px_0px_0px_#0043bb]">
+          <span class="font-hud-md text-hud-md tracking-[0.2em] uppercase">Daily Ocean &amp; Dive Update</span>
+          <span class="hidden md:block w-px h-6 bg-parchment/30"></span>
+          <span class="font-hud-md text-hud-md italic opacity-90">Region: VICTORIA_COAST_GRID_7</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feature marquee -->
+    <div class="w-full overflow-hidden">
+      <section class="bg-ink-soft border-y-2 border-primary py-sm relative overflow-hidden">
+        <style>
+          @keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+          .animate-marquee{display:flex;width:max-content;animation:marquee 30s linear infinite}
+          .dive-flag{width:24px;height:24px;background:#b02f0c;position:relative;display:inline-block;vertical-align:middle;margin:0 24px}
+          .dive-flag::after{content:'';position:absolute;inset:0;background:linear-gradient(45deg,transparent 45%,#fff 45%,#fff 55%,transparent 55%)}
+        </style>
+        <div class="animate-marquee">
+          <div class="flex items-center font-display-font text-hud-md text-bone uppercase tracking-widest whitespace-nowrap gap-xl">
+            <span class="flex items-center gap-md">REAL-TIME SWELL DATA <span class="dive-flag"></span></span>
+            <span class="flex items-center gap-md">VICTORIAN COASTAL INTEL <span class="dive-flag"></span></span>
+            <span class="flex items-center gap-md">SATELLITE CHLOROPHYLL <span class="dive-flag"></span></span>
+            <span class="flex items-center gap-md">SEA SURFACE TEMP <span class="dive-flag"></span></span>
+            <span class="flex items-center gap-md">PRECISION DIVE PLANNING <span class="dive-flag"></span></span>
+          </div>
+          <div class="flex items-center font-display-font text-hud-md text-bone uppercase tracking-widest whitespace-nowrap gap-xl ml-xl">
+            <span class="flex items-center gap-md">REAL-TIME SWELL DATA <span class="dive-flag"></span></span>
+            <span class="flex items-center gap-md">VICTORIAN COASTAL INTEL <span class="dive-flag"></span></span>
+            <span class="flex items-center gap-md">SATELLITE CHLOROPHYLL <span class="dive-flag"></span></span>
+            <span class="flex items-center gap-md">SEA SURFACE TEMP <span class="dive-flag"></span></span>
+            <span class="flex items-center gap-md">PRECISION DIVE PLANNING <span class="dive-flag"></span></span>
+          </div>
+        </div>
+      </section>
     </div>
+
+    <!-- Summary -->
+    <section id="homeContent" class="bg-parchment py-xxxl px-bleed">
+      <div class="max-w-page-max mx-auto">
+        <div class="bg-parchment p-xxl border-2 border-ink-soft shadow-[8px_8px_0px_0px_#3A332A]">
+          <h2 class="home-h2 font-display-lg text-headline-lg text-ink-soft mb-md uppercase">SUMMARY</h2>
+          <p class="font-body-md text-body-md text-ink-soft leading-relaxed">A daily dive- and fishing-conditions dashboard for the Victorian coast. It brings real-time swell, wind, sea-surface temperature, chlorophyll and seabed data from marine models and satellite feeds together, so you can tell at a glance whether tomorrow is worth an early start.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Nav channels -->
+    <section class="py-xxxl px-bleed max-w-page-max mx-auto bg-ink-soft">
+      <div class="border-l-8 border-primary pl-xl mb-xxl">
+        <h2 class="home-h1 font-display-xl text-display-xl uppercase text-bone">NAV_CHANNELS</h2>
+        <p class="font-hud-md text-hud-md text-parchment opacity-70 max-w-xl">ACCESS REAL-TIME ENVIRONMENTAL DATA AND OPERATIONAL INTELLIGENCE CHANNELS.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-xl">
+        <a class="channel-card-animate block relative border-2 border-ink-soft group overflow-hidden bg-primary text-bone shadow-[6px_6px_0px_0px_#0043bb] cursor-pointer" href="#" onclick="gotoSub('forecast','divesites');return false">
+          <div class="aspect-video relative"><img alt="Forecast" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuApOBzUrM67pKETD_pcj9yZiPkPwaD72uF59LmQko3aT2mY_dkrSlaU9_T__px8Z9pznQRk-l1o9zB25UnvNChZ72dIdFOVG6YO5IjgM6fdKItw__VGX5D4xn9UyuxoDNnFFjw925m4FHdl-odm9POBMottvAd3sm2PEaAOkMQRvcCyPsEEAbsCWcGoXjosO8HkQMdugAcSjMTnXWU63pSB4GZvcQzdNkZcYF11hXshKlp9HJu9s6gTPNoEG_fpgoYHuIMDv-1aqP8" style="image-rendering:pixelated"/><div class="absolute inset-0 bg-ink-soft/40 flex items-center justify-center py-md"><h3 class="font-headline-md text-headline-md text-bone uppercase text-center px-md">Forecast</h3></div></div>
+        </a>
+        <a class="channel-card-animate block relative bg-bone border-2 border-ink-soft group overflow-hidden shadow-[6px_6px_0px_0px_#0043bb] cursor-pointer" href="#" onclick="gotoSub('forecast','windmap');return false">
+          <div class="aspect-video relative"><img alt="Wind Map" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAM0rXXsRdEL1CnxWshvZA51xUT99QO45uryHe64QoNy_3CU_CfElv2Mz_ZKcJrEzOavKMAjK_xDBWOe8YID0kzyM-eoesP582JwcarLzZq-JE-YnS7zOKXUTigPx_ynhx8nrEwq6szldC-9yljpuRodPUp1-p-07aDXL6-y6VOqyJ-SnnYNKJWUKbzFFsCgD-tElLmy_jLxK30ziiTKKnkjAhMQtShWdrXutqcCOS3AgFjXgNHoH7gZewnVdeBdhaDTp66JxRmO3Q" style="image-rendering:pixelated"/><div class="absolute inset-0 bg-ink-soft/40 flex items-center justify-center py-md"><h3 class="font-headline-md text-headline-md text-bone uppercase text-center px-md">Wind Map</h3></div></div>
+        </a>
+        <a class="channel-card-animate block relative border-2 border-ink-soft group overflow-hidden bg-secondary text-bone shadow-[6px_6px_0px_0px_#0043bb] cursor-pointer" href="#" onclick="showTab('fish');return false">
+          <div class="aspect-video relative"><img alt="Learn" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDG4cO3sSx6D2Z4ieJPDHdCWBKob93SrokbLTe45jc-DGZCUlOM3BAqDFcj51_eGBwsNDQG-rUVDd_kQ8mF7SaOUJ8_v2I7ZNVp_uvKDg8N-gPEo0trEsQtZ8EvZlM8yOI6j0D3z19mbJSdWr7Z_KqLgb6HMLpOCCSDvqojQ9y6VfNUrmZuZRYCEPrnntcaCX3pVhGgEFyxwjVMHFD-Kc16c0VAkeniQv8GPQqeLmegGLlYG3no8jGu9NxGuGieVqbFq8k6wwZ_WfY" style="image-rendering:pixelated"/><div class="absolute inset-0 bg-ink-soft/40 flex items-center justify-center py-md"><h3 class="font-headline-md text-headline-md text-bone uppercase text-center px-md">Learn</h3></div></div>
+        </a>
+        <a class="channel-card-animate block relative border-2 border-ink-soft group overflow-hidden bg-tertiary text-bone shadow-[6px_6px_0px_0px_#0043bb] cursor-pointer" href="#" onclick="gotoSub('live','chl');return false">
+          <div class="aspect-video relative"><img alt="Live Data" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzaSIe_yl1MD0hiox2xcm2wr9euoZn2kDHcwc8z30wWh7ftVipE8Rs15k3qm1RQCWNf2MZQqynaKt2JBH6vWEIVZQflvm0tZjxUich_-tb2GUU0pxUlnxX8IyTIOd_lGXBeSSlN6RvM2vbACwTya8lm-dk9vgc81cBVMQgQvzFMXVMgXiaArJmueMcVkZwZe5eW4JVmKH8Vz-DbM3goaziwidOmLvCx1dJXsKi6q_YpcN9sJEi0da6CzjBTjWDnZyFqGOgiklob3I" style="image-rendering:pixelated"/><div class="absolute inset-0 bg-ink-soft/40 flex items-center justify-center py-md"><h3 class="font-headline-md text-headline-md text-bone uppercase text-center px-md">Live Data</h3></div></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Find your drop -->
+    <section class="py-xxxl px-bleed max-w-page-max mx-auto text-center">
+      <div class="max-w-2xl mx-auto bg-bone p-xxl border-2 border-ink-soft shadow-[12px_12px_0px_0px_#0043bb]">
+        <h3 class="home-h2 font-display-lg text-headline-lg text-ink-soft mb-md uppercase">Find_Your_Drop</h3>
+        <div class="relative mb-xl">
+          <input class="w-full bg-parchment border-2 border-ink-soft p-md font-hud-md text-hud-md focus:ring-0 focus:outline-none focus:shadow-[4px_4px_0px_0px_#0043bb] transition-all" placeholder="ENTER_COORDINATES_OR_SITE_NAME..." type="text"/>
+          <span class="material-symbols-outlined absolute right-md top-1/2 -translate-y-1/2 text-ink-soft text-3xl">search</span>
+        </div>
+        <div class="flex flex-wrap justify-center gap-sm">
+          <button type="button" class="bg-primary text-on-primary px-xl py-md font-hud-md text-hud-md border-2 border-ink-soft shadow-[4px_4px_0px_0px_#3A332A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none active:translate-x-[4px] active:translate-y-[4px] transition-all uppercase">SEARCH_STATIONS</button>
+          <button type="button" class="bg-bone text-ink-soft px-xl py-md font-hud-md text-hud-md border-2 border-ink-soft shadow-[4px_4px_0px_0px_#3A332A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none active:translate-x-[4px] active:translate-y-[4px] transition-all uppercase">RANDOM_EXPEDITION</button>
+        </div>
+      </div>
+    </section>
   </div><!-- /tab-home -->
 
   <div id="tab-forecast" class="tabpanel" hidden>
@@ -200,16 +360,27 @@
   </div><!-- /tab-feedback -->
 
   <footer>
-    Forecasts: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> (marine + weather models).
-    SST: NASA JPL MUR. Chlorophyll: NOAA NESDIS CoastWatch (VIIRS), via
-    <a href="https://coastwatch.pfeg.noaa.gov/erddap/" target="_blank" rel="noopener">NOAA ERDDAP</a>.
-    Free public data &mdash; a planning aid, not for navigation or safety-of-life decisions. Built for Maya.
+    <div class="foot-grid">
+      <button class="foot-brand" type="button" onclick="showTab('home')">DIVEBYTE</button>
+      <div class="foot-links">
+        <a href="#">PROTOCOL_VO_1</a>
+        <a href="#">SATELLITE_LINK</a>
+        <a href="#">GRID_COORD_REF</a>
+      </div>
+      <div class="foot-meta">&copy;2024 OVERWORLD_DYNAMICS // QUEST_STAR_SYSTEM</div>
+    </div>
+    <div class="foot-note">
+      Forecasts: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> (marine + weather models).
+      SST: NASA JPL MUR. Chlorophyll: NOAA NESDIS CoastWatch (VIIRS), via
+      <a href="https://coastwatch.pfeg.noaa.gov/erddap/" target="_blank" rel="noopener">NOAA ERDDAP</a>.
+      Free public data, a planning aid, not for navigation or safety-of-life decisions. Built for Maya.
+    </div>
   </footer>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-velocity@1.7.0/dist/leaflet-velocity.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="app.js?v=36"></script>
+<script src="app.js?v=37"></script>
 </body>
 </html>
