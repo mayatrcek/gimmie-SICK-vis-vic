@@ -9,13 +9,13 @@
  * RUN (from the repo root, your machine can reach the gov servers — the build sandbox can't):
  *     node tools/prerender-geo.js
  *
- * Then commit the generated assets/geo/*.png files. Re-run any time to refresh.
+ * Then commit the generated public/assets/geo/*.png files. Re-run any time to refresh.
  */
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-const OUT = path.join(__dirname, '..', 'assets', 'geo');
+const OUT = path.join(__dirname, '..', 'public', 'assets', 'geo');
 fs.mkdirSync(OUT, { recursive: true });
 
 // Extent the base images cover — southern Port Phillip Bay. MUST match GEO_BASE_BOUNDS in index.html.

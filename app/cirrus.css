@@ -3,11 +3,8 @@
      A minimalist system staged on an open-sky background, pill
      geometry on every control, one italic serif accent per hero.
      Class names are preserved so app.js / index.html stay untouched.
+     Font @imports were hoisted into globals.css (must precede all rules).
      ============================================================= */
-  @import url("https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700&display=swap");
-  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
-  @import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&display=swap");
-
   :root{
     --tabh:62px;
 
@@ -26,9 +23,9 @@
     --amazing:#2bc48a; --good:#2e7def; --marg:#ff7a3d; --poor:#e5484d;
 
     /* Type families */
-    --font-display:"Inter Tight","Inter",system-ui,-apple-system,sans-serif;
-    --font-sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-    --font-serif:"Instrument Serif","Iowan Old Style",Georgia,serif;
+    --font-display:var(--font-inter-tight),var(--font-inter),system-ui,-apple-system,sans-serif;
+    --font-sans:var(--font-inter),system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --font-serif:var(--font-instrument),"Iowan Old Style",Georgia,serif;
 
     /* Radius — pill geometry is the spine */
     --radius-pill:999px; --radius-card:28px; --radius-tile:20px; --radius-sm:12px;
@@ -322,6 +319,12 @@
   td.day{text-align:left;font-weight:600}
   .rate{font-weight:600;border-radius:var(--radius-pill);padding:4px 10px;color:#fff;display:inline-block;min-width:74px}
   .loading-row td{color:var(--muted);padding:18px}
+  .loadgif{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:180px;text-align:center}
+  .loadgif::before{content:"";width:120px;height:120px;flex:none;background:url("/assets/brand/loading-anims/Snaggletooth Bite.gif") center/contain no-repeat}
+  .maploader{position:absolute;inset:0;z-index:1000;background:#fff}
+  .maploader::before{content:"";width:92%;height:92%;background:url("/assets/brand/loading-anims/BlackBG Snaggletooth Bite.gif") center/contain no-repeat}
+  .loadgif-sm{display:inline-flex;align-items:center;gap:6px}
+  .loadgif-sm::before{content:"";width:18px;height:18px;flex:none;background:url("/assets/brand/loading-anims/Snaggletooth Bite.gif") center/contain no-repeat}
 
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:6px}
   @media(max-width:880px){.grid2{grid-template-columns:1fr}}
