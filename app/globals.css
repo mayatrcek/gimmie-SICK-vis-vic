@@ -1,0 +1,103 @@
+/* DIVEBYTE global styles. */
+/* Text faces are self-hosted via next/font (see app/layout.tsx), exposed as
+   --font-* CSS variables. Only the Material Symbols icon font stays a remote
+   @import (must precede all rules). */
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined");
+
+/* Tailwind v4 WITHOUT preflight — matches the old `corePlugins.preflight:false`
+   so the Cirrus design system (cirrus.css) and Leaflet aren't reset.
+   Preflight is the `base` layer; we import theme + utilities only. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* Shared Cirrus design system (ported verbatim from the old styles.css).
+   Must live in the `base` layer: it has a global `*{margin:0;padding:0}` reset,
+   and unlayered CSS would beat every Tailwind margin/padding utility. The old
+   site loaded styles.css BEFORE the CDN Tailwind styles for the same reason. */
+@import "./cirrus.css" layer(base);
+/* Pixel-homepage helper styles (scoped to .home). */
+@import "./home.css";
+
+/* Homepage design tokens — ported from the old inline `tailwind.config`
+   (index.html). v4 CSS-first @theme; only used by the `/` route. */
+@theme {
+  --color-parchment: #f2ead6;
+  --color-bone: #fffaef;
+  --color-ink-soft: #3a332a;
+  --color-border-tan: #d9cdb3;
+  --color-primary: #0043bb;
+  --color-on-primary: #ffffff;
+  --color-primary-fixed: #dbe1ff;
+  --color-primary-fixed-dim: #b5c4ff;
+  --color-secondary: #b02f0c;
+  --color-tertiary: #17593c;
+  --color-bg-tertiary: #337253;
+  --color-surface: #fff8f4;
+  --color-on-surface: #1e1b18;
+  --color-on-surface-variant: #434654;
+  --color-background: #fff8f4;
+  --color-on-background: #1e1b18;
+  --color-inverse-on-surface: #f8efea;
+  --color-surface-container-highest: #e9e1db;
+  --color-outline: #747685;
+
+  --spacing-xxs: 4px;
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-gutter: 32px;
+  --spacing-xxl: 48px;
+  --spacing-xxxl: 64px;
+  --spacing-bleed: 96px;
+
+  --container-page-max: 1280px;
+
+  --font-display-font: var(--font-pixelify), sans-serif;
+  --font-hud-font: var(--font-vt323), monospace;
+  --font-body-font: var(--font-sora), sans-serif;
+  --font-display-lg: var(--font-pixelify), sans-serif;
+  --font-display-xl: var(--font-pixelify), sans-serif;
+  --font-display-xxl: var(--font-pixelify), sans-serif;
+  --font-headline-lg: var(--font-pixelify), sans-serif;
+  --font-headline-md: var(--font-pixelify), sans-serif;
+  --font-hud-md: var(--font-vt323), monospace;
+  --font-hud-sm: var(--font-vt323), monospace;
+  --font-body-md: var(--font-sora), sans-serif;
+
+  --text-display-xxl: 128px;
+  --text-display-xxl--line-height: 0.92;
+  --text-display-xxl--letter-spacing: -0.02em;
+  --text-display-xxl--font-weight: 700;
+  --text-display-xl: 96px;
+  --text-display-xl--line-height: 0.94;
+  --text-display-xl--letter-spacing: -0.015em;
+  --text-display-xl--font-weight: 700;
+  --text-display-lg: 72px;
+  --text-display-lg--line-height: 0.96;
+  --text-display-lg--letter-spacing: -0.01em;
+  --text-display-lg--font-weight: 700;
+  --text-headline-lg: 44px;
+  --text-headline-lg--line-height: 1.02;
+  --text-headline-lg--font-weight: 700;
+  --text-headline-md: 28px;
+  --text-headline-md--line-height: 1.1;
+  --text-headline-md--font-weight: 600;
+  --text-hud-md: 22px;
+  --text-hud-md--line-height: 1;
+  --text-hud-md--letter-spacing: 0.02em;
+  --text-hud-sm: 16px;
+  --text-hud-sm--line-height: 1;
+  --text-hud-sm--letter-spacing: 0.04em;
+  --text-body-md: 16px;
+  --text-body-md--line-height: 1.6;
+}
+
+/* The old mobile scroll-scrubber strip was dropped in the port; keep the native
+   time slider visible on every viewport so the wind map has a time control on
+   mobile (cirrus.css hides it there to make room for the scrubber). */
+.wm-time-range {
+  display: block;
+}
