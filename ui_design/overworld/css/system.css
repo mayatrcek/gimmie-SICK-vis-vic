@@ -1,0 +1,1213 @@
+/* =========================================================================
+   OVERWORLD — pixel-art editorial design system
+   Tokens + reusable component classes. Light theme. CSS mode.
+   ========================================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=VT323&display=swap");
+
+/* -------------------------------------------------------------------------
+   Tokens
+   ------------------------------------------------------------------------- */
+:root {
+  /* Palette */
+  --color-parchment: #f2ead6;
+  --color-bone: #fffaef;
+  --color-ink: #161310;
+  --color-ink-soft: #3a332a;
+  --color-border-tan: #d9cdb3;
+  --color-sky-cobalt: #2e5dd6;
+  --color-sky-cobalt-pressed: #1f47b0;
+  --color-sunset-vermillion: #e2522e;
+  --color-sunset-vermillion-pressed: #b73d1d;
+  --color-pine-moss: #2f6e4f;
+  --color-pine-moss-pressed: #1f5238;
+
+  /* Semantic */
+  --color-bg: var(--color-parchment);
+  --color-surface: var(--color-bone);
+  --color-surface-sunken: var(--color-parchment);
+  --color-on-surface: var(--color-ink);
+  --color-on-surface-muted: var(--color-ink-soft);
+  --color-on-primary: var(--color-bone);
+  --color-primary: var(--color-sky-cobalt);
+  --color-secondary: var(--color-sunset-vermillion);
+  --color-tertiary: var(--color-pine-moss);
+  --color-border: var(--color-border-tan);
+  --color-border-strong: var(--color-ink);
+  --color-focus: var(--color-sky-cobalt);
+
+  /* Typography */
+  --font-display: "Pixelify Sans", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-body: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-hud: "VT323", ui-monospace, Menlo, monospace;
+
+  --fs-display-xxl: clamp(56px, 11vw, 128px);
+  --fs-display-xl: clamp(48px, 8vw, 96px);
+  --fs-display-lg: clamp(40px, 6vw, 72px);
+  --fs-headline-lg: clamp(32px, 4vw, 44px);
+  --fs-headline-md: 28px;
+  --fs-body-lg: 18px;
+  --fs-body-md: 16px;
+  --fs-body-sm: 14px;
+  --fs-label: 18px;
+  --fs-hud-md: 22px;
+  --fs-hud-sm: 16px;
+
+  --lh-display: 0.94;
+  --lh-headline: 1.05;
+  --lh-body: 1.6;
+  --lh-tight: 1;
+
+  /* Spacing */
+  --space-px: 2px;
+  --space-xxs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-xxl: 48px;
+  --space-xxxl: 64px;
+  --space-bleed: 96px;
+  --space-section: clamp(64px, 10vw, 128px);
+
+  --page-max: 1280px;
+  --measure: 64ch;
+  --measure-narrow: 520px;
+
+  /* Borders & radius */
+  --radius-none: 0;
+  --border-hairline: 1px solid var(--color-border);
+  --border-ink: 2px solid var(--color-ink);
+  --border-ink-thick: 3px solid var(--color-ink);
+
+  /* Elevation — hard offset block shadows, no blur, ever */
+  --shadow-flush: 0 0 0 0 var(--color-ink);
+  --shadow-tap: 2px 2px 0 0 var(--color-ink);
+  --shadow-button: 4px 4px 0 0 var(--color-ink);
+  --shadow-card: 6px 6px 0 0 var(--color-ink);
+  --shadow-card-lg: 10px 10px 0 0 var(--color-ink);
+  --shadow-cobalt: 4px 4px 0 0 var(--color-sky-cobalt);
+  --shadow-vermillion: 4px 4px 0 0 var(--color-sunset-vermillion);
+  --shadow-moss: 4px 4px 0 0 var(--color-pine-moss);
+
+  /* Press metaphor */
+  --press-translate: translate(4px, 4px);
+
+  /* Decorative */
+  --scanline-opacity: 0.06;
+  --ornament-opacity: 0.12;
+}
+
+/* -------------------------------------------------------------------------
+   Base
+   ------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  color: var(--color-on-surface);
+  font-family: var(--font-body);
+  font-size: var(--fs-body-md);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Subtle dither under everything: a faint speckle to mimic 16-bit paper */
+  background-image:
+    radial-gradient(rgba(22, 19, 16, 0.05) 1px, transparent 1px),
+    radial-gradient(rgba(22, 19, 16, 0.04) 1px, transparent 1px);
+  background-size: 4px 4px, 12px 12px;
+  background-position: 0 0, 2px 2px;
+}
+
+img,
+svg,
+picture,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+img.pixel,
+.pixel-img,
+.pixel-img img {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+a {
+  color: var(--color-ink);
+  text-decoration-color: var(--color-sky-cobalt);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+a:hover {
+  color: var(--color-sky-cobalt);
+}
+
+::selection {
+  background: var(--color-sky-cobalt);
+  color: var(--color-bone);
+}
+
+/* -------------------------------------------------------------------------
+   Typography utilities
+   ------------------------------------------------------------------------- */
+.display-xxl,
+.display-xl,
+.display-lg,
+.headline-lg,
+.headline-md {
+  font-family: var(--font-display);
+  color: var(--color-on-surface);
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.015em;
+}
+
+.display-xxl {
+  font-size: var(--fs-display-xxl);
+  line-height: var(--lh-display);
+  letter-spacing: -0.02em;
+}
+
+.display-xl {
+  font-size: var(--fs-display-xl);
+  line-height: var(--lh-display);
+}
+
+.display-lg {
+  font-size: var(--fs-display-lg);
+  line-height: var(--lh-display);
+}
+
+.headline-lg {
+  font-size: var(--fs-headline-lg);
+  line-height: var(--lh-headline);
+}
+
+.headline-md {
+  font-size: var(--fs-headline-md);
+  line-height: var(--lh-headline);
+  font-weight: 600;
+}
+
+.body-lg {
+  font-family: var(--font-body);
+  font-size: var(--fs-body-lg);
+  line-height: var(--lh-body);
+  color: var(--color-on-surface);
+}
+
+.body-md {
+  font-family: var(--font-body);
+  font-size: var(--fs-body-md);
+  line-height: var(--lh-body);
+  color: var(--color-on-surface);
+}
+
+.body-sm {
+  font-family: var(--font-body);
+  font-size: var(--fs-body-sm);
+  line-height: 1.55;
+  color: var(--color-on-surface-muted);
+}
+
+.hud,
+.label {
+  font-family: var(--font-hud);
+  font-size: var(--fs-hud-md);
+  line-height: var(--lh-tight);
+  color: var(--color-on-surface);
+  letter-spacing: 0.02em;
+}
+
+.hud-sm {
+  font-family: var(--font-hud);
+  font-size: var(--fs-hud-sm);
+  letter-spacing: 0.04em;
+  color: var(--color-on-surface);
+  line-height: var(--lh-tight);
+}
+
+.label-uppercase {
+  font-family: var(--font-hud);
+  font-size: var(--fs-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-on-surface);
+  line-height: var(--lh-tight);
+}
+
+.muted {
+  color: var(--color-on-surface-muted);
+}
+
+.text-cobalt { color: var(--color-sky-cobalt); }
+.text-vermillion { color: var(--color-sunset-vermillion); }
+.text-moss { color: var(--color-pine-moss); }
+.text-bone { color: var(--color-bone); }
+.text-ink { color: var(--color-ink); }
+
+.measure { max-width: var(--measure); }
+.measure-narrow { max-width: var(--measure-narrow); }
+
+/* Headline that overlaps imagery in heroes */
+.display-overlap {
+  position: relative;
+  z-index: 2;
+}
+
+/* -------------------------------------------------------------------------
+   Layout primitives
+   ------------------------------------------------------------------------- */
+.page {
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-inline: var(--space-xl);
+}
+
+@media (min-width: 768px) {
+  .container { padding-inline: var(--space-xxxl); }
+}
+
+@media (min-width: 1280px) {
+  .container { padding-inline: var(--space-bleed); }
+}
+
+.container-bleed {
+  width: 100%;
+  position: relative;
+}
+
+.section {
+  padding-block: var(--space-section);
+  position: relative;
+}
+
+.section--compact {
+  padding-block: var(--space-xxl);
+}
+
+.stack { display: flex; flex-direction: column; }
+.stack > * + * { margin-top: var(--space-md); }
+.stack-sm > * + * { margin-top: var(--space-xs); }
+.stack-lg > * + * { margin-top: var(--space-lg); }
+.stack-xl > * + * { margin-top: var(--space-xl); }
+
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.center {
+  text-align: center;
+  margin-inline: auto;
+}
+
+.center-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Three-up grid with intentional staircase y-offsets */
+.grid-3 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-xl);
+}
+
+@media (min-width: 768px) {
+  .grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-lg);
+  }
+  .grid-3 > :nth-child(2) { transform: translateY(24px); }
+  .grid-3 > :nth-child(3) { transform: translateY(-12px); }
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-xl);
+}
+
+@media (min-width: 768px) {
+  .grid-2 {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xxl);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Decorative — staircase divider + scanlines + dither
+   ------------------------------------------------------------------------- */
+.staircase {
+  height: 12px;
+  width: 100%;
+  background-image:
+    linear-gradient(to right, var(--color-ink) 0, var(--color-ink) 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 4px;
+  background-position: 0 4px;
+  position: relative;
+}
+
+.staircase::before,
+.staircase::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  width: 100%;
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      var(--color-ink) 0 8px,
+      transparent 8px 16px
+    );
+  background-size: 16px 4px;
+  background-repeat: no-repeat;
+}
+
+.staircase::before { top: 0; background-position: 0 0; }
+.staircase::after { bottom: 0; background-position: 8px 8px; }
+
+/* Scanlines overlay — apply with the .scan class or .scan-overlay element */
+.scan {
+  position: relative;
+  isolation: isolate;
+}
+
+.scan::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(22, 19, 16, var(--scanline-opacity)) 0 2px,
+    transparent 2px 4px
+  );
+  z-index: 1;
+}
+
+/* Quest Star background ornament */
+.ornament {
+  position: absolute;
+  color: var(--color-ink);
+  opacity: var(--ornament-opacity);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ornament svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+/* -------------------------------------------------------------------------
+   Buttons
+   ------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: 14px 22px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  border: var(--border-ink);
+  border-radius: var(--radius-none);
+  background-color: var(--color-bone);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-button);
+  transition:
+    transform 80ms ease,
+    box-shadow 80ms ease,
+    background-color 120ms ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.btn:hover { background-color: var(--color-parchment); }
+.btn:active,
+.btn[data-pressed="true"] {
+  transform: var(--press-translate);
+  box-shadow: var(--shadow-flush);
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow:
+    var(--shadow-button),
+    0 0 0 3px var(--color-bone),
+    0 0 0 6px var(--color-sky-cobalt);
+}
+
+.btn-primary {
+  background-color: var(--color-sky-cobalt);
+  color: var(--color-bone);
+}
+
+.btn-primary:hover { background-color: var(--color-sky-cobalt-pressed); }
+
+.btn-vermillion {
+  background-color: var(--color-sunset-vermillion);
+  color: var(--color-bone);
+}
+
+.btn-vermillion:hover { background-color: var(--color-sunset-vermillion-pressed); }
+
+.btn-moss {
+  background-color: var(--color-pine-moss);
+  color: var(--color-bone);
+}
+
+.btn-moss:hover { background-color: var(--color-pine-moss-pressed); }
+
+.btn-ghost {
+  background-color: transparent;
+  box-shadow: var(--shadow-flush);
+}
+
+.btn-ghost:hover { background-color: rgba(22, 19, 16, 0.05); }
+
+.btn-lg {
+  padding: 18px 28px;
+  font-size: 20px;
+}
+
+.btn-sm {
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.btn .icon,
+.btn i {
+  font-size: 1.1em;
+  line-height: 1;
+}
+
+/* -------------------------------------------------------------------------
+   Inputs / form fields
+   ------------------------------------------------------------------------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.field-label {
+  font-family: var(--font-hud);
+  font-size: var(--fs-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  line-height: 1;
+}
+
+.input,
+.textarea,
+.select {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  font-family: var(--font-hud);
+  font-size: 22px;
+  line-height: 1.1;
+  color: var(--color-ink);
+  background-color: var(--color-bone);
+  border: var(--border-ink);
+  border-radius: var(--radius-none);
+  box-shadow: var(--shadow-tap);
+  outline: none;
+  transition:
+    box-shadow 100ms ease,
+    border-color 100ms ease,
+    transform 100ms ease;
+}
+
+.input { height: 52px; }
+.textarea { min-height: 120px; resize: vertical; }
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--color-ink-soft);
+  opacity: 0.7;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  border-color: var(--color-sky-cobalt);
+  box-shadow: var(--shadow-cobalt);
+}
+
+.input--vermillion:focus {
+  border-color: var(--color-sunset-vermillion);
+  box-shadow: var(--shadow-vermillion);
+}
+
+.field-help {
+  font-family: var(--font-hud);
+  font-size: 16px;
+  color: var(--color-ink-soft);
+  line-height: 1.1;
+}
+
+/* Inline field row (input + button) */
+.inline-form {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.inline-form .input { flex: 1 1 240px; }
+
+/* -------------------------------------------------------------------------
+   Cards
+   ------------------------------------------------------------------------- */
+.card {
+  position: relative;
+  background-color: var(--color-bone);
+  color: var(--color-ink);
+  border: var(--border-ink);
+  border-radius: var(--radius-none);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-lg);
+}
+
+.card-lg {
+  padding: var(--space-xl);
+  box-shadow: var(--shadow-card-lg);
+}
+
+.card-sunken {
+  background-color: var(--color-parchment);
+  box-shadow: var(--shadow-tap);
+}
+
+/* Notched-corner card: pixel cut on top-right + bottom-left */
+.card-notched {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  );
+}
+
+.card-cobalt {
+  background-color: var(--color-sky-cobalt);
+  color: var(--color-bone);
+}
+
+.card-vermillion {
+  background-color: var(--color-sunset-vermillion);
+  color: var(--color-bone);
+}
+
+.card-moss {
+  background-color: var(--color-pine-moss);
+  color: var(--color-bone);
+}
+
+.card-ink {
+  background-color: var(--color-ink);
+  color: var(--color-bone);
+}
+
+.card-stack-list > * + * {
+  margin-top: var(--space-md);
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+  padding-top: var(--space-sm);
+  border-top: 2px dotted var(--color-border-tan);
+}
+
+.card-stamp {
+  font-family: var(--font-hud);
+  font-size: 16px;
+  color: var(--color-ink-soft);
+  letter-spacing: 0.04em;
+}
+
+/* -------------------------------------------------------------------------
+   Badges / stickers — pure rectangles, 2px ink border, optional rotation
+   ------------------------------------------------------------------------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 3px;
+  font-family: var(--font-hud);
+  font-size: 18px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background-color: var(--color-bone);
+  color: var(--color-ink);
+  border: var(--border-ink);
+  line-height: 1;
+}
+
+.badge-primary { background-color: var(--color-sky-cobalt); color: var(--color-bone); }
+.badge-vermillion { background-color: var(--color-sunset-vermillion); color: var(--color-bone); }
+.badge-moss { background-color: var(--color-pine-moss); color: var(--color-bone); }
+.badge-ink { background-color: var(--color-ink); color: var(--color-bone); }
+
+/* Sticker = badge that's hand-applied, slightly rotated, with its own shadow */
+.sticker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 5px;
+  font-family: var(--font-hud);
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background-color: var(--color-bone);
+  color: var(--color-ink);
+  border: var(--border-ink);
+  box-shadow: var(--shadow-button);
+  line-height: 1;
+}
+
+.sticker-primary { background-color: var(--color-sky-cobalt); color: var(--color-bone); }
+.sticker-vermillion { background-color: var(--color-sunset-vermillion); color: var(--color-bone); }
+.sticker-moss { background-color: var(--color-pine-moss); color: var(--color-bone); }
+
+.rotate-n2 { transform: rotate(-2deg); }
+.rotate-n1 { transform: rotate(-1deg); }
+.rotate-p1 { transform: rotate(1deg); }
+.rotate-p2 { transform: rotate(2deg); }
+
+/* -------------------------------------------------------------------------
+   Checkbox — 20px ink square with stepped pixel tick
+   ------------------------------------------------------------------------- */
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-family: var(--font-body);
+  font-size: var(--fs-body-md);
+  color: var(--color-ink);
+  cursor: pointer;
+  user-select: none;
+}
+
+.check input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  background-color: var(--color-bone);
+  border: var(--border-ink);
+  border-radius: var(--radius-none);
+  position: relative;
+  flex-shrink: 0;
+  cursor: pointer;
+  margin: 0;
+  box-shadow: var(--shadow-tap);
+  transition: background-color 80ms ease, box-shadow 80ms ease;
+}
+
+.check input[type="checkbox"]:checked {
+  background-color: var(--color-sky-cobalt);
+}
+
+/* Stepped pixel tick built from two ink blocks (no curves) */
+.check input[type="checkbox"]:checked::before,
+.check input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  background-color: var(--color-bone);
+}
+
+.check input[type="checkbox"]:checked::before {
+  width: 4px;
+  height: 8px;
+  left: 4px;
+  bottom: 4px;
+}
+
+.check input[type="checkbox"]:checked::after {
+  width: 10px;
+  height: 4px;
+  left: 4px;
+  bottom: 4px;
+}
+
+.check input[type="checkbox"]:focus-visible {
+  box-shadow: var(--shadow-cobalt), 0 0 0 3px var(--color-bone), 0 0 0 6px var(--color-sky-cobalt);
+}
+
+/* -------------------------------------------------------------------------
+   Tabs
+   ------------------------------------------------------------------------- */
+.tabs {
+  display: inline-flex;
+  align-items: stretch;
+  background-color: var(--color-parchment);
+  border: var(--border-ink);
+  box-shadow: var(--shadow-tap);
+  padding: 0;
+}
+
+.tab {
+  position: relative;
+  padding: 12px 20px 14px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+  background: transparent;
+  border: none;
+  border-right: var(--border-ink);
+  cursor: pointer;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.tab:last-child { border-right: none; }
+
+.tab:hover { color: var(--color-ink); }
+
+.tab[aria-selected="true"],
+.tab.is-active {
+  color: var(--color-ink);
+  background-color: var(--color-bone);
+}
+
+.tab[aria-selected="true"]::after,
+.tab.is-active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4px;
+  background-color: var(--color-sky-cobalt);
+}
+
+.tab:focus-visible {
+  outline: 3px solid var(--color-sky-cobalt);
+  outline-offset: -3px;
+}
+
+/* -------------------------------------------------------------------------
+   Pixel image figures
+   ------------------------------------------------------------------------- */
+.pixel-img {
+  position: relative;
+  display: block;
+  border: var(--border-ink);
+  box-shadow: var(--shadow-card);
+  background-color: var(--color-ink);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.pixel-img img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  object-fit: cover;
+}
+
+.pixel-img::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(22, 19, 16, 0.08) 0 2px,
+    transparent 2px 4px
+  );
+  z-index: 2;
+}
+
+.pixel-img-lg { box-shadow: var(--shadow-card-lg); }
+
+.pixel-img figcaption,
+.pixel-caption {
+  margin-top: var(--space-sm);
+  font-family: var(--font-hud);
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-soft);
+  line-height: 1.1;
+}
+
+/* Image breakout — pushes past parent container edges */
+.bleed-image {
+  position: relative;
+  margin-inline: calc(var(--space-bleed) * -1);
+  width: calc(100% + (var(--space-bleed) * 2));
+}
+
+@media (max-width: 768px) {
+  .bleed-image {
+    margin-inline: calc(var(--space-md) * -1);
+    width: calc(100% + (var(--space-md) * 2));
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Hero — centered, image-forward, headline overlap
+   ------------------------------------------------------------------------- */
+.hero {
+  position: relative;
+  text-align: center;
+  padding-block: clamp(48px, 8vw, 120px) 0;
+  isolation: isolate;
+}
+
+.hero__hud {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-family: var(--font-hud);
+  font-size: 18px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+  margin-bottom: var(--space-md);
+}
+
+.hero__hud .sep {
+  color: var(--color-sky-cobalt);
+}
+
+.hero__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--fs-display-xxl);
+  line-height: 0.92;
+  letter-spacing: -0.025em;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.hero__lede {
+  margin: var(--space-lg) auto 0;
+  max-width: var(--measure-narrow);
+  font-family: var(--font-body);
+  font-size: var(--fs-body-lg);
+  line-height: 1.55;
+  color: var(--color-ink);
+}
+
+.hero__actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-md);
+  margin-top: var(--space-xl);
+}
+
+.hero__art {
+  margin-top: var(--space-xxl);
+  position: relative;
+  z-index: 1;
+}
+
+.hero__art .pixel-img {
+  width: 100%;
+  aspect-ratio: 16 / 7;
+}
+
+.hero__ornament {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -10%);
+  width: clamp(220px, 36vw, 420px);
+  aspect-ratio: 1 / 1;
+  color: var(--color-ink);
+  opacity: 0.1;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hero__ornament svg { width: 100%; height: 100%; fill: currentColor; }
+
+/* -------------------------------------------------------------------------
+   Header / wordmark / nav
+   ------------------------------------------------------------------------- */
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding-block: var(--space-md);
+  border-bottom: var(--border-ink);
+  position: relative;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  text-decoration: none;
+  color: var(--color-ink);
+}
+
+.brand__mark {
+  width: 36px;
+  height: 36px;
+  color: var(--color-ink);
+}
+
+.brand__mark svg { width: 100%; height: 100%; fill: currentColor; }
+
+.brand__name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 24px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.nav {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.nav a {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.nav a:hover { color: var(--color-sky-cobalt); }
+
+/* HUD marginalia strip */
+.marginalia {
+  font-family: var(--font-hud);
+  font-size: 16px;
+  letter-spacing: 0.06em;
+  color: var(--color-ink-soft);
+  text-transform: uppercase;
+}
+
+.marginalia .live {
+  color: var(--color-sunset-vermillion);
+}
+
+/* -------------------------------------------------------------------------
+   Quest Star — signature inline SVG glyph (use as <span class="qstar">…)
+   ------------------------------------------------------------------------- */
+.qstar {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.12em;
+  color: currentColor;
+}
+
+.qstar svg { width: 100%; height: 100%; fill: currentColor; }
+
+/* -------------------------------------------------------------------------
+   Quest log list — VT323 timestamps in the gutter
+   ------------------------------------------------------------------------- */
+.quest-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.quest-list li {
+  display: grid;
+  grid-template-columns: 100px 1fr auto;
+  gap: var(--space-md);
+  align-items: baseline;
+  padding: var(--space-sm) var(--space-md);
+  background-color: var(--color-bone);
+  border: var(--border-ink);
+  box-shadow: var(--shadow-tap);
+}
+
+.quest-list .stamp {
+  font-family: var(--font-hud);
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  color: var(--color-sky-cobalt);
+}
+
+.quest-list .body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: var(--color-ink);
+  line-height: 1.4;
+}
+
+.quest-list .tag {
+  font-family: var(--font-hud);
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-soft);
+}
+
+@media (max-width: 640px) {
+  .quest-list li {
+    grid-template-columns: 1fr;
+    gap: var(--space-xxs);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Stat block — three saturated cards in a row
+   ------------------------------------------------------------------------- */
+.stat {
+  text-align: center;
+  padding: var(--space-lg);
+  border: var(--border-ink);
+  box-shadow: var(--shadow-card);
+  background-color: var(--color-bone);
+}
+
+.stat__num {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 64px;
+  line-height: 1;
+  color: var(--color-ink);
+  letter-spacing: -0.02em;
+}
+
+.stat__label {
+  margin-top: var(--space-xs);
+  font-family: var(--font-hud);
+  font-size: 18px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+/* -------------------------------------------------------------------------
+   Newsletter / call-to-action block
+   ------------------------------------------------------------------------- */
+.cta-block {
+  position: relative;
+  padding: var(--space-xxl) var(--space-xl);
+  background-color: var(--color-parchment);
+  border: var(--border-ink);
+  box-shadow: var(--shadow-card);
+}
+
+/* -------------------------------------------------------------------------
+   Footer
+   ------------------------------------------------------------------------- */
+.site-footer {
+  background-color: var(--color-ink);
+  color: var(--color-bone);
+  padding-block: var(--space-xxl);
+  margin-top: var(--space-section);
+  border-top: 4px solid var(--color-sky-cobalt);
+}
+
+.site-footer .brand,
+.site-footer a {
+  color: var(--color-bone);
+}
+
+.site-footer .nav a:hover { color: var(--color-sunset-vermillion); }
+
+.site-footer .marginalia { color: rgba(255, 250, 239, 0.6); }
+
+/* -------------------------------------------------------------------------
+   Misc helpers
+   ------------------------------------------------------------------------- */
+.divider-line {
+  height: 1px;
+  background-color: var(--color-border-tan);
+  border: none;
+  margin-block: var(--space-lg);
+}
+
+.surface-bone { background-color: var(--color-bone); }
+.surface-parchment { background-color: var(--color-parchment); }
+.surface-ink { background-color: var(--color-ink); color: var(--color-bone); }
+.surface-cobalt { background-color: var(--color-sky-cobalt); color: var(--color-bone); }
+
+.relative { position: relative; }
+.flex { display: flex; }
+.inline-flex { display: inline-flex; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.gap-xs { gap: var(--space-xs); }
+.gap-sm { gap: var(--space-sm); }
+.gap-md { gap: var(--space-md); }
+.gap-lg { gap: var(--space-lg); }
+
+/* -------------------------------------------------------------------------
+   Motion — respect reduced motion
+   ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .btn:active,
+  .btn[data-pressed="true"] {
+    transform: translate(1px, 1px);
+  }
+  .grid-3 > * { transform: none !important; }
+}

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en" style=""><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OVERWORLD OCEANIC // GIMME SICK VIS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;700;800&amp;family=Pixelify+Sans:wght@400;700&amp;family=VT323&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#0b5135",
+                        "surface-container": "#f5ece7",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed": "#aff1ca",
+                        "on-tertiary-container": "#b2f4cd",
+                        "tertiary-fixed-dim": "#94d4af",
+                        "surface": "#fff8f4",
+                        "on-secondary-fixed-variant": "#8a1d00",
+                        "outline": "#747685",
+                        "on-secondary-container": "#5e1100",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed": "#ffdad2",
+                        "border-tan": "#D9CDB3",
+                        "surface-variant": "#e9e1db",
+                        "error-container": "#ffdad6",
+                        "surface-container-high": "#efe7e1",
+                        "primary-fixed-dim": "#b5c4ff",
+                        "inverse-on-surface": "#f8efea",
+                        "parchment": "#F2EAD6",
+                        "secondary": "#b02f0c",
+                        "on-secondary-fixed": "#3c0700",
+                        "ink-soft": "#3A332A",
+                        "on-background": "#1e1b18",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed": "#00174d",
+                        "surface-dim": "#e0d9d3",
+                        "on-tertiary-fixed": "#002112",
+                        "inverse-surface": "#34302c",
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed-variant": "#003cab",
+                        "primary-container": "#2e5dd6",
+                        "surface-container-lowest": "#ffffff",
+                        "bone": "#FFFAEF",
+                        "primary-fixed": "#dbe1ff",
+                        "surface-container-low": "#faf2ec",
+                        "tertiary-container": "#337253",
+                        "surface-bright": "#fff8f4",
+                        "outline-variant": "#c3c5d6",
+                        "on-primary-container": "#dfe4ff",
+                        "background": "#fff8f4",
+                        "surface-container-highest": "#e9e1db",
+                        "tertiary": "#17593c",
+                        "inverse-primary": "#b5c4ff",
+                        "primary": "#0043bb",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#434654",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#2355ce",
+                        "secondary-fixed-dim": "#ffb4a2",
+                        "secondary-container": "#fc653f",
+                        "on-surface": "#1e1b18"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xxxl": "64px",
+                        "page-max": "1280px",
+                        "md": "16px",
+                        "xl": "32px",
+                        "bleed": "96px",
+                        "px": "2px",
+                        "xs": "8px",
+                        "sm": "12px",
+                        "gutter": "32px",
+                        "xxs": "4px",
+                        "lg": "24px",
+                        "xxl": "48px"
+                    },
+                    "fontFamily": {
+                        "display-font": ["Pixelify Sans", "sans-serif"],
+                        "hud-font": ["VT323", "monospace"],
+                        "body-font": ["Sora", "sans-serif"],
+                        "display-xxl": ["Pixelify Sans"],
+                        "hud-md": ["VT323"],
+                        "hud-sm": ["VT323"],
+                        "display-lg-mobile": ["Sora"],
+                        "display-lg": ["Pixelify Sans"],
+                        "display-xl": ["Pixelify Sans"],
+                        "body-md": ["Sora"],
+                        "body-lg": ["Sora"],
+                        "label-sm": ["VT323"],
+                        "headline-lg": ["Pixelify Sans"],
+                        "body-sm": ["Sora"],
+                        "headline-md": ["Pixelify Sans"]
+                    },
+                    "fontSize": {
+                        "display-xxl": ["128px", {"lineHeight": "0.92", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "hud-md": ["22px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "400"}],
+                        "hud-sm": ["16px", {"lineHeight": "1", "letterSpacing": "0.04em", "fontWeight": "400"}],
+                        "display-lg-mobile": ["48px", {"lineHeight": "46px", "fontWeight": "700"}],
+                        "display-lg": ["72px", {"lineHeight": "0.96", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "display-xl": ["96px", {"lineHeight": "0.94", "letterSpacing": "-0.015em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.55", "fontWeight": "400"}],
+                        "label-sm": ["18px", {"lineHeight": "1", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                        "headline-lg": ["44px", {"lineHeight": "1.02", "fontWeight": "700"}],
+                        "body-sm": ["14px", {"lineHeight": "1.55", "fontWeight": "500"}],
+                        "headline-md": ["28px", {"lineHeight": "1.1", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Sora', sans-serif; background-color: #F2EAD6; overflow-x: hidden; }
+        .pixel-corners {
+            clip-path: polygon(
+                0px 8px, 8px 8px, 8px 0px, 
+                calc(100% - 8px) 0px, calc(100% - 8px) 8px, 100% 8px, 
+                100% calc(100% - 8px), calc(100% - 8px) calc(100% - 8px), calc(100% - 8px) 100%, 
+                8px 100%, 8px calc(100% - 8px), 0px calc(100% - 8px)
+            );
+        }
+        .notched-card {
+            clip-path: polygon(
+                16px 0, 100% 0, 100% calc(100% - 16px), 
+                calc(100% - 16px) 100%, 0 100%, 0 16px
+            );
+        }
+        .quest-star {
+            background-image: radial-gradient(circle at 50% 50%, rgba(0, 67, 187, 0.05) 0%, transparent 70%);
+            mask-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 0 L55 45 L100 50 L55 55 L50 100 L45 55 L0 50 L45 45 Z' fill='black'/%3E%3C/svg%3E");
+            mask-size: 200px 200px;
+            mask-repeat: no-repeat;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* 16-bit Float Animation */
+        @keyframes float-pixel {
+            0% { transform: translateY(0px); }
+            25% { transform: translateY(-4px); }
+            50% { transform: translateY(0px); }
+            75% { transform: translateY(4px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* Hero Glitch Animation */
+        @keyframes glitch-stagger {
+            0% { transform: translate(12px, -8px); opacity: 0; filter: contrast(2); }
+            15% { transform: translate(-12px, 8px); opacity: 1; filter: contrast(1); }
+            30% { transform: translate(6px, -4px); }
+            45% { transform: translate(-6px, 4px); }
+            60% { transform: translate(2px, -2px); }
+            75% { transform: translate(-2px, 2px); }
+            90% { transform: translate(0, 0); }
+            100% { transform: translate(0, 0); }
+        }
+
+        @keyframes subtle-float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-3px); }
+        }
+
+        .hero-title-entrance {
+            animation: glitch-stagger 0.6s steps(6) forwards, subtle-float 3s ease-in-out infinite 0.7s;
+        }
+
+        .channel-card-animate {
+            transition: transform 0.1s steps(2), shadow 0.1s steps(2);
+        }
+
+        .channel-card-animate:hover {
+            animation: float-pixel 1.2s steps(4) infinite;
+        }
+
+        .channel-card-animate:active {
+            animation: none;
+            transform: translate(4px, 4px);
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body class="bg-parchment text-on-surface">
+<!-- Quest Star Backdrop -->
+<div class="fixed inset-0 pointer-events-none opacity-10 flex items-center justify-center">
+<div class="w-[800px] h-[800px] quest-star"></div>
+</div>
+<!-- Top Navigation Shell -->
+<header class="bg-parchment dark:bg-surface-container-highest border-b-2 border-ink-soft dark:border-outline shadow-[4px_4px_0px_0px_rgba(25,19,16,1)] sticky top-0 z-50">
+<div class="flex justify-between items-center w-full px-xl py-md max-w-page-max mx-auto">
+<div class="font-display-lg text-headline-lg uppercase tracking-tighter text-on-surface dark:text-inverse-on-surface font-bold">
+                DIVEBYTE</div>
+<nav class="hidden md:flex gap-xl">
+<a class="text-primary border-b-4 border-primary pb-1 font-hud-md text-hud-md hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all" href="#">HOME</a>
+<a class="text-on-surface-variant font-hud-md text-hud-md hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all" href="#">FORECAST</a>
+<a class="text-on-surface-variant font-hud-md text-hud-md hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all" href="#">LIVE_DATA</a>
+<a class="text-on-surface-variant font-hud-md text-hud-md hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all" href="#">LEARN</a>
+<a class="text-on-surface-variant font-hud-md text-hud-md hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all" href="#">ABOUT</a><a class="text-on-surface-variant font-hud-md text-hud-md hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all" href="#">FEEDBACK</a></nav>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary text-3xl cursor-pointer">account_circle</span>
+<span class="material-symbols-outlined text-on-surface-variant text-3xl cursor-pointer">settings</span>
+</div>
+</div>
+</header>
+<main class="relative">
+<!-- Hero Section -->
+<section class="relative min-h-[85vh] flex flex-col items-center justify-center text-center overflow-hidden">
+<!-- Full bleed pixel landscape background -->
+<div class="absolute inset-0 z-0">
+<div class="w-full h-full bg-cover bg-center" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCm38URIzWfOZJxYBaurCzTAuRp-mUcHAdINfFsc-6rSNw0ZNDUp5yTPhEUP8Nv7vrnDKZHsK3AJmBjntthJsssDefwoxii7eNiqfDvDFsvMEYbfUflTlJjUc0ucxk4d7f3TyD5NLuJE84ASbZxkXYeXVVUadQ9tCQm6JcJB3BSMEzh4KCIeA0Ig3Ss0HIv3VNTcZgBq_kxbESBGCEKBZ62shqCXbTMr18HXIgPJIsHJJtGNa2saqM0c1knGSHIBDw0lZXjTEF-Cr8"); image-rendering: pixelated;'></div>
+<div class="absolute inset-0 bg-ink-soft/40 mix-blend-overlay"></div>
+</div>
+<!-- Hero Content Block - Moved Up by approx 18% -->
+<div class="relative z-10 px-md absolute -translate-y-1/2 w-full top-[12%]">
+<h1 class="font-display-xxl text-display-xl md:text-display-xxl text-bone drop-shadow-[8px_8px_0px_rgba(25,19,16,1)] mb-xxs hero-title-entrance">GIMME SICK VIS</h1>
+<div class="inline-flex flex-col md:flex-row items-center gap-md bg-ink-soft text-parchment py-sm px-xl border-2 border-primary shadow-[6px_6px_0px_0px_#0043bb]">
+<span class="font-hud-md text-hud-md tracking-[0.2em] uppercase">Daily Ocean &amp; Dive Update</span>
+<span class="hidden md:block w-px h-6 bg-parchment/30"></span>
+<span class="font-hud-md text-hud-md italic opacity-90">Region: VICTORIA_COAST_GRID_7</span>
+</div>
+</div>
+</section>
+<!-- Dive Sites Grid -->
+<div class="w-full overflow-hidden">
+<section class="bg-ink-soft border-y-2 border-primary py-sm relative overflow-hidden">
+<style>
+      @keyframes marquee {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+      }
+      .animate-marquee {
+        display: flex;
+        width: max-content;
+        animation: marquee 30s linear infinite;
+      }
+      .dive-flag {
+        width: 24px;
+        height: 24px;
+        background-color: #b02f0c;
+        position: relative;
+        display: inline-block;
+        vertical-align: middle;
+        margin: 0 24px;
+      }
+      .dive-flag::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, transparent 45%, #ffffff 45%, #ffffff 55%, transparent 55%);
+      }
+    </style>
+<div class="animate-marquee"><div class="flex items-center font-display-font text-hud-md text-bone uppercase tracking-widest whitespace-nowrap gap-xl"><span class="flex items-center gap-md">REAL-TIME SWELL DATA <img alt="Dive Flag" class="h-6 w-6 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBreqv9FpLFGt4YRm_Jkw-Yqq1x59v0bEN9neytMQ7pH9vguWNM2cLtBiKtbirBe2B3gIdl0ujh9lxZxCSg928XCeRTaIzhay7e_kz_aEgxIUlyoyRE0-m06yFUTBBsqLRfeAU1CIFy57PDQShpZZEDZNciUKm8xj4G9JB0iTaL4lT8AFGgfyemEL0fMQw6gQVObggG1V3Xex-R1n0uuxiEQxQJlKkhLy8xvmXvybaQztPm-xcE_BqJwxydeT5D0yvrUoPHNjvk7uo"/></span><span class="flex items-center gap-md">VICTORIAN COASTAL INTEL <img alt="Dive Flag" class="h-6 w-6 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBreqv9FpLFGt4YRm_Jkw-Yqq1x59v0bEN9neytMQ7pH9vguWNM2cLtBiKtbirBe2B3gIdl0ujh9lxZxCSg928XCeRTaIzhay7e_kz_aEgxIUlyoyRE0-m06yFUTBBsqLRfeAU1CIFy57PDQShpZZEDZNciUKm8xj4G9JB0iTaL4lT8AFGgfyemEL0fMQw6gQVObggG1V3Xex-R1n0uuxiEQxQJlKkhLy8xvmXvybaQztPm-xcE_BqJwxydeT5D0yvrUoPHNjvk7uo"/></span><span class="flex items-center gap-md">SATELLITE CHLOROPHYLL <img alt="Dive Flag" class="h-6 w-6 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBreqv9FpLFGt4YRm_Jkw-Yqq1x59v0bEN9neytMQ7pH9vguWNM2cLtBiKtbirBe2B3gIdl0ujh9lxZxCSg928XCeRTaIzhay7e_kz_aEgxIUlyoyRE0-m06yFUTBBsqLRfeAU1CIFy57PDQShpZZEDZNciUKm8xj4G9JB0iTaL4lT8AFGgfyemEL0fMQw6gQVObggG1V3Xex-R1n0uuxiEQxQJlKkhLy8xvmXvybaQztPm-xcE_BqJwxydeT5D0yvrUoPHNjvk7uo"/></span><span class="flex items-center gap-md">SEA SURFACE TEMP <img alt="Dive Flag" class="h-6 w-6 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBreqv9FpLFGt4YRm_Jkw-Yqq1x59v0bEN9neytMQ7pH9vguWNM2cLtBiKtbirBe2B3gIdl0ujh9lxZxCSg928XCeRTaIzhay7e_kz_aEgxIUlyoyRE0-m06yFUTBBsqLRfeAU1CIFy57PDQShpZZEDZNciUKm8xj4G9JB0iTaL4lT8AFGgfyemEL0fMQw6gQVObggG1V3Xex-R1n0uuxiEQxQJlKkhLy8xvmXvybaQztPm-xcE_BqJwxydeT5D0yvrUoPHNjvk7uo"/></span><span class="flex items-center gap-md">PRECISION DIVE PLANNING <img alt="Dive Flag" class="h-6 w-6 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBreqv9FpLFGt4YRm_Jkw-Yqq1x59v0bEN9neytMQ7pH9vguWNM2cLtBiKtbirBe2B3gIdl0ujh9lxZxCSg928XCeRTaIzhay7e_kz_aEgxIUlyoyRE0-m06yFUTBBsqLRfeAU1CIFy57PDQShpZZEDZNciUKm8xj4G9JB0iTaL4lT8AFGgfyemEL0fMQw6gQVObggG1V3Xex-R1n0uuxiEQxQJlKkhLy8xvmXvybaQztPm-xcE_BqJwxydeT5D0yvrUoPHNjvk7uo"/></span></div><div class="flex items-center font-display-font text-hud-md text-bone uppercase tracking-widest whitespace-nowrap gap-xl ml-xl"><span class="flex items-center gap-md">REAL-TIME SWELL DATA <img alt="Dive Flag" class="h-6 w-6 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBreqv9FpLFGt4YRm_Jkw-Yqq1x59v0bEN9neytMQ7pH9vguWNM2cLtBiKtbirBe2B3gIdl0ujh9lxZxCSg928XCeRTaIzhay7e_kz_aEgxIUlyoyRE0-m06yFUTBBsqLRfeAU1CIFy57PDQShpZZEDZNciUKm8xj4G9JB0iTaL4lT8AFGgfyemEL0fMQw6gQVObggG1V3Xex-R1n0uuxiEQxQJlKkhLy8xvmXvybaQztPm-xcE_BqJwxydeT5D0yvrUoPHNjvk7uo"/></span><span class="flex items-center gap-md">VICTORIAN COASTAL INTEL <img alt="Dive Flag" class="h-6 w-6 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBreqv9FpLFGt4YRm_Jkw-Yqq1x59v0bEN9neytMQ7pH9vguWNM2cLtBiKtbirBe2B3gIdl0ujh9lxZxCSg928XCeRTaIzhay7e_kz_aEgxIUlyoyRE0-m06yFUTBBsqLRfeAU1CIFy57PDQShpZZEDZNciUKm8xj4G9JB0iTaL4lT8AFGgfyemEL0fMQw6gQVObggG1V3Xex-R1n0uuxiEQxQJlKkhLy8xvmXvybaQztPm-xcE_BqJwxydeT5D0yvrUoPHNjvk7uo"/></span><span class="flex items-center gap-md">SATELLITE CHLOROPHYLL <img alt="Dive Flag" class="h-6 w-6 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBreqv9FpLFGt4YRm_Jkw-Yqq1x59v0bEN9neytMQ7pH9vguWNM2cLtBiKtbirBe2B3gIdl0ujh9lxZxCSg928XCeRTaIzhay7e_kz_aEgxIUlyoyRE0-m06yFUTBBsqLRfeAU1CIFy57PDQShpZZEDZNciUKm8xj4G9JB0iTaL4lT8AFGgfyemEL0fMQw6gQVObggG1V3Xex-R1n0uuxiEQxQJlKkhLy8xvmXvybaQztPm-xcE_BqJwxydeT5D0yvrUoPHNjvk7uo"/></span><span class="flex items-center gap-md">SEA SURFACE TEMP <img alt="Dive Flag" class="h-6 w-6 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBreqv9FpLFGt4YRm_Jkw-Yqq1x59v0bEN9neytMQ7pH9vguWNM2cLtBiKtbirBe2B3gIdl0ujh9lxZxCSg928XCeRTaIzhay7e_kz_aEgxIUlyoyRE0-m06yFUTBBsqLRfeAU1CIFy57PDQShpZZEDZNciUKm8xj4G9JB0iTaL4lT8AFGgfyemEL0fMQw6gQVObggG1V3Xex-R1n0uuxiEQxQJlKkhLy8xvmXvybaQztPm-xcE_BqJwxydeT5D0yvrUoPHNjvk7uo"/></span><span class="flex items-center gap-md">PRECISION DIVE PLANNING <img alt="Dive Flag" class="h-6 w-6 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBreqv9FpLFGt4YRm_Jkw-Yqq1x59v0bEN9neytMQ7pH9vguWNM2cLtBiKtbirBe2B3gIdl0ujh9lxZxCSg928XCeRTaIzhay7e_kz_aEgxIUlyoyRE0-m06yFUTBBsqLRfeAU1CIFy57PDQShpZZEDZNciUKm8xj4G9JB0iTaL4lT8AFGgfyemEL0fMQw6gQVObggG1V3Xex-R1n0uuxiEQxQJlKkhLy8xvmXvybaQztPm-xcE_BqJwxydeT5D0yvrUoPHNjvk7uo"/></span></div></div>
+</section>
+</div><section class="bg-parchment py-xxxl px-bleed"><div class="max-w-page-max mx-auto"><div class="bg-parchment p-xxl border-2 border-ink-soft shadow-[8px_8px_0px_0px_#3A332A]"><h2 class="font-display-lg text-headline-lg text-ink-soft mb-md uppercase">SUMMARY</h2><p class="font-body-md text-body-md text-ink-soft leading-relaxed">OVERWORLD OCEANIC is a precision dive-planning dashboard for the Victorian coast. It aggregates real-time swell, wind, and environmental data from marine models and satellite feeds to provide high-fidelity visibility and safety intelligence for divers and explorers.</p></div></div></section><section class="py-xxxl px-bleed max-w-page-max mx-auto bg-ink-soft"><div class="border-l-8 border-primary pl-xl mb-xxl"><h2 class="font-display-xl text-display-xl uppercase text-bone">NAV_CHANNELS</h2><p class="font-hud-md text-hud-md text-parchment opacity-70 max-w-xl">ACCESS REAL-TIME ENVIRONMENTAL DATA AND OPERATIONAL INTELLIGENCE CHANNELS.</p></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-xl"><!-- Card 1: Forecast --><a class="channel-card-animate block relative border-2 border-ink-soft group overflow-hidden bg-primary text-bone shadow-[6px_6px_0px_0px_#0043bb] cursor-pointer card-lift-hover" href="#"><div class="aspect-video relative"><img alt="Forecast" class="w-full h-full object-cover pixel-float-img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuApOBzUrM67pKETD_pcj9yZiPkPwaD72uF59LmQko3aT2mY_dkrSlaU9_T__px8Z9pznQRk-l1o9zB25UnvNChZ72dIdFOVG6YO5IjgM6fdKItw__VGX5D4xn9UyuxoDNnFFjw925m4FHdl-odm9POBMottvAd3sm2PEaAOkMQRvcCyPsEEAbsCWcGoXjosO8HkQMdugAcSjMTnXWU63pSB4GZvcQzdNkZcYF11hXshKlp9HJu9s6gTPNoEG_fpgoYHuIMDv-1aqP8" style="image-rendering: pixelated;"/><div class="absolute inset-0 bg-ink-soft/40 flex items-center justify-center py-md"><h3 class="font-headline-md text-headline-md text-bone uppercase text-center px-md">Forecast</h3></div></div></a><!-- Card 2: Wind Map --><a class="channel-card-animate block relative bg-bone border-2 border-ink-soft group overflow-hidden shadow-[6px_6px_0px_0px_#0043bb] cursor-pointer card-lift-hover" href="#"><div class="aspect-video relative"><img alt="Wind Map" class="w-full h-full object-cover pixel-float-img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAM0rXXsRdEL1CnxWshvZA51xUT99QO45uryHe64QoNy_3CU_CfElv2Mz_ZKcJrEzOavKMAjK_xDBWOe8YID0kzyM-eoesP582JwcarLzZq-JE-YnS7zOKXUTigPx_ynhx8nrEwq6szldC-9yljpuRodPUp1-p-07aDXL6-y6VOqyJ-SnnYNKJWUKbzFFsCgD-tElLmy_jLxK30ziiTKKnkjAhMQtShWdrXutqcCOS3AgFjXgNHoH7gZewnVdeBdhaDTp66JxRmO3Q" style="image-rendering: pixelated;"/><div class="absolute inset-0 bg-ink-soft/40 flex items-center justify-center py-md"><h3 class="font-headline-md text-headline-md text-bone uppercase text-center px-md">Wind Map</h3></div></div></a><!-- Card 3: Learn --><a class="channel-card-animate block relative border-2 border-ink-soft group overflow-hidden bg-secondary text-bone shadow-[6px_6px_0px_0px_#0043bb] cursor-pointer card-lift-hover" href="#"><div class="aspect-video relative"><img alt="Learn" class="w-full h-full object-cover pixel-float-img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDG4cO3sSx6D2Z4ieJPDHdCWBKob93SrokbLTe45jc-DGZCUlOM3BAqDFcj51_eGBwsNDQG-rUVDd_kQ8mF7SaOUJ8_v2I7ZNVp_uvKDg8N-gPEo0trEsQtZ8EvZlM8yOI6j0D3z19mbJSdWr7Z_KqLgb6HMLpOCCSDvqojQ9y6VfNUrmZuZRYCEPrnntcaCX3pVhGgEFyxwjVMHFD-Kc16c0VAkeniQv8GPQqeLmegGLlYG3no8jGu9NxGuGieVqbFq8k6wwZ_WfY" style="image-rendering: pixelated;"/><div class="absolute inset-0 bg-ink-soft/40 flex items-center justify-center py-md"><h3 class="font-headline-md text-headline-md text-bone uppercase text-center px-md">Learn</h3></div></div></a><!-- Card 4: Live Data --><a class="channel-card-animate block relative border-2 border-ink-soft group overflow-hidden bg-tertiary text-bone shadow-[6px_6px_0px_0px_#0043bb] cursor-pointer card-lift-hover" href="#"><div class="aspect-video relative"><img alt="Live Data" class="w-full h-full object-cover pixel-float-img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzaSIe_yl1MD0hiox2xcm2wr9euoZn2kDHcwc8z30wWh7ftVipE8Rs15k3qm1RQCWNf2MZQqynaKt2JBH6vWEIVZQflvm0tZjxUich_-tb2GUU0pxUlnxX8IyTIOd_lGXBeSSlN6RvM2vbACwTya8lm-dk9vgc81cBVMQgQvzFMXVMgXiaArJmueMcVkZwZe5eW4JVmKH8Vz-DbM3goaziwidOmLvCx1dJXsKi6q_YpcN9sJEi0da6CzjBTjWDnZyFqGOgiklob3I" style="image-rendering: pixelated;"/><div class="absolute inset-0 bg-ink-soft/40 flex items-center justify-center py-md"><h3 class="font-headline-md text-headline-md text-bone uppercase text-center px-md">Live Data</h3></div></div></a></div></section>
+<!-- Live Data Stream Section -->
+<!-- Search / Explore Section -->
+<section class="py-xxxl px-bleed max-w-page-max mx-auto text-center">
+<div class="max-w-2xl mx-auto bg-bone p-xxl border-2 border-ink-soft shadow-[12px_12px_0px_0px_#0043bb]">
+<h3 class="font-display-lg text-headline-lg text-ink-soft mb-md uppercase">Find_Your_Drop</h3>
+<div class="relative mb-xl">
+<input class="w-full bg-parchment border-2 border-ink-soft p-md font-hud-md text-hud-md focus:ring-0 focus:outline-none focus:shadow-[4px_4px_0px_0px_#0043bb] transition-all" placeholder="ENTER_COORDINATES_OR_SITE_NAME..." type="text"/>
+<span class="material-symbols-outlined absolute right-md top-1/2 -translate-y-1/2 text-ink-soft text-3xl">search</span>
+</div>
+<div class="flex flex-wrap justify-center gap-sm">
+<button class="bg-primary text-on-primary px-xl py-md font-hud-md text-hud-md border-2 border-ink-soft shadow-[4px_4px_0px_0px_#3A332A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none active:translate-x-[4px] active:translate-y-[4px] transition-all uppercase">SEARCH_STATIONS</button>
+<button class="bg-bone text-ink-soft px-xl py-md font-hud-md text-hud-md border-2 border-ink-soft shadow-[4px_4px_0px_0px_#3A332A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none active:translate-x-[4px] active:translate-y-[4px] transition-all uppercase">RANDOM_EXPEDITION</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Shell -->
+<footer class="bg-ink-soft dark:bg-on-background border-t-2 border-primary text-parchment py-xl px-bleed">
+<div class="max-w-page-max mx-auto grid grid-cols-1 md:grid-cols-3 items-center gap-xl">
+<div class="font-display-xl text-headline-md text-primary font-bold">DIVEBYTE</div>
+<div class="flex justify-center gap-lg font-hud-sm text-hud-sm tracking-widest uppercase opacity-70">
+<a class="hover:text-primary-fixed transition-colors" href="#">PROTOCOL_VO_1</a>
+<a class="hover:text-primary-fixed transition-colors" href="#">SATELLITE_LINK</a>
+<a class="hover:text-primary-fixed transition-colors" href="#">GRID_COORD_REF</a>
+</div>
+<div class="text-right font-hud-sm text-hud-sm tracking-widest opacity-50">
+                ©2024 OVERWORLD_DYNAMICS // QUEST_STAR_SYSTEM
+            </div>
+</div>
+<div class="mt-xl text-center font-hud-sm text-hud-sm text-parchment/30 max-w-4xl mx-auto leading-relaxed uppercase">
+            Forecasts: Open-Meteo (marine + weather models). SST: NASA JPL MUR. Chlorophyll: NOAA NESDIS CoastWatch (VIIRS), via NOAA ERDDAP. Free public data — a planning aid, not for navigation or safety-of-life decisions. Built for Maya.
+        </div>
+</footer>
+</body></html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1200, initial-scale=1.0" />
+  <title>OVERWORLD — Cover</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="../css/system.css" />
+  <link
+    rel="stylesheet"
+    type="text/css"
+    href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/bold/style.css"
+  />
+  <style>
+    html, body { margin: 0; padding: 0; }
+    body {
+      width: 1200px;
+      height: 800px;
+      overflow: hidden;
+      background-color: var(--color-parchment);
+      background-image:
+        radial-gradient(rgba(22, 19, 16, 0.05) 1px, transparent 1px),
+        radial-gradient(rgba(22, 19, 16, 0.04) 1px, transparent 1px);
+      background-size: 4px 4px, 12px 12px;
+      background-position: 0 0, 2px 2px;
+    }
+
+    .stage {
+      position: relative;
+      width: 1200px;
+      height: 800px;
+      box-sizing: border-box;
+      overflow: hidden;
+      isolation: isolate;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding-inline: 64px;
+    }
+
+    /* Background Quest Star ornaments */
+    .bg-star {
+      position: absolute;
+      color: var(--color-ink);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .bg-star svg { width: 100%; height: 100%; fill: currentColor; }
+    .bg-star--lg { top: -120px; right: -80px; width: 520px; height: 520px; opacity: 0.06; transform: rotate(8deg); }
+    .bg-star--sm { bottom: -110px; left: -90px; width: 320px; height: 320px; opacity: 0.07; transform: rotate(-12deg); }
+
+    .cover-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 1072px;
+    }
+
+    /* Title — OVERWORLD wordmark */
+    .wordmark {
+      text-align: center;
+      z-index: 4;
+    }
+    .wordmark h1 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 152px;
+      line-height: 0.84;
+      letter-spacing: -0.04em;
+      color: var(--color-ink);
+      margin: 0;
+      text-transform: uppercase;
+      display: inline-block;
+      position: relative;
+    }
+    .wordmark h1 .dot {
+      display: inline-block;
+      width: 0.32em;
+      height: 0.32em;
+      background-color: var(--color-sunset-vermillion);
+      vertical-align: 0.18em;
+      margin-inline: 0.04em;
+    }
+    .wordmark h1 .period { color: var(--color-sunset-vermillion); }
+
+    /* Subtitle */
+    .subtitle {
+      text-align: center;
+      font-family: var(--font-body);
+      font-size: 18px;
+      line-height: 1.4;
+      color: var(--color-ink);
+      max-width: 760px;
+      margin: 18px 0 0;
+      padding-inline: 40px;
+      z-index: 3;
+    }
+
+    /* Triptych — three pixel art images with stickers */
+    .triptych {
+      margin-top: 38px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1.5fr 1fr;
+      gap: 22px;
+      align-items: start;
+      z-index: 2;
+    }
+
+    .px-frame {
+      position: relative;
+      border: var(--border-ink);
+      background-color: var(--color-ink);
+      overflow: hidden;
+      box-shadow: 6px 6px 0 0 var(--color-ink);
+    }
+    .px-frame img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; display: block; }
+    .px-frame::after {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background-image: repeating-linear-gradient(to bottom, rgba(22,19,16,0.1) 0 2px, transparent 2px 4px);
+    }
+
+    .triptych .cell { position: relative; }
+    .triptych .cell--a { transform: translateY(18px) rotate(-1.5deg); }
+    .triptych .cell--b { transform: translateY(-10px); z-index: 3; }
+    .triptych .cell--c { transform: translateY(22px) rotate(1.5deg); }
+
+    .triptych .cell--a .px-frame { height: 230px; }
+    .triptych .cell--b .px-frame { height: 250px; box-shadow: 10px 10px 0 0 var(--color-ink); }
+    .triptych .cell--c .px-frame { height: 230px; }
+
+    .triptych .sticker-on {
+      position: absolute;
+      z-index: 6;
+      font-family: var(--font-hud);
+      font-size: 18px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 6px 12px 5px;
+      border: var(--border-ink);
+      box-shadow: 4px 4px 0 0 var(--color-ink);
+      line-height: 1;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .triptych .sticker-on.s-moss { background: var(--color-pine-moss); color: var(--color-bone); transform: rotate(-3deg); top: -10px; right: -14px; }
+    .triptych .sticker-on.s-vermillion { background: var(--color-sunset-vermillion); color: var(--color-bone); transform: rotate(2deg); top: -14px; left: -16px; }
+    .triptych .sticker-on.s-cobalt { background: var(--color-sky-cobalt); color: var(--color-bone); transform: rotate(-2deg); bottom: -14px; right: -10px; }
+
+    .triptych .cap {
+      margin-top: 8px;
+      font-family: var(--font-hud);
+      font-size: 16px;
+      letter-spacing: 0.06em;
+      color: var(--color-ink-soft);
+      text-transform: uppercase;
+      display: flex; justify-content: space-between; gap: 10px;
+      line-height: 1.2;
+    }
+    .triptych .cap .num { color: var(--color-sky-cobalt); }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <!-- Background ornaments -->
+    <div class="bg-star bg-star--lg" aria-hidden="true">
+      <svg viewBox="0 0 346.4 346.4"><polygon fill="currentColor" points="346.4 138.46 326.76 85.88 226.84 123.2 271.1 26.16 220.04 2.87 175.78 99.91 138.46 0 85.88 19.64 123.2 119.55 26.16 75.29 2.87 126.36 99.91 170.62 0 207.94 19.64 260.51 119.55 223.19 75.29 320.23 126.36 343.52 170.62 246.48 207.94 346.4 260.51 326.76 223.19 226.84 320.23 271.1 343.52 220.04 246.48 175.78 346.4 138.46"/></svg>
+    </div>
+    <div class="bg-star bg-star--sm" aria-hidden="true">
+      <svg viewBox="0 0 346.4 346.4"><polygon fill="currentColor" points="346.4 138.46 326.76 85.88 226.84 123.2 271.1 26.16 220.04 2.87 175.78 99.91 138.46 0 85.88 19.64 123.2 119.55 26.16 75.29 2.87 126.36 99.91 170.62 0 207.94 19.64 260.51 119.55 223.19 75.29 320.23 126.36 343.52 170.62 246.48 207.94 346.4 260.51 326.76 223.19 226.84 320.23 271.1 343.52 220.04 246.48 175.78 346.4 138.46"/></svg>
+    </div>
+
+    <div class="cover-content">
+      <!-- Wordmark -->
+      <div class="wordmark">
+        <h1>OVER<span class="dot" aria-hidden="true"></span>WORLD<span class="period">.</span></h1>
+      </div>
+
+      <!-- Subtitle -->
+      <p class="subtitle">
+        Chunky 16-bit landscapes punch through giant blocky display type on warm parchment — loud, asymmetric, unapologetically hand-applied.
+      </p>
+
+      <!-- Triptych: three pixel art images, staircase, with stickers -->
+      <div class="triptych">
+        <figure class="cell cell--a">
+          <div class="px-frame" style="aspect-ratio: 4 / 5;">
+            <img src="../images/pixel-forest-mountains.png" alt="Pixel-art pine forest below snowy mountains under a blue sky." />
+          </div>
+          <span class="sticker-on s-moss"><i class="ph-bold ph-tree-evergreen"></i> Biome 01</span>
+        </figure>
+
+        <figure class="cell cell--b">
+          <div class="px-frame">
+            <img src="../images/pixel-desert-sunset.png" alt="Pixel-art desert at sunset with palms and pyramids beneath an orange sky." />
+          </div>
+          <span class="sticker-on s-vermillion"><i class="ph-bold ph-sun"></i> Hot Drop</span>
+        </figure>
+
+        <figure class="cell cell--c">
+          <div class="px-frame">
+            <img src="../images/pixel-valley-village.png" alt="Pixel-art valley with farmlands and forests under a blue sky." />
+          </div>
+          <span class="sticker-on s-moss" style="background: var(--color-sky-cobalt); transform: rotate(-2deg);"><i class="ph-bold ph-house-line"></i> Settled</span>
+        </figure>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
