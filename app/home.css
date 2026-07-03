@@ -14,12 +14,15 @@ body {
   overflow-x: hidden;
 }
 
-/* Full-bleed: break out of .wrap to the viewport edges. */
+/* Full-bleed: break out of .wrap to the viewport edges; the negative
+   margin-top cancels the body's extra 18px top padding so the hero sits
+   flush under the fixed nav bar (same trick as the old #tab-home). */
 .home {
   display: block;
   text-align: left;
   width: 100vw;
   margin-left: calc(50% - 50vw);
+  margin-top: -18px;
 }
 
 .pixel-corners {
