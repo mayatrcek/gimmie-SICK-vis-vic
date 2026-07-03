@@ -113,7 +113,7 @@ export default function Home() {
 
       {/* Nav channels */}
       <section className="py-xxxl px-bleed max-w-page-max mx-auto bg-ink-soft">
-        <div className="border-l-8 border-primary pl-xl mb-xxl">
+        <div className="mb-xxl">
           <h2 className="home-h1 font-display-xl text-display-xl uppercase text-bone">NAV_CHANNELS</h2>
           <p className="font-hud-md text-hud-md text-parchment opacity-70 max-w-[36rem]">
             ACCESS REAL-TIME ENVIRONMENTAL DATA AND OPERATIONAL INTELLIGENCE CHANNELS.
