@@ -52,7 +52,7 @@ export default function Home() {
           <h1 className="home-display font-display-xxl text-display-xl md:text-display-xxl text-bone drop-shadow-[8px_8px_0px_rgba(25,19,16,1)] mb-xxs hero-title-entrance">
             GIMME SICK VIS
           </h1>
-          <div className="home-tagline inline-flex flex-col md:flex-row items-center gap-md bg-ink-soft text-parchment py-sm px-xl border-2 border-primary shadow-[6px_6px_0px_0px_#0043bb]">
+          <div className="home-tagline inline-flex flex-col md:flex-row items-center gap-md bg-ink-soft text-parchment py-sm px-xl border-2 border-primary shadow-[6px_6px_0px_0px_#2e5dd6]">
             <span className="font-hud-md text-hud-md tracking-[0.2em] uppercase">
               Daily Ocean &amp; Dive Update
             </span>
@@ -122,7 +122,7 @@ export default function Home() {
             <Link
               key={c.title}
               href={c.href}
-              className={`channel-card-animate block relative border-2 border-ink-soft group overflow-hidden shadow-[6px_6px_0px_0px_#0043bb] cursor-pointer ${c.cls}`}
+              className={`channel-card-animate block relative border-2 border-ink-soft group overflow-hidden shadow-[6px_6px_0px_0px_#2e5dd6] cursor-pointer ${c.cls}`}
             >
               <div className="aspect-video relative">
                 {/* ponytail: external AI-image hotlinks; plain <img> avoids next/image remote config */}
@@ -146,13 +146,13 @@ export default function Home() {
 
       {/* Find your drop */}
       <section className="py-xxxl px-bleed max-w-page-max mx-auto text-center">
-        <div className="max-w-2xl mx-auto bg-bone p-xxl border-2 border-ink-soft shadow-[12px_12px_0px_0px_#0043bb]">
+        <div className="max-w-2xl mx-auto bg-bone p-xxl border-2 border-ink-soft shadow-[12px_12px_0px_0px_#2e5dd6]">
           <h3 className="home-h2 font-display-lg text-headline-lg text-ink-soft mb-md uppercase">
             Find_Your_Drop
           </h3>
           <div className="relative mb-xl">
             <input
-              className="w-full bg-parchment border-2 border-ink-soft p-md font-hud-md text-hud-md focus:ring-0 focus:outline-none focus:shadow-[4px_4px_0px_0px_#0043bb] transition-all"
+              className="w-full bg-parchment border-2 border-ink-soft p-md font-hud-md text-hud-md focus:ring-0 focus:outline-none focus:shadow-[4px_4px_0px_0px_#2e5dd6] transition-all"
               placeholder="ENTER_COORDINATES_OR_SITE_NAME..."
               type="text"
             />
