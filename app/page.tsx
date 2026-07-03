@@ -1,4 +1,5 @@
 import Link from "next/link";
+import QuickScroll from "@/components/QuickScroll";
 
 const HERO_BG =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuCm38URIzWfOZJxYBaurCzTAuRp-mUcHAdINfFsc-6rSNw0ZNDUp5yTPhEUP8Nv7vrnDKZHsK3AJmBjntthJsssDefwoxii7eNiqfDvDFsvMEYbfUflTlJjUc0ucxk4d7f3TyD5NLuJE84ASbZxkXYeXVVUadQ9tCQm6JcJB3BSMEzh4KCIeA0Ig3Ss0HIv3VNTcZgBq_kxbESBGCEKBZ62shqCXbTMr18HXIgPJIsHJJtGNa2saqM0c1knGSHIBDw0lZXjTEF-Cr8";
@@ -34,6 +35,7 @@ const CHANNELS: Channel[] = [
 export default function Home() {
   return (
     <div className="home">
+      <QuickScroll to="summary" />
       {/* Quest Star Backdrop */}
       <div className="fixed inset-0 pointer-events-none opacity-10 flex items-center justify-center">
         <div className="w-[800px] h-[800px] quest-star" />
@@ -93,7 +95,7 @@ export default function Home() {
       </div>
 
       {/* Summary */}
-      <section className="bg-parchment py-xxxl px-bleed">
+      <section id="summary" className="bg-parchment py-xxxl px-bleed" style={{ scrollMarginTop: "var(--tabh)" }}>
         <div className="max-w-page-max mx-auto">
           <div className="bg-parchment p-xxl border-2 border-ink-soft shadow-[8px_8px_0px_0px_#3A332A]">
             <h2 className="home-h2 font-display-lg text-headline-lg text-ink-soft mb-md uppercase">

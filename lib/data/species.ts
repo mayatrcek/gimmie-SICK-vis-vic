@@ -105,4 +105,25 @@ export const SPECIES: Species[] = [
     tech: "Dive/loop reef ledges and holes. Bag limit 2; return berried & soft-shell lobster.",
     reg: true,
   },
+  // ponytail: mock entries to exercise pagination — flesh out details before shipping
+  {
+    id: "trevally",
+    name: "Trevally",
+    sci: "Pseudocaranx dentex",
+    good: [11, 12, 1, 2, 3, 4],
+    peak: "Variable — warmer months",
+    env: ["Estuaries", "Reefs"],
+    spots: "Estuaries and inshore reefs statewide.",
+    tech: "Soft plastics, baits and metals around structure and current.",
+  },
+  {
+    id: "boarfish",
+    name: "Boarfish",
+    sci: "Pentacerotidae",
+    good: [5, 6, 7, 8, 9],
+    peak: "Deep water — cooler months",
+    env: ["Offshore reefs", "Deep water"],
+    spots: "Deeper offshore reef grounds.",
+    tech: "Baits fished hard on the bottom over deep reef.",
+  },
 ];

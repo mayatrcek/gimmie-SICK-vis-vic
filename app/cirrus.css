@@ -377,26 +377,45 @@
   @keyframes fbpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,122,61,.5)}50%{box-shadow:0 0 0 5px rgba(255,122,61,0)}}
 
   /* Fish guide */
-  .fishgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  @media(max-width:880px){.fishgrid{grid-template-columns:1fr}}
-  .fish{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-tile);padding:16px 18px;box-shadow:var(--shadow-1)}
-  .fishtop{display:flex;align-items:center;gap:12px;margin-bottom:6px}
-  .ficon{width:78px;height:44px;flex-shrink:0}
-  .ficon svg{width:100%;height:100%;display:block}
-  .fname{font-family:var(--font-display);font-weight:600;font-size:16px;letter-spacing:-.015em}
-  .fsci{font-family:var(--font-serif);font-style:italic;font-size:13px;color:var(--muted)}
-  .badge{margin-left:auto;font-size:11px;font-weight:600;color:#fff;padding:4px 10px;border-radius:var(--radius-pill);white-space:nowrap}
-  .badge.in{background:var(--amazing)}
-  .badge.off{background:var(--surface-sunken);color:var(--muted);border:1px solid var(--line)}
-  .badge.mid{background:var(--marg)}
-  .frow{font-size:13px;color:var(--ink);margin:5px 0;line-height:1.45}
-  .frow b{color:var(--muted);font-weight:600}
-  .mbar{display:flex;gap:3px;margin:8px 0}
-  .mbar span{flex:1;text-align:center;font-size:10px;font-weight:600;color:var(--mist-soft,#8a93a3);background:var(--surface-sunken);border-radius:6px;padding:3px 0}
-  .mbar span.on{background:var(--amazing);color:#fff}
-  .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
-  .chip2{font-size:11px;background:var(--surface-sunken);color:var(--muted);border:1px solid var(--line);border-radius:var(--radius-pill);padding:4px 11px;font-weight:500}
-  .fnote{font-size:12px;color:#8a4a23;background:#F7E6D2;border:2px solid var(--ink);border-radius:0;padding:8px 11px;margin-top:8px}
+  /* Fish guide — OVERWORLD sprite cards (ui_design/stitch_interactive_fish_guide2) */
+  .fishgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:20px;align-items:stretch}
+  .fish2{position:relative;display:flex;flex-direction:column;gap:7px;background:var(--panel);
+    border:2px solid var(--ink);box-shadow:var(--shadow-1);padding:12px;overflow:hidden;
+    transition:transform .2s var(--ease),box-shadow .2s var(--ease)}
+  .fish2:hover{transform:scale(1.02);box-shadow:var(--shadow-2)}
+  .f2badge{position:absolute;top:8px;right:8px;z-index:2;font-family:var(--font-hud);font-size:15px;
+    line-height:1;letter-spacing:.04em;color:#fff;padding:3px 8px;border:2px solid var(--ink);
+    box-shadow:2px 2px 0 0 var(--ink);transform:rotate(-2deg)}
+  .fish2:nth-child(even) .f2badge{transform:rotate(2deg)}
+  .f2badge.in{background:var(--accent)}
+  .f2badge.off{background:var(--warm)}
+  .f2badge.mid{background:var(--poor)}
+  .f2img{position:relative;height:128px;display:flex;align-items:center;justify-content:center;
+    overflow:hidden;background:var(--paper);border:2px solid var(--ink)}
+  /* CRT scanlines over the sprite frame */
+  .f2img::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(to bottom,rgba(255,255,255,0) 50%,rgba(0,0,0,.06) 50%);
+    background-size:100% 4px}
+  .f2sprite{width:180px;height:auto;image-rendering:pixelated;transition:transform .2s var(--ease)}
+  .fish2:hover .f2sprite{transform:scale(1.1)}
+  .f2svg{width:190px}
+  .f2svg svg{width:100%;height:auto;display:block}
+  .f2name{font-family:var(--font-display);font-size:20px;font-weight:600;line-height:1.15;margin-top:2px}
+  .f2sci{font-family:var(--font-serif);font-style:italic;font-size:13px;color:var(--muted)}
+  .f2row{display:flex;gap:6px;align-items:flex-start;font-family:var(--font-hud);font-size:16px;
+    line-height:1.15;color:var(--ink)}
+  .f2row .material-symbols-outlined{font-size:15px;color:var(--accent);flex-shrink:0}
+  .f2row.hab .material-symbols-outlined{color:var(--green)}
+  /* month active/not-active timeline pinned to the card foot */
+  .mbar{display:flex;gap:3px;margin-top:auto;padding-top:8px}
+  .mbar span{flex:1;text-align:center;font-family:var(--font-hud);font-size:12px;color:var(--mist-soft);
+    background:var(--surface-sunken);border:1px solid var(--line);padding:3px 0}
+  .mbar span.on{background:var(--amazing);border-color:var(--amazing);color:#fff}
+  /* pager — base pixel button style already applies; layout + states only */
+  .fgpager{display:flex;justify-content:center;align-items:center;gap:12px;margin:36px 0 16px}
+  .fgpager button{min-width:46px}
+  .fgpager button.cur{background:var(--accent);color:#fff;transform:translate(2px,2px);box-shadow:2px 2px 0 0 var(--ink)}
+  .fgpager button:disabled{opacity:.4;pointer-events:none}
   .envgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   @media(max-width:880px){.envgrid{grid-template-columns:1fr}}
   .env{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-tile);padding:14px 16px;box-shadow:var(--shadow-1)}
@@ -541,6 +560,15 @@
   .tab-menu-item:hover{background:rgba(46,93,214,.12)}
   .tab-menu-item.active{background:#2E5DD6;color:#fff}
 
+  /* Fish guide view switch (list / aquarium) — pixel segmented control, top right above the intro */
+  .fg-switch{display:flex;justify-content:flex-end;margin-top:6px}
+  .fg-tab{border:2px solid var(--ink);background:var(--panel);padding:6px 18px;cursor:pointer;
+    font-family:var(--font-vt323),monospace;font-size:19px;line-height:1;letter-spacing:.04em;
+    text-transform:uppercase;color:var(--muted)}
+  .fg-tab+.fg-tab{border-left:0}
+  .fg-tab:hover{color:var(--ink)}
+  .fg-tab.active{background:#2E5DD6;color:#fff}
+
   /* Footer: full-bleed dark bar with brand / mock links / copyright, data note below */
   footer{width:100vw;margin-left:calc(50% - 50vw);margin-top:24px;
     background:#3A332A;border:0;border-top:2px solid #2E5DD6;border-radius:0;box-shadow:none;
@@ -585,7 +613,7 @@
      hardens what the tokens can't reach. Placed last to win cascade.
      ============================================================= */
   /* chunky 2px ink frames on outer chrome (inner dividers stay border-tan) */
-  #map,#geomap,#bathymap,#windmap,.scard,.site,.card,.env,.fish,.panel,
+  #map,#geomap,#bathymap,#windmap,.scard,.site,.card,.env,.panel,
   .geolegendbox,.geoinfo,.liveframe,.surfframe,.wm-legend,#wmforecast,.wm-tab{border:2px solid var(--ink)}
   /* kill leftover hardcoded curves — zero border-radius on chrome */
   .wm-legend,.wm-popup .leaflet-popup-content-wrap,.wm-callout .leaflet-popup-content-wrap,

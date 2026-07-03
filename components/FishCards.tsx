@@ -1,12 +1,24 @@
+"use client";
+import { useState } from "react";
 import { MONTH_LBL, SPECIES, SVG, type Species } from "@/lib/data/species";
 
-// Cray season status by calendar date (ported from crayStatus()).
+// Pixel sprite PNGs where drawn so far; species without one fall back to the inline SVG.
+const SPRITE: Record<string, string> = {
+  snapper: "/assets/fih_sprites/snapper-cartoon-64.png",
+  kingfish: "/assets/fih_sprites/kingfish-cartoon-64.png",
+  trevally: "/assets/fih_sprites/trevally-cartoon-64.png",
+  boarfish: "/assets/fih_sprites/boarfish-cartoon-64.png",
+};
+
+const PAGE_SIZE = 6;
+
+// Cray season badge by calendar date (ported from crayStatus()).
 function crayStatus(): { t: string; c: string } {
   const d = new Date();
   const md = (d.getMonth() + 1) * 100 + d.getDate();
-  if (md >= 1116 || md <= 531) return { t: "Open · males & females", c: "in" };
-  if (md >= 601 && md <= 914) return { t: "Males only · females closed", c: "mid" };
-  return { t: "Closed · season shut", c: "off" };
+  if (md >= 1116 || md <= 531) return { t: "Open", c: "in" };
+  if (md >= 601 && md <= 914) return { t: "Males only", c: "mid" };
+  return { t: "Closed", c: "off" };
 }
 
 function MonthBar({ good }: { good: number[] }) {
@@ -21,84 +33,62 @@ function MonthBar({ good }: { good: number[] }) {
   );
 }
 
-// Kingfish SST note. kfSST is only known on the dive-sites page; here it's null,
-// so this renders the default "chance of fish" note. ponytail: no cross-page SST wiring.
-function KingfishNote({ kfSST = null as number | null }) {
-  if (kfSST == null)
-    return (
-      <div className="fnote" style={{ background: "#eef4f9", borderColor: "#cfe0ee", color: "#1c4a6b" }}>
-        Chance of fish wherever water is &gt;16°C. Sighted late May off Pyramid &amp; Seal Rocks.
-      </div>
-    );
-  if (kfSST > 16)
-    return (
-      <div className="fnote" style={{ background: "#eaf6ee", borderColor: "#cfe8da", color: "#15692f" }}>
-        <b>Possible now</b> — Pyramid Rock {kfSST.toFixed(1)}° (&gt;16°). Sighted late May off Pyramid
-        &amp; Seal Rocks.
-      </div>
-    );
-  return (
-    <div className="fnote">
-      Quiet — Pyramid Rock {kfSST.toFixed(1)}° (&lt;16°). They turn up once it nudges past 16°;
-      sighted late May off Pyramid &amp; Seal Rocks.
-    </div>
-  );
-}
-
 function FishCard({ s, cur }: { s: Species; cur: number }) {
-  let badge;
-  if (s.reg) {
-    const cstat = crayStatus();
-    badge = <span className={`badge ${cstat.c}`}>{cstat.t}</span>;
-  } else {
-    const on = s.good.includes(cur);
-    badge = <span className={`badge ${on ? "in" : "off"}`}>{on ? "In season now" : "Off-peak now"}</span>;
-  }
+  const badge = s.reg
+    ? crayStatus()
+    : s.good.includes(cur)
+      ? { t: "In Season", c: "in" }
+      : { t: "Off-peak", c: "off" };
   return (
-    <div className="fish">
-      <div className="fishtop">
-        <div className="ficon" dangerouslySetInnerHTML={{ __html: SVG[s.id] || "" }} />
-        <div>
-          <div className="fname">{s.name}</div>
-          <div className="fsci">{s.sci}</div>
-        </div>
-        {badge}
+    <article className="fish2">
+      <span className={`f2badge ${badge.c}`}>{badge.t}</span>
+      <div className="f2img">
+        {SPRITE[s.id] ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img className="f2sprite" src={SPRITE[s.id]} alt={s.name} />
+        ) : (
+          <div className="f2svg" dangerouslySetInnerHTML={{ __html: SVG[s.id] || "" }} />
+        )}
       </div>
-      <div className="frow">
-        <b>Best:</b> {s.peak}
+      <h3 className="f2name">{s.name}</h3>
+      <p className="f2sci">{s.sci}</p>
+      <div className="f2row">
+        <span className="material-symbols-outlined">calendar_today</span>
+        {s.peak}
+      </div>
+      <div className="f2row hab">
+        <span className="material-symbols-outlined">map</span>
+        {s.env.join(" / ")}
       </div>
       <MonthBar good={s.good} />
-      <div className="chips">
-        {s.env.map((e) => (
-          <span key={e} className="chip2">
-            {e}
-          </span>
-        ))}
-      </div>
-      <div className="frow">
-        <b>Where:</b> {s.spots}
-      </div>
-      <div className="frow">
-        <b>How:</b> {s.tech}
-      </div>
-      {s.reg && (
-        <div className="fnote">
-          Rock lobster has a closed season and strict rules — confirm current dates, sizes and bag
-          limits with the VFA before taking.
-        </div>
-      )}
-      {s.id === "kingfish" && <KingfishNote />}
-    </div>
+    </article>
   );
 }
 
 export default function FishCards() {
   const cur = new Date().getMonth() + 1;
+  const [page, setPage] = useState(0);
+  const pages = Math.ceil(SPECIES.length / PAGE_SIZE);
   return (
-    <div className="fishgrid">
-      {SPECIES.map((s) => (
-        <FishCard key={s.id} s={s} cur={cur} />
-      ))}
-    </div>
+    <>
+      <div className="fishgrid">
+        {SPECIES.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map((s) => (
+          <FishCard key={s.id} s={s} cur={cur} />
+        ))}
+      </div>
+      <div className="fgpager">
+        <button disabled={page === 0} onClick={() => setPage(page - 1)}>
+          &lt; Prev
+        </button>
+        {Array.from({ length: pages }, (_, i) => (
+          <button key={i} className={i === page ? "cur" : ""} onClick={() => setPage(i)}>
+            {i + 1}
+          </button>
+        ))}
+        <button disabled={page === pages - 1} onClick={() => setPage(page + 1)}>
+          Next &gt;
+        </button>
+      </div>
+    </>
   );
 }
