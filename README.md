@@ -4,6 +4,8 @@ A daily dive- and fishing-conditions dashboard for the Victorian coast: swell, w
 sea-surface temperature, chlorophyll, seabed habitat and bathymetry, from free public
 marine/satellite feeds.
 
+**Live:** https://gimmie-sick-vis-vic.vercel.app (Vercel, auto-deploys from `main`)
+
 Built with **Next.js (App Router) + React + TypeScript + Tailwind v4**, react-leaflet,
 leaflet-velocity and Chart.js. (Ported from the original single-file static site.)
 
