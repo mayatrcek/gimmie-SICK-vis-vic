@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 // Leaflet touches window, so this must never SSR.
 const DiveSites = dynamic(() => import("./DiveSites"), {
   ssr: false,
-  loading: () => <div className="pad loadgif">Loading map…</div>,
+  loading: () => <div className="pad loadgif loadgif-lg" />,
 });
 
 export default function DiveSitesClient() {

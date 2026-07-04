@@ -28,8 +28,8 @@ npm test           # rating-logic self-check
 - `components/` — UI + map/chart components.
 - `lib/` — data (`data/`), pure logic (`logic/`), API clients (`api/`), chart plugins
   (`chart/`), wind-map math (`windmap/`), Leaflet helpers (`leaflet/`).
-- `app/cirrus.css` — the "Cirrus" design system (ported verbatim); `app/globals.css`
-  wires Tailwind v4 (no preflight) + the homepage `@theme` tokens.
+- `app/overworld.css` — the OVERWORLD pixel design system (see `ui_design/overworld/`);
+  `app/globals.css` wires Tailwind v4 (no preflight) + the homepage `@theme` tokens.
 - `public/assets/` — brand, loading anims, pre-rendered geo basemaps.
 - `tools/prerender-geo.js` — offline helper to refresh `assets/geo/*.png` (run manually).
 

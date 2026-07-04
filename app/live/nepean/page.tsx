@@ -1,3 +1,5 @@
+import LiveFrame from "@/components/LiveFrame";
+
 export const metadata = { title: "Point Nepean wave buoy — DIVEBYTE" };
 
 const DASH =
@@ -19,14 +21,12 @@ export default function Nepean() {
           &middot; Source: Ports Victoria / OMC International. If the panel below is blank, the site is
           blocking embedding — use the link.
         </div>
-        <div className="liveframe">
-          <iframe
-            src={`${DASH}?kiosk&theme=light`}
-            loading="lazy"
-            referrerPolicy="no-referrer"
-            title="Point Nepean live wave data"
-          />
-        </div>
+        <LiveFrame
+          src={`${DASH}?kiosk&theme=light`}
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          title="Point Nepean live wave data"
+        />
       </div>
     </div>
   );

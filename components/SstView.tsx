@@ -23,8 +23,8 @@ export default function SstView() {
       </div>
       <div className="imgbox">
         {status !== "ok" && (
-          <div className="ph">
-            {status === "error" ? "Could not load this layer — try again later." : "Loading SST…"}
+          <div className={`ph${status === "loading" ? " loadgif loadgif-lg" : ""}`}>
+            {status === "error" && "Could not load this layer — try again later."}
           </div>
         )}
         {/* eslint-disable-next-line @next/next/no-img-element */}

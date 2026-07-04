@@ -8,6 +8,9 @@ const SPRITE: Record<string, string> = {
   kingfish: "/assets/fih_sprites/kingfish-cartoon-64.png",
   trevally: "/assets/fih_sprites/trevally-cartoon-64.png",
   boarfish: "/assets/fih_sprites/boarfish-cartoon-64.png",
+  tuna: "/assets/fih_sprites/tuna-cartoon-64.png",
+  flathead: "/assets/fih_sprites/flathead-cartoon-64.png",
+  cray: "/assets/fih_sprites/crayfish-cartoon-64.png",
 };
 
 const PAGE_SIZE = 6;

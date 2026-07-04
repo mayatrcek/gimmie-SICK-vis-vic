@@ -11,7 +11,7 @@ export const TH = {
   RAIN_HEAVY: 15,
 };
 
-// Rating colours — the concrete hex from cirrus.css :root (--amazing/--good/--marg/--poor).
+// Rating colours — the concrete hex from overworld.css :root (--amazing/--good/--marg/--poor).
 // Hardcoded (not read via getComputedStyle) so it works server- and client-side.
 export const COL: Record<RatingLabel, string> = {
   Amazing: "#2f6e4f",

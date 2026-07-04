@@ -4,32 +4,12 @@ import QuickScroll from "@/components/QuickScroll";
 const HERO_BG =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuCm38URIzWfOZJxYBaurCzTAuRp-mUcHAdINfFsc-6rSNw0ZNDUp5yTPhEUP8Nv7vrnDKZHsK3AJmBjntthJsssDefwoxii7eNiqfDvDFsvMEYbfUflTlJjUc0ucxk4d7f3TyD5NLuJE84ASbZxkXYeXVVUadQ9tCQm6JcJB3BSMEzh4KCIeA0Ig3Ss0HIv3VNTcZgBq_kxbESBGCEKBZ62shqCXbTMr18HXIgPJIsHJJtGNa2saqM0c1knGSHIBDw0lZXjTEF-Cr8";
 
-type Channel = { title: string; href: string; img: string; cls: string };
+type Channel = { title: string; href: string; cls: string };
 const CHANNELS: Channel[] = [
-  {
-    title: "Forecast",
-    href: "/forecast/divesites",
-    cls: "bg-primary text-bone",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuApOBzUrM67pKETD_pcj9yZiPkPwaD72uF59LmQko3aT2mY_dkrSlaU9_T__px8Z9pznQRk-l1o9zB25UnvNChZ72dIdFOVG6YO5IjgM6fdKItw__VGX5D4xn9UyuxoDNnFFjw925m4FHdl-odm9POBMottvAd3sm2PEaAOkMQRvcCyPsEEAbsCWcGoXjosO8HkQMdugAcSjMTnXWU63pSB4GZvcQzdNkZcYF11hXshKlp9HJu9s6gTPNoEG_fpgoYHuIMDv-1aqP8",
-  },
-  {
-    title: "Wind Map",
-    href: "/forecast/windmap",
-    cls: "bg-bone",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAM0rXXsRdEL1CnxWshvZA51xUT99QO45uryHe64QoNy_3CU_CfElv2Mz_ZKcJrEzOavKMAjK_xDBWOe8YID0kzyM-eoesP582JwcarLzZq-JE-YnS7zOKXUTigPx_ynhx8nrEwq6szldC-9yljpuRodPUp1-p-07aDXL6-y6VOqyJ-SnnYNKJWUKbzFFsCgD-tElLmy_jLxK30ziiTKKnkjAhMQtShWdrXutqcCOS3AgFjXgNHoH7gZewnVdeBdhaDTp66JxRmO3Q",
-  },
-  {
-    title: "Learn",
-    href: "/fish",
-    cls: "bg-secondary text-bone",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuDG4cO3sSx6D2Z4ieJPDHdCWBKob93SrokbLTe45jc-DGZCUlOM3BAqDFcj51_eGBwsNDQG-rUVDd_kQ8mF7SaOUJ8_v2I7ZNVp_uvKDg8N-gPEo0trEsQtZ8EvZlM8yOI6j0D3z19mbJSdWr7Z_KqLgb6HMLpOCCSDvqojQ9y6VfNUrmZuZRYCEPrnntcaCX3pVhGgEFyxwjVMHFD-Kc16c0VAkeniQv8GPQqeLmegGLlYG3no8jGu9NxGuGieVqbFq8k6wwZ_WfY",
-  },
-  {
-    title: "Live Data",
-    href: "/live/chlorophyll",
-    cls: "bg-tertiary text-bone",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCzaSIe_yl1MD0hiox2xcm2wr9euoZn2kDHcwc8z30wWh7ftVipE8Rs15k3qm1RQCWNf2MZQqynaKt2JBH6vWEIVZQflvm0tZjxUich_-tb2GUU0pxUlnxX8IyTIOd_lGXBeSSlN6RvM2vbACwTya8lm-dk9vgc81cBVMQgQvzFMXVMgXiaArJmueMcVkZwZe5eW4JVmKH8Vz-DbM3goaziwidOmLvCx1dJXsKi6q_YpcN9sJEi0da6CzjBTjWDnZyFqGOgiklob3I",
-  },
+  { title: "Forecast", href: "/forecast/divesites", cls: "bg-primary text-bone" },
+  { title: "Wind Map", href: "/forecast/windmap", cls: "bg-bone text-ink-soft" },
+  { title: "Learn", href: "/fish", cls: "bg-secondary text-bone" },
+  { title: "Live Data", href: "/live/chlorophyll", cls: "bg-tertiary text-bone" },
 ];
 
 export default function Home() {
@@ -126,20 +106,10 @@ export default function Home() {
               href={c.href}
               className={`channel-card-animate block relative border-2 border-ink-soft group overflow-hidden shadow-[6px_6px_0px_0px_#2e5dd6] cursor-pointer ${c.cls}`}
             >
-              <div className="aspect-video relative">
-                {/* ponytail: external AI-image hotlinks; plain <img> avoids next/image remote config */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  alt={c.title}
-                  className="w-full h-full object-cover"
-                  src={c.img}
-                  style={{ imageRendering: "pixelated" }}
-                />
-                <div className="absolute inset-0 bg-ink-soft/40 flex items-center justify-center py-md">
-                  <h3 className="font-headline-md text-headline-md text-bone uppercase text-center px-md">
-                    {c.title}
-                  </h3>
-                </div>
+              <div className="aspect-video flex items-center justify-center py-md">
+                <h3 className="font-headline-md text-headline-md uppercase text-center px-md">
+                  {c.title}
+                </h3>
               </div>
             </Link>
           ))}

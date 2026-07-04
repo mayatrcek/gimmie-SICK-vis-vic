@@ -334,6 +334,8 @@
   .imgbox img{width:100%;height:auto;display:block}
   .sstlegend{display:block;max-width:300px;width:100%;height:auto;margin:8px 0 0;border-radius:6px}
   .imgbox .ph{position:absolute;color:var(--muted);font-size:13px;text-align:center;padding:20px}
+  /* big outlined gif variant — the plain one has no ink outlines and vanishes on parchment */
+  .loadgif-lg::before{width:240px;height:240px;background-image:url("/assets/brand/loading-anims/BlackBG Snaggletooth Bite.gif")}
   .foot{padding:11px 16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
   .foot a{color:var(--accent);text-decoration:none;font-weight:500}
   .note{background:#F7E6D2;border:2px solid var(--ink);border-radius:0;padding:13px 18px;font-size:13px;color:#8a4a23;line-height:1.55;margin-top:6px;box-shadow:var(--shadow-1)}
@@ -556,7 +558,7 @@
   .tab-menu{top:100%;border-radius:0;background:#F2EAD6;border:2px solid #161310;
     box-shadow:4px 4px 0 0 #161310;padding:6px}
   .tab-menu-item{border-radius:0;font-family:var(--font-vt323),monospace;font-size:19px;letter-spacing:.02em;
-    text-transform:uppercase;color:#161310}
+    text-transform:uppercase;color:#161310;text-decoration:none}
   .tab-menu-item:hover{background:rgba(46,93,214,.12)}
   .tab-menu-item.active{background:#2E5DD6;color:#fff}
 

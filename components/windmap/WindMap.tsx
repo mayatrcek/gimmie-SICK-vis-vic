@@ -6,6 +6,7 @@ import { MapContainer, TileLayer, ScaleControl } from "react-leaflet";
 import { fetchPointForecast } from "@/lib/api/openMeteo";
 import { FIELDS, WM_BOUNDS, WM_HOME, WM_HOME_ZOOM, type FieldKey } from "@/lib/windmap/config";
 import WindField from "./WindField";
+import MapLoading from "@/components/MapLoading";
 import PointForecast from "./PointForecast";
 
 const FIELD_ICONS: Record<FieldKey, string> = {
@@ -94,6 +95,7 @@ export default function WindMap() {
           maxBounds={WM_BOUNDS}
           maxBoundsViscosity={1.0}
         >
+          <MapLoading />
           {/* flat land/ocean canvas so only water gets colour-coded for marine fields */}
           <TileLayer
             url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"

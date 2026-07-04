@@ -5,17 +5,17 @@
 @import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined");
 
 /* Tailwind v4 WITHOUT preflight — matches the old `corePlugins.preflight:false`
-   so the Cirrus design system (cirrus.css) and Leaflet aren't reset.
+   so the OVERWORLD design system (overworld.css) and Leaflet aren't reset.
    Preflight is the `base` layer; we import theme + utilities only. */
 @layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
 
-/* Shared Cirrus design system (ported verbatim from the old styles.css).
+/* Shared OVERWORLD design system (pixel reskin of the old Cirrus styles.css).
    Must live in the `base` layer: it has a global `*{margin:0;padding:0}` reset,
    and unlayered CSS would beat every Tailwind margin/padding utility. The old
    site loaded styles.css BEFORE the CDN Tailwind styles for the same reason. */
-@import "./cirrus.css" layer(base);
+@import "./overworld.css" layer(base);
 /* Pixel-homepage helper styles (scoped to .home). */
 @import "./home.css";
 
@@ -97,7 +97,7 @@
 
 /* The old mobile scroll-scrubber strip was dropped in the port; keep the native
    time slider visible on every viewport so the wind map has a time control on
-   mobile (cirrus.css hides it there to make room for the scrubber). */
+   mobile (overworld.css hides it there to make room for the scrubber). */
 .wm-time-range {
   display: block;
 }
