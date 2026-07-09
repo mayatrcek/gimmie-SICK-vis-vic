@@ -52,8 +52,7 @@ body {
 /* Marquee (was an inline <style> in the home markup). */
 @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 .animate-marquee { display: flex; width: max-content; animation: marquee 30s linear infinite; }
-.dive-flag { width: 24px; height: 24px; background: #e2522e; position: relative; display: inline-block; vertical-align: middle; margin: 0 24px; }
-.dive-flag::after { content: ""; position: absolute; inset: 0; background: linear-gradient(45deg, transparent 45%, #fff 45%, #fff 55%, transparent 55%); }
+.dive-flag { display: inline-block; vertical-align: middle; margin: 0 24px; image-rendering: pixelated; }
 
 /* Fluid mobile clamps for the big pixel display type + full-bleed padding. */
 .home .px-bleed { padding-left: clamp(16px, 8vw, 96px); padding-right: clamp(16px, 8vw, 96px); }

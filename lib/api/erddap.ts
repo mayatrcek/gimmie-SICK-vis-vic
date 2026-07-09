@@ -36,6 +36,29 @@ export function sstLegendURL(s: Stretch = {}): string {
   );
 }
 
+// Averages the analysed_sst column of an ERDDAP griddap .csv response
+// (2 header rows, then time,latitude,longitude,analysed_sst; NaN over land).
+export function meanFromCsv(csv: string): number | null {
+  let sum = 0;
+  let n = 0;
+  for (const line of csv.trim().split("\n").slice(2)) {
+    const v = Number(line.split(",").pop());
+    if (Number.isFinite(v)) {
+      sum += v;
+      n++;
+    }
+  }
+  return n ? sum / n : null;
+}
+
+// Same region as sstURL/sstLegendURL, strided to keep the CSV small.
+export function sstMeanURL(stride = 10): string {
+  return (
+    BASE +
+    `jplMURSST41.csv?analysed_sst%5B(last)%5D%5B(-39.7):${stride}:(-37.1)%5D%5B(140.8):${stride}:(150.2)%5D`
+  );
+}
+
 export function chlURL(bump = 0): string {
   return (
     BASE +

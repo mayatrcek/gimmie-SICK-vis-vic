@@ -3,17 +3,24 @@
 import { useEffect, useState } from "react";
 import { fmtDataDate, graphLink, sstLegendURL, sstURL } from "@/lib/api/erddap";
 
-// ponytail: standalone SST page has no dive-spot SST average, so no ±1°C local
-// stretch — the default auto colour bar is used (sstURL()/sstLegendURL() with no min/max).
 export default function SstView() {
   const [status, setStatus] = useState<"loading" | "ok" | "error">("loading");
   const [date, setDate] = useState("…");
+  const [stretch, setStretch] = useState<{ min?: number; max?: number } | null>(null);
 
   useEffect(() => {
     fetch("/api/timestamp?ds=jplMURSST41")
       .then((r) => r.json())
       .then((j) => setDate(fmtDataDate(j.time)))
       .catch(() => setDate("unavailable"));
+
+    fetch("/api/sst-mean")
+      .then((r) => r.json())
+      .then((j) => {
+        const mean = j.mean != null ? Math.round(j.mean * 10) / 10 : null;
+        setStretch(mean != null ? { min: mean - 1, max: mean + 1 } : {});
+      })
+      .catch(() => setStretch({}));
   }, []);
 
   return (
@@ -27,18 +34,22 @@ export default function SstView() {
             {status === "error" && "Could not load this layer — try again later."}
           </div>
         )}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          id="sst"
-          alt="SST map"
-          src={sstURL()}
-          style={{ display: status === "ok" ? "block" : "none" }}
-          onLoad={() => setStatus("ok")}
-          onError={() => setStatus("error")}
-        />
+        {stretch && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            id="sst"
+            alt="SST map"
+            src={sstURL(stretch)}
+            style={{ display: status === "ok" ? "block" : "none" }}
+            onLoad={() => setStatus("ok")}
+            onError={() => setStatus("error")}
+          />
+        )}
       </div>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="sstlegend" alt="SST colour scale" src={sstLegendURL()} />
+      {stretch && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img className="sstlegend" alt="SST colour scale" src={sstLegendURL(stretch)} />
+      )}
       <div className="foot">
         <span>
           NASA JPL MUR &middot; data: <span>{date}</span>

@@ -21,10 +21,18 @@ const GROUPS: Group[] = [
     id: "live",
     label: "Live data",
     items: [
-      { label: "Chlorophyll", href: "/live/chlorophyll" },
       { label: "Point Nepean wave buoy", href: "/live/nepean" },
+      { label: "Chlorophyll", href: "/live/chlorophyll" },
       { label: "Sea temperature", href: "/live/sst" },
+      { label: "Currents", href: "/live/currents" },
+      { label: "Altimetry", href: "/live/altimetry" },
+      { label: "Salinity", href: "/live/salinity" },
     ],
+  },
+  {
+    id: "learn",
+    label: "Learn",
+    items: [{ label: "Fish guide", href: "/fish" }],
   },
   {
     id: "geo",
@@ -87,15 +95,7 @@ export default function Nav() {
           Home
         </Link>
 
-        {GROUPS.slice(0, 1).map((g) => (
-          <Dropdown key={g.id} g={g} open={openDD === g.id} onToggle={setOpenDD} active={groupActive(g)} isActive={isActive} />
-        ))}
-
-        <Link className={`tab${isActive("/fish") ? " active" : ""}`} href="/fish">
-          Fish guide
-        </Link>
-
-        {GROUPS.slice(1).map((g) => (
+        {GROUPS.map((g) => (
           <Dropdown key={g.id} g={g} open={openDD === g.id} onToggle={setOpenDD} active={groupActive(g)} isActive={isActive} />
         ))}
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import QuickScroll from "@/components/QuickScroll";
 
 const HERO_BG =
@@ -7,9 +8,9 @@ const HERO_BG =
 type Channel = { title: string; href: string; cls: string };
 const CHANNELS: Channel[] = [
   { title: "Forecast", href: "/forecast/divesites", cls: "bg-primary text-bone" },
-  { title: "Wind Map", href: "/forecast/windmap", cls: "bg-bone text-ink-soft" },
+  { title: "Live Data", href: "/live/chlorophyll", cls: "bg-bone text-ink-soft" },
   { title: "Learn", href: "/fish", cls: "bg-secondary text-bone" },
-  { title: "Live Data", href: "/live/chlorophyll", cls: "bg-tertiary text-bone" },
+  { title: "Underwater Geography", href: "/geo/habitat", cls: "bg-tertiary text-bone" },
 ];
 
 export default function Home() {
@@ -65,7 +66,15 @@ export default function Home() {
                   "PRECISION DIVE PLANNING",
                 ].map((t) => (
                   <span key={t} className="flex items-center gap-md">
-                    {t} <span className="dive-flag" />
+                    {t}
+                    <Image
+                      className="dive-flag"
+                      src="/assets/brand/alpha-dive-flag-32.png"
+                      alt=""
+                      aria-hidden="true"
+                      width={36}
+                      height={36}
+                    />
                   </span>
                 ))}
               </div>
@@ -81,7 +90,7 @@ export default function Home() {
             <h2 className="home-h2 font-display-lg text-headline-lg text-ink-soft mb-md uppercase">
               SUMMARY
             </h2>
-            <p className="font-body-md text-body-md text-ink-soft leading-relaxed">
+            <p className="font-hud-md text-hud-md text-ink-soft opacity-70 leading-relaxed uppercase">
               A daily dive- and fishing-conditions dashboard for the Victorian coast. It brings
               real-time swell, wind, sea-surface temperature, chlorophyll and seabed data from marine
               models and satellite feeds together, so you can tell at a glance whether tomorrow is
