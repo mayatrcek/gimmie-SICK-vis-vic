@@ -194,7 +194,6 @@ export default function DiveSites() {
   return (
     <div id="sub-divesites">
       <h2 className="sec">
-        <span className="dot" style={{ background: "var(--accent)" }} />
         Dive sites
       </h2>
       <div className="picker">
@@ -225,7 +224,6 @@ export default function DiveSites() {
 
       <div className="panel">
         <div className="panel-hd">
-          <span className="dot" style={{ background: "var(--accent)" }} />
           <span className="panel-ttl">Dive sites map</span>
           <span className="panel-meta">Click a marker for today&rsquo;s rating</span>
         </div>

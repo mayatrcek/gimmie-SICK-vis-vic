@@ -9,7 +9,6 @@ export default function Nepean() {
   return (
     <div className="panel">
       <div className="panel-hd">
-        <span className="dot" style={{ background: "var(--accent)" }} />
         <span className="panel-ttl">Point Nepean — live waves</span>
         <span className="panel-meta">Ports Victoria / OMC</span>
       </div>

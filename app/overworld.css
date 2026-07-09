@@ -49,7 +49,7 @@
   header{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;justify-content:space-between;margin-bottom:6px}
   h1{font-family:var(--font-display);font-size:clamp(28px,4vw,44px);font-weight:700;line-height:1.04;letter-spacing:-.025em}
   .region{color:var(--accent);font-weight:600}
-  .sub{color:var(--muted);font-size:15px;margin-bottom:18px;line-height:1.55;max-width:72ch}
+  .sub{color:var(--muted);font-size:15px;margin-bottom:18px;line-height:1.55}
   .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0}
 
   /* Buttons — square, 2px ink border, block shadow, press-into-shadow on :active */
@@ -65,9 +65,9 @@
   button.primary:hover{background:#1F47B0;color:#FFFAEF}
   .stamp{color:var(--muted);font-size:13px;margin-left:auto}
 
-  h2.sec{font-family:var(--font-display);font-size:20px;font-weight:600;letter-spacing:-.015em;
+  h2.sec{font-family:var(--font-display);font-size:clamp(1.6rem,6.5vw,44px);line-height:1.02;
+         font-weight:700;letter-spacing:-.015em;text-transform:uppercase;
          margin:26px 0 12px;display:flex;align-items:center;gap:8px}
-  .dot{width:10px;height:10px;border-radius:50%}
 
   /* Maps and media frames — 20px tile, hairline, tier-1 lift */
   #map{height:460px;width:100%;margin:0 0 14px;border-radius:var(--radius-tile);border:1px solid var(--line);box-shadow:var(--shadow-1);z-index:0}
@@ -348,7 +348,8 @@
 
   /* Top-level tabs — a single floating cloud pill, centered, sticky on every page.
      Only the pill is interactive; the surrounding strip lets clicks pass through. */
-  .tabs{position:fixed;top:14px;left:0;right:0;z-index:600;display:flex;justify-content:center;padding:0 12px;pointer-events:none}
+  /* z 1300: above every page overlay (maploader 1000, wind-map chrome 1000-1200) */
+  .tabs{position:fixed;top:14px;left:0;right:0;z-index:1300;display:flex;justify-content:center;padding:0 12px;pointer-events:none}
   .tabs-inner{pointer-events:auto;display:inline-flex;gap:4px;padding:6px;max-width:calc(100vw - 24px);
         background:var(--color-cloud);border:1px solid var(--line);border-radius:var(--radius-pill);box-shadow:var(--shadow-1)}
   /* Hamburger toggle is mobile-only; the media query reveals it under 560px */
@@ -413,6 +414,26 @@
   .mbar span{flex:1;text-align:center;font-family:var(--font-hud);font-size:12px;color:var(--mist-soft);
     background:var(--surface-sunken);border:1px solid var(--line);padding:3px 0}
   .mbar span.on{background:var(--amazing);border-color:var(--amazing);color:#fff}
+  /* chlorophyll gallery cards — reuse fish2, sea-blue thumb so cloud gaps read as ocean */
+  .chlgrid{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:700px){.chlgrid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}}
+  .chlcard{cursor:pointer}
+  .chlcard .f2sci{font-family:var(--font-hud);font-style:normal;font-size:15px}
+  /* selected-scan chrome floated over the map, clear of leaflet's top-left zoom control.
+     #compmap gets its own stacking context so leaflet's z-1000 controls stay inside it;
+     chlover then only needs z-5: above the map, below the fixed tabs (z 600). */
+  #compmap{position:relative;z-index:0}
+  .chlover{position:absolute;top:10px;right:10px;z-index:5;display:flex;align-items:center;gap:10px}
+  .chldate{position:absolute;bottom:10px;right:10px;z-index:5;
+    font-family:var(--font-hud);font-size:17px;line-height:1;background:var(--panel);
+    border:2px solid var(--ink);padding:5px 9px;box-shadow:2px 2px 0 0 var(--ink)}
+  .chlthumb{background:#16344a}
+  .chlthumb img{width:100%;height:100%;object-fit:cover;transition:opacity .3s var(--ease)}
+  /* skeleton shimmer while the GIBS scan downloads; img stays hidden until load */
+  .chlskel{background:linear-gradient(100deg,#16344a 30%,#2a5375 45%,#16344a 60%);
+    background-size:300% 100%;animation:chlskel 1.4s linear infinite}
+  .chlskel img{opacity:0}
+  @keyframes chlskel{0%{background-position:100% 0}100%{background-position:-100% 0}}
   /* pager — base pixel button style already applies; layout + states only */
   .fgpager{display:flex;justify-content:center;align-items:center;gap:12px;margin:36px 0 16px}
   .fgpager button{min-width:46px}
@@ -445,7 +466,9 @@
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden;
     box-shadow:var(--shadow-1);margin:0 0 16px}
   .panel-hd{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:16px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
-  .panel-ttl{font-family:var(--font-display);font-size:16px;font-weight:600;letter-spacing:-.015em;color:var(--ink)}
+  /* heading scale matches the home-page SUMMARY h2 (home-h2/text-headline-lg) */
+  .panel-ttl{font-family:var(--font-display);font-size:clamp(1.6rem,6.5vw,44px);line-height:1.02;
+    font-weight:700;letter-spacing:-.015em;text-transform:uppercase;color:var(--ink)}
   /* meta stacks under the title on its own line (no split heading/description header) */
   .panel-meta{flex-basis:100%;font-size:13px;color:var(--muted)}
   .panel-bd{padding:18px 20px}
@@ -466,7 +489,7 @@
     h1{font-size:26px}
 
     /* --- Hamburger nav: a small round icon button in the top-left corner --- */
-    .tabs{z-index:1200;justify-content:flex-start} /* above the wind-map overlay controls (z 1000+) */
+    .tabs{justify-content:flex-start} /* z inherited from base rule (1300) */
     .nav-toggle{display:inline-flex;align-items:center;justify-content:center;gap:0;
       width:46px;height:46px;padding:0;pointer-events:auto;cursor:pointer;color:var(--ink);
       background:var(--color-cloud);border:1px solid var(--line);border-radius:50%;box-shadow:var(--shadow-1)}
@@ -533,12 +556,13 @@
   :root{--tabh:60px}
 
   /* Top bar: full-width parchment strip, hard bottom shadow, brand left / links right */
-  .tabs{position:fixed;top:0;left:0;right:0;height:var(--tabh);z-index:600;
+  .tabs{position:fixed;top:0;left:0;right:0;height:var(--tabh);z-index:1300;
     display:flex;align-items:stretch;justify-content:flex-start;gap:0;padding:0;pointer-events:auto;
     background:#F2EAD6;border-bottom:2px solid #161310;box-shadow:0 4px 0 0 #161310}
   .nav-brand{display:flex;align-items:center;border:none;background:none;cursor:pointer;
     padding:0 24px;font-family:var(--font-pixelify),sans-serif;font-weight:700;font-size:26px;
-    letter-spacing:-.02em;text-transform:uppercase;color:#161310;white-space:nowrap;border-radius:0}
+    letter-spacing:-.02em;text-transform:uppercase;color:#161310;white-space:nowrap;border-radius:0;
+    text-decoration:none}
   .nav-brand:hover{background:none;color:#2E5DD6}
   .nav-flag{display:block;height:1.15em;width:auto;margin-right:10px;image-rendering:pixelated}
   .tabs-inner{pointer-events:auto;display:inline-flex;align-items:stretch;gap:2px;margin-left:auto;
@@ -626,3 +650,7 @@
   .wmf-close,.rm,.sbclose,.wm-time-now{box-shadow:none}
   /* nav tabs press by 1px like the rest of the pixel chrome, not the full 4px */
   .tab:active{transform:translate(1px,1px)}
+
+
+
+

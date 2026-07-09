@@ -4,7 +4,6 @@ export default function About() {
   return (
     <div className="panel">
       <div className="panel-hd">
-        <span className="dot" style={{ background: "var(--accent)" }} />
         <span className="panel-ttl">About this site</span>
       </div>
       <div className="panel-bd" style={{ padding: "18px 20px", lineHeight: 1.6 }}>

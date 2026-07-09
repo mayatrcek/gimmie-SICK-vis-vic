@@ -5,12 +5,12 @@ import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 
+import { BBOX, GIBS } from "./gibs";
+
 const B: [[number, number], [number, number]] = [
   [-44.2, 139.5],
   [-33.8, 150.8],
 ];
-const BBOX = "15529069,-5496679,16786978,-4001005";
-const GIBS = "https://gibs.earthdata.nasa.gov/wms/epsg3857/best/wms.cgi";
 
 // Build the ocean clip mask once: invert the alpha of GIBS OSM_Land_Mask on a
 // canvas and expose it as a CSS mask (.chlclip), so chlorophyll is clipped to sea.
@@ -45,7 +45,7 @@ function buildOceanClip(onFail: () => void) {
   img.src = `${GIBS}?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=OSM_Land_Mask&CRS=EPSG:3857&BBOX=15529069,-5496679,16786978,-4001005&WIDTH=1280&HEIGHT=1523&FORMAT=image/png&TRANSPARENT=true`;
 }
 
-function CompLayers({ onLoaded }: { onLoaded: () => void }) {
+function CompLayers({ day, onLoaded }: { day: string; onLoaded: () => void }) {
   const map = useMap();
   useEffect(() => {
     buildOceanClip(() => {
@@ -58,34 +58,25 @@ function CompLayers({ onLoaded }: { onLoaded: () => void }) {
       ).addTo(map as any).setZIndex(600);
     });
 
-    // NASA GIBS VIIRS NOAA-20 chlorophyll — last few days stacked to fill cloud gaps.
-    const offsets = [4, 3, 2];
-    let got = 0;
-    const done = () => {
-      if (++got >= offsets.length) onLoaded();
-    };
+    // NASA GIBS VIIRS NOAA-20 chlorophyll — single-day scan.
     const safety = setTimeout(onLoaded, 12000);
-    offsets.forEach((off, i) => {
-      const d = new Date(Date.now() - off * 864e5);
-      const ymd = d.toISOString().slice(0, 10);
-      const url = `${GIBS}?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=VIIRS_NOAA20_Chlorophyll_A&CRS=EPSG:3857&BBOX=${BBOX}&WIDTH=1024&HEIGHT=1218&FORMAT=image/png&TRANSPARENT=true&TIME=${ymd}`;
-      const lyr = L.imageOverlay(url, B, {
-        pane: "tilePane",
-        className: "chlclip",
-        opacity: 1,
-        attribution: "Chlorophyll: NASA GIBS (VIIRS NOAA-20)",
-      }).addTo(map);
-      lyr.on("load", done);
-      lyr.on("error", done);
-      lyr.setZIndex(200 + i);
-    });
+    const url = `${GIBS}?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=VIIRS_NOAA20_Chlorophyll_A&CRS=EPSG:3857&BBOX=${BBOX}&WIDTH=1024&HEIGHT=1218&FORMAT=image/png&TRANSPARENT=true&TIME=${day}`;
+    const lyr = L.imageOverlay(url, B, {
+      pane: "tilePane",
+      className: "chlclip",
+      opacity: 1,
+      attribution: "Chlorophyll: NASA GIBS (VIIRS NOAA-20)",
+    }).addTo(map);
+    lyr.on("load", onLoaded);
+    lyr.on("error", onLoaded);
+    lyr.setZIndex(200);
     return () => clearTimeout(safety);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return null;
 }
 
-export default function ChlorophyllMap() {
+export default function ChlorophyllMap({ day }: { day: string }) {
   const [loading, setLoading] = useState(true);
   return (
     <div style={{ position: "relative" }}>
@@ -94,13 +85,14 @@ export default function ChlorophyllMap() {
         center={[-39.0, 145.6]}
         zoom={7}
         scrollWheelZoom
+        attributionControl={false}
         minZoom={6}
         maxBounds={[
           [-44.2, 139.5],
           [-33.8, 150.8],
         ]}
         maxBoundsViscosity={1.0}
-        style={{ height: 420, borderTop: "1px solid var(--line)" }}
+        style={{ height: "min(72vh, 640px)" }}
       >
         <TileLayer
           url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
@@ -114,7 +106,7 @@ export default function ChlorophyllMap() {
           opacity={0.9}
           zIndex={650}
         />
-        <CompLayers onLoaded={() => setLoading(false)} />
+        <CompLayers day={day} onLoaded={() => setLoading(false)} />
       </MapContainer>
       {loading && <div className="maploader loadgif" />}
     </div>

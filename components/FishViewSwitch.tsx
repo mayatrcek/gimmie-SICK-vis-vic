@@ -3,13 +3,7 @@ import { useState } from "react";
 
 const VIEWS = ["list", "aquarium"] as const;
 
-export default function FishViewSwitch({
-  intro,
-  list,
-}: {
-  intro: React.ReactNode;
-  list: React.ReactNode;
-}) {
+export default function FishViewSwitch({ list }: { list: React.ReactNode }) {
   const [view, setView] = useState<(typeof VIEWS)[number]>("list");
   return (
     <>
@@ -26,7 +20,6 @@ export default function FishViewSwitch({
           </button>
         ))}
       </div>
-      {intro}
       {/* ponytail: aquarium view intentionally blank for now */}
       {view === "list" && list}
     </>
