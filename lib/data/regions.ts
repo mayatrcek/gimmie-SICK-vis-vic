@@ -43,6 +43,7 @@ export const REGIONS: Region[] = [
     spots: [
       { id: "pointnepean", name: "Point Nepean (buoy)", lat: -38.36, lon: 144.687, onshore: 190 },
       { id: "portsea", name: "Portsea Back Beach", lat: -38.355, lon: 144.7 },
+      { id: "diamond", name: "Diamond Bay", lat: -38.351, lon: 144.756 },
       { id: "sorrento", name: "Sorrento Back Beach", lat: -38.355, lon: 144.74 },
       { id: "rye", name: "Rye Back Beach", lat: -38.404, lon: 144.82 },
       { id: "gunnamatta", name: "Gunnamatta", lat: -38.435, lon: 144.876 },
@@ -109,7 +110,7 @@ for (const rg of REGIONS) {
   }
 }
 
-export const DEFAULTS = ["pointnepean", "bells", "woolamai", "schanck"];
+export const DEFAULTS = ["sorrento", "bells", "woolamai", "schanck"];
 
 // Surf-Forecast.com break slug for each spot. Spots without their own page
 // map to the nearest listed break.
@@ -128,6 +129,7 @@ export const SF_BREAK: Record<string, string> = {
   lonsdale: "Point-Lonsdale",
   pointnepean: "Quarantine",
   portsea: "Portsea-Back-Beach",
+  diamond: "Portsea-Back-Beach",
   sorrento: "St-Andrews-Beach",
   rye: "Rye-Ocean-Beach",
   gunnamatta: "Gunnamatta-Beach",

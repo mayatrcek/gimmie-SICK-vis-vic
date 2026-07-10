@@ -3,6 +3,7 @@ import { Inter, Inter_Tight, Instrument_Serif, Sora, Pixelify_Sans, VT323 } from
 import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import TestingNotice from "@/components/TestingNotice";
 
 // OVERWORLD text faces + the pixel-homepage faces, self-hosted via next/font.
 const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-inter", display: "swap" });
@@ -15,7 +16,7 @@ const vt323 = VT323({ subsets: ["latin"], weight: "400", variable: "--font-vt323
 const fontVars = [inter, interTight, instrument, sora, pixelify, vt323].map((f) => f.variable).join(" ");
 
 export const metadata: Metadata = {
-  title: "Gimme SICK vis — DIVEBYTE",
+  title: "GIMMIE SICK VIS",
   description:
     "Daily dive- and fishing-conditions dashboard for the Victorian coast: swell, wind, sea-surface temperature, chlorophyll and seabed data.",
   icons: { icon: "/assets/brand/alpha-dive-flag-32.png" },
@@ -32,6 +33,7 @@ export default function RootLayout({
           {children}
           <Footer />
         </div>
+        <TestingNotice />
       </body>
     </html>
   );

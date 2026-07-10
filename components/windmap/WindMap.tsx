@@ -1,6 +1,5 @@
 "use client";
 
-import "leaflet/dist/leaflet.css";
 import { useState } from "react";
 import { MapContainer, TileLayer, ScaleControl } from "react-leaflet";
 import { fetchPointForecast } from "@/lib/api/openMeteo";

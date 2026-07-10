@@ -1,4 +1,4 @@
-# DIVEBYTE — Gimme SICK vis
+# GIMMIE SICK VIS
 
 A daily dive- and fishing-conditions dashboard for the Victorian coast: swell, wind,
 sea-surface temperature, chlorophyll, seabed habitat and bathymetry, from free public
@@ -29,7 +29,8 @@ npm test           # rating-logic + ERDDAP-client self-checks
   - `/fish` — species guide (OVERWORLD sprite cards)
 - `app/api/*` — server route handlers proxying the gov feeds that used to be
   called via JSONP: ERDDAP `timestamp`, `sst-mean` (regional average that drives
-  the SST colour stretch), Nominatim `geocode`, Seamap `habitat`, DEECA `depth`.
+  the SST colour stretch), Nominatim `geocode`, Seamap `habitat`, DEECA `depth`,
+  and `depth-tile` (Terrarium elevation PNGs for the dive-map water shading).
 - `components/` — UI + map/chart components.
 - `lib/` — data (`data/`), pure logic (`logic/`), API clients (`api/`), chart plugins
   (`chart/`), wind-map math (`windmap/`), Leaflet helpers (`leaflet/`).
@@ -37,13 +38,16 @@ npm test           # rating-logic + ERDDAP-client self-checks
   `app/globals.css` wires Tailwind v4 (no preflight) + the homepage `@theme` tokens.
 - `public/assets/` — brand, loading anims, pre-rendered geo basemaps.
 - `tools/prerender-geo.js` — offline helper to refresh `assets/geo/*.png` (run manually).
+- `tools/prerender-pixelmap.js` — bakes the dive-sites OVERWORLD basemap to
+  `assets/geo/pixelmap.png` (instant under-layer; re-run when the palette changes).
 - `sources/`, `docs/` — reference material and planning notes; not part of the build.
 
 ## Data sources
 
 Open-Meteo (marine + weather), NASA JPL MUR SST via NOAA ERDDAP, NASA GIBS VIIRS
 chlorophyll, Seamap Australia benthic habitat, DEECA CoastKit bathymetry/contours,
-Esri basemaps. All free/public; a planning aid, not for navigation or safety-of-life use.
+Esri basemaps, CARTO basemap + AWS Terrarium bathymetry (dive-sites pixel map).
+All free/public; a planning aid, not for navigation or safety-of-life use.
 
 > **Open-Meteo call budget:** the wind map issues one bulk request per API (2 models,
 > coarse grid) to stay within the free tier — keep it that way.

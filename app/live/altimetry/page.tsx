@@ -1,4 +1,4 @@
-export const metadata = { title: "Sea surface altimetry — DIVEBYTE" };
+export const metadata = { title: "Sea surface altimetry — GIMMIE SICK VIS" };
 
 export default function Altimetry() {
   return (

@@ -1,4 +1,4 @@
-/* DIVEBYTE global styles. */
+/* GIMMIE SICK VIS global styles. */
 /* Text faces are self-hosted via next/font (see app/layout.tsx), exposed as
    --font-* CSS variables. Only the Material Symbols icon font stays a remote
    @import (must precede all rules). */
@@ -11,6 +11,11 @@
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
 
+/* Leaflet's stylesheet must load in the SAME layer as (and before) overworld.css.
+   Imported unlayered (as the map components used to), it would beat every layered
+   OVERWORLD rule — popups/zoom bars stayed leaflet-default no matter what
+   overworld.css said. Components must NOT import leaflet/dist/leaflet.css. */
+@import "leaflet/dist/leaflet.css" layer(base);
 /* Shared OVERWORLD design system (pixel reskin of the old Cirrus styles.css).
    Must live in the `base` layer: it has a global `*{margin:0;padding:0}` reset,
    and unlayered CSS would beat every Tailwind margin/padding utility. The old

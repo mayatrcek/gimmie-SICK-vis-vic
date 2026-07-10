@@ -1,7 +1,7 @@
 import FishCards from "@/components/FishCards";
 import FishViewSwitch from "@/components/FishViewSwitch";
 
-export const metadata = { title: "Fish guide — DIVEBYTE" };
+export const metadata = { title: "Fish guide — GIMMIE SICK VIS" };
 
 export default function Fish() {
   return (

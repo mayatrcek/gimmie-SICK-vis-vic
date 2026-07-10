@@ -70,6 +70,13 @@ export function baseOpts(): any {
     plugins: {
       legend: { display: false },
       tooltip: {
+        // OVERWORLD chrome: square ink box, no caret, roomier type
+        backgroundColor: "#161310",
+        cornerRadius: 0,
+        caretSize: 0,
+        padding: 10,
+        titleFont: { size: 14 },
+        bodyFont: { size: 14 },
         callbacks: {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           title(items: any) {

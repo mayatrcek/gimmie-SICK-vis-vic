@@ -16,7 +16,7 @@ export async function GET(req: Request) {
     "?f=json&geometryType=esriGeometryPoint&sr=3857&returnGeometry=true&tolerance=200" +
     `&geometry=${geometry}&mapExtent=${mapExtent}&imageDisplay=${imageDisplay}&layers=all`;
   try {
-    const r = await fetch(url, { headers: { "User-Agent": "DIVEBYTE/1.0" } });
+    const r = await fetch(url, { headers: { "User-Agent": "GIMMIE SICK VIS/1.0" } });
     const j = await r.json();
     return NextResponse.json({ results: j?.results || [] });
   } catch {

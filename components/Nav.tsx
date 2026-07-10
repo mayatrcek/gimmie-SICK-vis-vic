@@ -78,7 +78,7 @@ export default function Nav() {
           width={32}
           height={32}
         />
-        DIVEBYTE
+        GIMMIE SICK VIS
       </Link>
       <button
         className="nav-toggle"

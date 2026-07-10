@@ -1,4 +1,4 @@
-export const metadata = { title: "Ocean currents — DIVEBYTE" };
+export const metadata = { title: "Ocean currents — GIMMIE SICK VIS" };
 
 export default function Currents() {
   return (

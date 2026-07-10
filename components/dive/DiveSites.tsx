@@ -1,8 +1,7 @@
 "use client";
 
-import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, LayersControl, WMSTileLayer, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import { REGIONS, SPOTS, DEFAULTS } from "@/lib/data/regions";
 import MapLoading from "@/components/MapLoading";
@@ -10,6 +9,7 @@ import { fetchSite } from "@/lib/api/openMeteo";
 import { compass, todayRating, todayRow } from "@/lib/logic/rating";
 import type { Hourly, Row, Spot } from "@/lib/types";
 import { dotIcon } from "@/lib/leaflet/icons";
+import { pixelBasemap, pixelBaseOverlay } from "@/lib/leaflet/pixelTiles";
 import SpotCharts from "./SpotCharts";
 
 type St = { rows: Row[] | null; hourly: Hourly | null; loading: boolean; expanded: boolean };
@@ -54,6 +54,20 @@ function WeekStrip({ s, rows }: { s: Spot; rows: Row[] }) {
       ))}
     </div>
   );
+}
+
+// OVERWORLD-recoloured basemap (imperative leaflet layer, so not a react-leaflet child).
+function PixelBasemap() {
+  const map = useMap();
+  useEffect(() => {
+    const base = pixelBaseOverlay().addTo(map); // repo PNG, paints instantly
+    const layer = pixelBasemap().addTo(map); // live tiles cover it as they arrive
+    return () => {
+      map.removeLayer(base);
+      map.removeLayer(layer);
+    };
+  }, [map]);
+  return null;
 }
 
 // Fit the map to the selected markers whenever the set changes.
@@ -223,16 +237,16 @@ export default function DiveSites() {
       </div>
 
       <div className="panel">
-        <div className="panel-hd">
-          <span className="panel-ttl">Dive sites map</span>
-          <span className="panel-meta">Click a marker for today&rsquo;s rating</span>
-        </div>
         <div className="panel-bd flush">
           <MapContainer
             id="map"
             center={[-38.75, 145.35]}
             zoom={7}
             scrollWheelZoom
+            attributionControl={false}
+            zoomSnap={0.25}
+            zoomDelta={0.5}
+            wheelPxPerZoomLevel={90}
             minZoom={6}
             maxBounds={[
               [-44.2, 139.5],
@@ -241,40 +255,35 @@ export default function DiveSites() {
             maxBoundsViscosity={1.0}
           >
             <MapLoading />
+            {/* Base tiles are canvas-recoloured to the OVERWORLD palette (lib/leaflet/
+                pixelTiles.ts) and 4x-stretched; labels ride on top at 2x. */}
+            <PixelBasemap />
             <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-              attribution="Imagery &copy; Esri, Maxar, Earthstar Geographics"
-              maxZoom={19}
-            />
-            <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}.png"
               maxZoom={19}
               opacity={0.9}
+              tileSize={512}
+              zoomOffset={-1}
             />
-            <LayersControl position="topright" collapsed={false}>
-              <LayersControl.Overlay name="SST overlay (NOAA)">
-                <WMSTileLayer
-                  url="https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request?"
-                  layers="jplMURSST41:analysed_sst"
-                  format="image/png"
-                  transparent
-                  version="1.3.0"
-                  opacity={0.55}
-                  attribution="SST: NOAA CoastWatch"
-                />
-              </LayersControl.Overlay>
-            </LayersControl>
             {ids.map((id) => {
               const st = selected[id];
               const s = SPOTS[id];
               const col = st.rows ? todayRating(st.rows).col : st.loading ? "#1b6ca8" : "#d7d4c8";
               const tr = st.rows ? todayRating(st.rows) : null;
               return (
-                <Marker key={id} position={[s.lat, s.lon]} icon={dotIcon(col)}>
-                  <Popup>
+                <Marker
+                  key={id}
+                  position={[s.lat, s.lon]}
+                  icon={dotIcon(col)}
+                  eventHandlers={{
+                    mouseover: (e) => e.target.openPopup(),
+                    mouseout: (e) => e.target.closePopup(),
+                  }}
+                >
+                  <Popup closeButton={false}>
                     <b>{s.name}</b>
                     <br />
-                    <span style={{ color: "#5b6b7b" }}>
+                    <span style={{ color: "var(--muted)" }}>
                       {s.region}
                       {s.sheltered ? " · sheltered" : ""}
                     </span>

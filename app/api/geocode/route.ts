@@ -10,7 +10,7 @@ export async function GET(req: Request) {
   try {
     const r = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&addressdetails=1&lat=${lat}&lon=${lon}`,
-      { headers: { "User-Agent": "DIVEBYTE/1.0 (dive conditions dashboard)" }, next: { revalidate: 86400 } },
+      { headers: { "User-Agent": "GIMMIE SICK VIS/1.0 (dive conditions dashboard)" }, next: { revalidate: 86400 } },
     );
     const d = await r.json();
     const a = d?.address || {};

@@ -1,4 +1,4 @@
-export const metadata = { title: "Salinity — DIVEBYTE" };
+export const metadata = { title: "Salinity — GIMMIE SICK VIS" };
 
 export default function Salinity() {
   return (

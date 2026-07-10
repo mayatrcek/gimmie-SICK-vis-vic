@@ -1,7 +1,7 @@
 import HabitatClient from "@/components/geo/HabitatClient";
 import GeoLegend from "@/components/geo/GeoLegend";
 
-export const metadata = { title: "Seabed habitat — DIVEBYTE" };
+export const metadata = { title: "Seabed habitat — GIMMIE SICK VIS" };
 
 export default function Habitat() {
   return (

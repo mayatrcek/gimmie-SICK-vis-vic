@@ -1,6 +1,6 @@
 import SstView from "@/components/SstView";
 
-export const metadata = { title: "Sea temperature — DIVEBYTE" };
+export const metadata = { title: "Sea temperature — GIMMIE SICK VIS" };
 
 export default function Sst() {
   return (

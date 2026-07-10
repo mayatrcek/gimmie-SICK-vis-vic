@@ -1,6 +1,6 @@
 import DepthClient from "@/components/geo/DepthClient";
 
-export const metadata = { title: "Depth detail — DIVEBYTE" };
+export const metadata = { title: "Depth detail — GIMMIE SICK VIS" };
 
 export default function Depth() {
   return (

@@ -1,6 +1,6 @@
 import LiveFrame from "@/components/LiveFrame";
 
-export const metadata = { title: "Point Nepean wave buoy — DIVEBYTE" };
+export const metadata = { title: "Point Nepean wave buoy — GIMMIE SICK VIS" };
 
 const DASH =
   "https://portweather-public.omcinternational.com/d/f28ef6a7-b2b9-4906-82b2-d48264b69f35/point-nepean";

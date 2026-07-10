@@ -1,12 +1,13 @@
 import L from "leaflet";
 
-// Coloured dot marker for a dive spot (colour = today's rating).
+// Coloured square marker for a dive spot (colour = today's rating).
+// OVERWORLD chrome: square, 2px ink border, hard offset block shadow.
 export function dotIcon(col: string): L.DivIcon {
   return L.divIcon({
     className: "",
-    html: `<div style="width:18px;height:18px;border-radius:50%;background:${col};border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>`,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9],
+    html: `<div style="width:16px;height:16px;background:${col};border:2px solid #161310;box-shadow:2px 2px 0 0 #161310"></div>`,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
     popupAnchor: [0, -10],
   });
 }

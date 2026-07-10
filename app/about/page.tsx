@@ -1,4 +1,4 @@
-export const metadata = { title: "About — DIVEBYTE" };
+export const metadata = { title: "About — GIMMIE SICK VIS" };
 
 export default function About() {
   return (
@@ -27,7 +27,14 @@ export default function About() {
           <a href="https://www.marineandcoasts.vic.gov.au/" target="_blank" rel="noopener">
             DEECA CoastKit (Victoria)
           </a>
-          . The whole thing is a single web app — no account, no tracking, no servers of mine.
+          , with open basemaps and bathymetry from OpenStreetMap, CARTO and Mapzen. The whole
+          thing is a single web app — no account, no tracking, no servers of mine.
+        </p>
+        <p style={{ margin: "0 0 12px" }}>
+          <b>Testing status:</b> this site is still in testing, so some features may not work yet
+          (or may change without warning).{" "}
+          <a href="/feedback">Feedback</a> is highly valuable — if something looks broken or
+          plain wrong, please say so.
         </p>
         <p style={{ margin: "0 0 12px" }}>
           <b>Who&rsquo;s &ldquo;us&rdquo;:</b> built by Maya — a first-year computer-science student

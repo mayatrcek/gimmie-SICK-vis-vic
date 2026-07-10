@@ -5,7 +5,7 @@ export default function Footer() {
     <footer>
       <div className="foot-grid">
         <Link className="foot-brand" href="/">
-          DIVEBYTE
+          GIMMIE SICK VIS
         </Link>
         <div className="foot-links">
           <a href="#">PROTOCOL_VO_1</a>
