@@ -15,16 +15,21 @@ leaflet-velocity and Chart.js. (Ported from the original single-file static site
 npm install
 npm run dev        # http://localhost:3000
 npm run build      # production build
-npm test           # rating-logic self-check
+npm test           # rating-logic + ERDDAP-client self-checks
 ```
 
 ## Structure
 
-- `app/` — routes (App Router). Home is SSG; each section is its own route
-  (`/forecast/*`, `/live/*`, `/geo/*`, `/fish`, …). Maps are client components
-  dynamically imported with `ssr:false`.
-- `app/api/*` — server route handlers that proxy the gov feeds that used to be
-  called via JSONP (ERDDAP timestamp, Nominatim geocode, Seamap habitat, DEECA depth).
+- `app/` — routes (App Router). Home is SSG; each section is its own route.
+  Maps are client components dynamically imported with `ssr:false`.
+  - `/forecast/*` — dive-site ratings, wind map
+  - `/live/*` — SST, chlorophyll (daily-scan gallery), currents, altimetry,
+    salinity, Nepean cam
+  - `/geo/*` — seabed habitat, depth/bathymetry
+  - `/fish` — species guide (OVERWORLD sprite cards)
+- `app/api/*` — server route handlers proxying the gov feeds that used to be
+  called via JSONP: ERDDAP `timestamp`, `sst-mean` (regional average that drives
+  the SST colour stretch), Nominatim `geocode`, Seamap `habitat`, DEECA `depth`.
 - `components/` — UI + map/chart components.
 - `lib/` — data (`data/`), pure logic (`logic/`), API clients (`api/`), chart plugins
   (`chart/`), wind-map math (`windmap/`), Leaflet helpers (`leaflet/`).
@@ -32,6 +37,7 @@ npm test           # rating-logic self-check
   `app/globals.css` wires Tailwind v4 (no preflight) + the homepage `@theme` tokens.
 - `public/assets/` — brand, loading anims, pre-rendered geo basemaps.
 - `tools/prerender-geo.js` — offline helper to refresh `assets/geo/*.png` (run manually).
+- `sources/`, `docs/` — reference material and planning notes; not part of the build.
 
 ## Data sources
 
