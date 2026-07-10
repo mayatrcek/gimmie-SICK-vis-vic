@@ -1,20 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-const KEY = "testing-notice-dismissed";
-
-// One-time OVERWORLD modal: the site is in testing. Dismissal is remembered in
-// localStorage so it only ever shows on a visitor's first load.
+// OVERWORLD modal: the site is in testing. Shows on every full page load /
+// refresh (state survives client-side route changes, so in-app navigation
+// doesn't re-trigger it).
 export default function TestingNotice() {
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    if (!localStorage.getItem(KEY)) setOpen(true);
-  }, []);
+  const [open, setOpen] = useState(true);
 
   function dismiss() {
-    localStorage.setItem(KEY, "1");
     setOpen(false);
   }
 
