@@ -1,10 +1,15 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { fmtDataDate, graphLink, sstLegendURL, sstURL } from "@/lib/api/erddap";
+import { fmtDataDate, graphLink, sstLegendURL } from "@/lib/api/erddap";
+
+const SstMap = dynamic(() => import("./geo/SstMap"), {
+  ssr: false,
+  loading: () => <div className="pad loadgif" style={{ height: "min(72vh, 560px)" }} />,
+});
 
 export default function SstView() {
-  const [status, setStatus] = useState<"loading" | "ok" | "error">("loading");
   const [date, setDate] = useState("…");
   const [stretch, setStretch] = useState<{ min?: number; max?: number } | null>(null);
 
@@ -27,25 +32,9 @@ export default function SstView() {
     <>
       <div className="desc">
         MUR SST (NASA JPL, ~1&nbsp;km), colour-stretched so small temperature breaks pop.
+        Pan/zoom to explore; the overlay is today&apos;s analysed temperature.
       </div>
-      <div className="imgbox">
-        {status !== "ok" && (
-          <div className={`ph${status === "loading" ? " loadgif loadgif-lg" : ""}`}>
-            {status === "error" && "Could not load this layer — try again later."}
-          </div>
-        )}
-        {stretch && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            id="sst"
-            alt="SST map"
-            src={sstURL(stretch)}
-            style={{ display: status === "ok" ? "block" : "none" }}
-            onLoad={() => setStatus("ok")}
-            onError={() => setStatus("error")}
-          />
-        )}
-      </div>
+      {stretch && <SstMap stretch={stretch} />}
       {stretch && (
         // eslint-disable-next-line @next/next/no-img-element
         <img className="sstlegend" alt="SST colour scale" src={sstLegendURL(stretch)} />

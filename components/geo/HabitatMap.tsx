@@ -6,6 +6,7 @@ import L from "leaflet";
 import { esriExport } from "@/lib/leaflet/EsriExport";
 import { pinIcon } from "@/lib/leaflet/icons";
 import MapLoading from "@/components/MapLoading";
+import MapRecall from "@/components/MapRecall";
 import { classifyHab, type GeoGroup } from "@/lib/data/geoGroups";
 import { addGeoBase, buildLegendColors, nearestClass, readHabitatColor, type LegendColor } from "@/lib/leaflet/geoBase";
 
@@ -125,6 +126,7 @@ export default function HabitatMap() {
         style={{ height: 560, width: "100%" }}
       >
         <MapLoading />
+        <MapRecall name="habitat" />
         <TileLayer
           url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
           attribution="Imagery &copy; Esri, Maxar; Habitat &copy; Seamap Australia (IMAS/UTAS); Depth &copy; DEECA"

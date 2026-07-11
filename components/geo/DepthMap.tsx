@@ -6,6 +6,7 @@ import L from "leaflet";
 import { esriExport } from "@/lib/leaflet/EsriExport";
 import { pinIcon } from "@/lib/leaflet/icons";
 import MapLoading from "@/components/MapLoading";
+import MapRecall from "@/components/MapRecall";
 import { addGeoBase } from "@/lib/leaflet/geoBase";
 
 function segDist(px: number, py: number, ax: number, ay: number, bx: number, by: number) {
@@ -125,6 +126,7 @@ export default function DepthMap() {
         style={{ height: 560, width: "100%" }}
       >
         <MapLoading />
+        <MapRecall name="depth" />
         <TileLayer
           url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
           attribution="Imagery &copy; Esri, Maxar; Depth &copy; DEECA Victoria (CoastKit)"

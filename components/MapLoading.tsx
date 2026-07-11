@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
+import "@/lib/leaflet/wheelWhileDrag";
 
 // Drop inside a MapContainer: overlays the loading gif on the map until the
 // first tile layer finishes loading (same look as the chlorophyll maploader).

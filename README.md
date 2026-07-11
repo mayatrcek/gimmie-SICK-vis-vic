@@ -31,7 +31,9 @@ npm test           # rating-logic + ERDDAP-client self-checks
   called via JSONP: ERDDAP `timestamp`, `sst-mean` (regional average that drives
   the SST colour stretch), Nominatim `geocode`, Seamap `habitat`, DEECA `depth`,
   and `depth-tile` (Terrarium elevation PNGs for the dive-map water shading).
-- `components/` — UI + map/chart components.
+- `components/` — UI + map/chart components. `MapRecall` persists each map's
+  last-viewed center/zoom to localStorage (`gsv:mapview:<name>`); all leaflet
+  maps use it except the wind map (deliberately always opens at home).
 - `lib/` — data (`data/`), pure logic (`logic/`), API clients (`api/`), chart plugins
   (`chart/`), wind-map math (`windmap/`), Leaflet helpers (`leaflet/`).
 - `app/overworld.css` — the OVERWORLD pixel design system (see `ui_design/overworld/`);
@@ -51,3 +53,12 @@ All free/public; a planning aid, not for navigation or safety-of-life use.
 
 > **Open-Meteo call budget:** the wind map issues one bulk request per API (2 models,
 > coarse grid) to stay within the free tier — keep it that way.
+
+## Known quirks
+
+- **Full-screen overlays vs the fixed nav:** the chlorophyll scan view (`.chlfull`)
+  is a fixed overlay offset by `--tabh` (60px) so map controls aren't hidden behind
+  the tab bar, and it must stay below the tabs' z-index (1300). The phone tab bar
+  (≤560px) is hardcoded to 56px, not `--tabh`, so there's a 4px mismatch — harmless
+  now, but a bug waiting if either height changes. Any future full-screen overlay
+  needs the same offset.

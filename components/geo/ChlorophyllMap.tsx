@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 
 import { BBOX, GIBS } from "./gibs";
+import MapRecall from "@/components/MapRecall";
 
 const B: [[number, number], [number, number]] = [
   [-44.2, 139.5],
@@ -78,7 +79,7 @@ function CompLayers({ day, onLoaded }: { day: string; onLoaded: () => void }) {
 export default function ChlorophyllMap({ day }: { day: string }) {
   const [loading, setLoading] = useState(true);
   return (
-    <div style={{ position: "relative" }}>
+    <div className="chlmap">
       <MapContainer
         id="compmap"
         center={[-39.0, 145.6]}
@@ -91,8 +92,8 @@ export default function ChlorophyllMap({ day }: { day: string }) {
           [-33.8, 150.8],
         ]}
         maxBoundsViscosity={1.0}
-        style={{ height: "min(72vh, 640px)" }}
       >
+        <MapRecall name="chlorophyll" />
         <TileLayer
           url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
           attribution="Imagery &copy; Esri, Maxar; Chlorophyll: NASA GIBS (VIIRS NOAA-20)"

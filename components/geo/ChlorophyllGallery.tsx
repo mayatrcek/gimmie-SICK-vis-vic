@@ -6,11 +6,11 @@ import { BBOX, GIBS } from "./gibs";
 
 const ChlorophyllMap = dynamic(() => import("./ChlorophyllMap"), {
   ssr: false,
-  loading: () => <div className="pad loadgif" style={{ height: "min(72vh, 640px)" }} />,
+  loading: () => <div className="pad loadgif" style={{ height: "100%" }} />,
 });
 
-// GIBS NOAA-20 lags ~2 days; last 2 weeks of available scans.
-const DAYS = Array.from({ length: 14 }, (_, i) =>
+// GIBS NOAA-20 lags ~2 days; last 12 available scans.
+const DAYS = Array.from({ length: 12 }, (_, i) =>
   new Date(Date.now() - (i + 2) * 864e5).toISOString().slice(0, 10),
 );
 
@@ -43,27 +43,38 @@ function Thumb({ day }: { day: string }) {
   );
 }
 
+const PAGE_SIZE = 6;
+
 export default function ChlorophyllGallery() {
   const [selected, setSelected] = useState<string | null>(null);
-  // jump to top so the full map is in view when it opens
-  const open = (day: string) => {
-    setSelected(day);
+  const [page, setPage] = useState(0);
+  const pages = Math.ceil(DAYS.length / PAGE_SIZE);
+  const open = (day: string) => setSelected(day);
+  // back to the top so the new page's cards start in view
+  const go = (p: number) => {
+    setPage(p);
     window.scrollTo(0, 0);
   };
+  // no page scroll while the full-screen map is up
+  useEffect(() => {
+    document.body.style.overflow = selected ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [selected]);
 
   if (selected) {
     return (
-      <div className="panel">
-        <div className="panel-bd flush" style={{ position: "relative" }}>
-          <ChlorophyllMap day={selected} />
-          {/* overlaid chrome — above leaflet panes/controls (z ~1000) */}
-          <div className="chlover">
-            <button onClick={() => setSelected(null)}>&lt; Gallery</button>
-          </div>
-          <span className="chldate">
-            {fmt(selected)} &middot; NOAA-20 VIIRS
-          </span>
+      // fixed full-viewport overlay: covers the footer, nav (z 1300) stays on top
+      <div className="chlfull">
+        <ChlorophyllMap day={selected} />
+        {/* overlaid chrome — above leaflet panes/controls (z ~1000) */}
+        <div className="chlover">
+          <button onClick={() => setSelected(null)}>&lt; Gallery</button>
         </div>
+        <span className="chldate">
+          {fmt(selected)} &middot; NOAA-20 VIIRS
+        </span>
       </div>
     );
   }
@@ -81,7 +92,7 @@ export default function ChlorophyllGallery() {
         </div>
         <div style={{ padding: "8px 16px 16px" }}>
           <div className="fishgrid chlgrid">
-            {DAYS.map((day) => (
+            {DAYS.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map((day) => (
               <article
                 key={day}
                 className="fish2 chlcard"
@@ -95,6 +106,20 @@ export default function ChlorophyllGallery() {
                 <p className="f2sci">NOAA-20 &middot; VIIRS</p>
               </article>
             ))}
+          </div>
+          {/* same OVERWORLD pixel pager as the fish guide */}
+          <div className="fgpager">
+            <button disabled={page === 0} onClick={() => go(page - 1)}>
+              &lt; Prev
+            </button>
+            {Array.from({ length: pages }, (_, i) => (
+              <button key={i} className={i === page ? "cur" : ""} onClick={() => go(i)}>
+                {i + 1}
+              </button>
+            ))}
+            <button disabled={page === pages - 1} onClick={() => go(page + 1)}>
+              Next &gt;
+            </button>
           </div>
         </div>
       </div>

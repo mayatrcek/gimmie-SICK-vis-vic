@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import { REGIONS, SPOTS, DEFAULTS } from "@/lib/data/regions";
 import MapLoading from "@/components/MapLoading";
+import MapRecall from "@/components/MapRecall";
 import { fetchSite } from "@/lib/api/openMeteo";
 import { compass, todayRating, todayRow } from "@/lib/logic/rating";
 import type { Hourly, Row, Spot } from "@/lib/types";
@@ -255,6 +256,7 @@ export default function DiveSites() {
             maxBoundsViscosity={1.0}
           >
             <MapLoading />
+            <MapRecall name="dive" />
             {/* Base tiles are canvas-recoloured to the OVERWORLD palette (lib/leaflet/
                 pixelTiles.ts) and 4x-stretched; labels ride on top at 2x. */}
             <PixelBasemap />
