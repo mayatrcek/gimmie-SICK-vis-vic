@@ -10,14 +10,6 @@ type Group = { id: string; label: string; items: Item[] };
 
 const GROUPS: Group[] = [
   {
-    id: "forecast",
-    label: "Forecast",
-    items: [
-      { label: "Dive sites", href: "/forecast/divesites" },
-      { label: "Wind map", href: "/forecast/windmap" },
-    ],
-  },
-  {
     id: "live",
     label: "Live data",
     items: [
@@ -93,6 +85,9 @@ export default function Nav() {
       <div className="tabs-inner" id="primary-nav">
         <Link className={`tab${pathname === "/" ? " active" : ""}`} href="/">
           Home
+        </Link>
+        <Link className={`tab${isActive("/forecast") ? " active" : ""}`} href="/forecast">
+          Forecast
         </Link>
 
         {GROUPS.map((g) => (

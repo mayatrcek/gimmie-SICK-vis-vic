@@ -22,7 +22,7 @@ export default function MapLoading() {
       if (--pending <= 0) done();
     };
     const arm = (lyr: L.Layer) => {
-      // invisible layers (e.g. the wind map's opacity-0 land mask) don't gate visual readiness
+      // invisible (opacity-0) tile layers don't gate visual readiness
       if (lyr instanceof L.TileLayer && (lyr.options.opacity ?? 1) > 0) {
         pending++;
         lyr.once("load", dec);

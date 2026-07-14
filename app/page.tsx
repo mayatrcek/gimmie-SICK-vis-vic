@@ -7,7 +7,7 @@ const HERO_BG =
 
 type Channel = { title: string; href: string; cls: string };
 const CHANNELS: Channel[] = [
-  { title: "Forecast", href: "/forecast/divesites", cls: "bg-primary text-bone" },
+  { title: "Forecast", href: "/forecast", cls: "bg-primary text-bone" },
   { title: "Live Data", href: "/live/chlorophyll", cls: "bg-bone text-ink-soft" },
   { title: "Learn", href: "/fish", cls: "bg-secondary text-bone" },
   { title: "Underwater Geography", href: "/geo/habitat", cls: "bg-tertiary text-bone" },

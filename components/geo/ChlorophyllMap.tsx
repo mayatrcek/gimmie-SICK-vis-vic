@@ -45,7 +45,7 @@ function buildOceanClip(onFail: () => void) {
   img.src = `${GIBS}?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=OSM_Land_Mask&CRS=EPSG:3857&BBOX=15529069,-5496679,16786978,-4001005&WIDTH=1280&HEIGHT=1523&FORMAT=image/png&TRANSPARENT=true`;
 }
 
-function CompLayers({ day, onLoaded }: { day: string; onLoaded: () => void }) {
+function CompLayers({ day, layer, onLoaded }: { day: string; layer: string; onLoaded: () => void }) {
   const map = useMap();
   useEffect(() => {
     buildOceanClip(() => {
@@ -58,14 +58,14 @@ function CompLayers({ day, onLoaded }: { day: string; onLoaded: () => void }) {
       ).addTo(map as any).setZIndex(600);
     });
 
-    // NASA GIBS VIIRS NOAA-20 chlorophyll — single-day scan.
+    // NASA GIBS VIIRS chlorophyll — single-day scan from the chosen satellite.
     const safety = setTimeout(onLoaded, 12000);
-    const url = `${GIBS}?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=VIIRS_NOAA20_Chlorophyll_A&CRS=EPSG:3857&BBOX=${BBOX}&WIDTH=1024&HEIGHT=1218&FORMAT=image/png&TRANSPARENT=true&TIME=${day}`;
+    const url = `${GIBS}?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=${layer}&CRS=EPSG:3857&BBOX=${BBOX}&WIDTH=1024&HEIGHT=1218&FORMAT=image/png&TRANSPARENT=true&TIME=${day}`;
     const lyr = L.imageOverlay(url, B, {
       pane: "tilePane",
       className: "chlclip",
       opacity: 1,
-      attribution: "Chlorophyll: NASA GIBS (VIIRS NOAA-20)",
+      attribution: "Chlorophyll: NASA GIBS (VIIRS)",
     }).addTo(map);
     lyr.on("load", onLoaded);
     lyr.on("error", onLoaded);
@@ -76,7 +76,7 @@ function CompLayers({ day, onLoaded }: { day: string; onLoaded: () => void }) {
   return null;
 }
 
-export default function ChlorophyllMap({ day }: { day: string }) {
+export default function ChlorophyllMap({ day, layer }: { day: string; layer: string }) {
   const [loading, setLoading] = useState(true);
   return (
     <div className="chlmap">
@@ -106,7 +106,7 @@ export default function ChlorophyllMap({ day }: { day: string }) {
           opacity={0.9}
           zIndex={650}
         />
-        <CompLayers day={day} onLoaded={() => setLoading(false)} />
+        <CompLayers day={day} layer={layer} onLoaded={() => setLoading(false)} />
       </MapContainer>
       {loading && <div className="maploader loadgif" />}
     </div>

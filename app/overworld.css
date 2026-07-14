@@ -77,160 +77,12 @@
   #sstmap{height:min(72vh,560px);border-radius:var(--radius-tile);border:1px solid var(--line);box-shadow:var(--shadow-1);z-index:0}
   .compmask{filter:brightness(0) invert(0.92) sepia(0.35);}
   .gmpin{background:none;border:none}
-  #windmap{height:460px;width:100%;margin:0 0 10px;border-radius:var(--radius-tile);border:1px solid var(--line);box-shadow:var(--shadow-1);z-index:0;background:var(--surface-sunken)}
-  #windmap .leaflet-container{cursor:crosshair}
 
   /* Floating UI chrome: stop the browser zooming (pinch + double-tap) when a
      touch lands on a control instead of the map. `none` blocks all gestures;
      the scrollable forecast panel keeps pan so its table still scrolls. */
-  .tabs-inner,.tab-menu,.wm-toggle,.wm-legend,.wm-timebar,.geoinfo{touch-action:none}
-  #wmforecast{touch-action:pan-x pan-y}
+  .tabs-inner,.tab-menu,.geoinfo{touch-action:none}
 
-  /* Wind-map field toggle — white pill, ink-filled active tab */
-  /* field switcher: each option is its own pill chip; the circular icon badge is
-     bigger than the chip and overflows it (left + top/bottom) so it "pops" out.
-     Chips stretch to equal width so the badges line up vertically. */
-  .wm-toggle{position:absolute;top:calc(var(--tabh) + 10px);right:10px;z-index:1000;display:flex;flex-direction:column;align-items:stretch;gap:14px}
-  .wm-tab{position:relative;display:flex;align-items:center;padding:7px 18px 7px 48px;border:1px solid var(--line);
-    background:var(--color-cloud);border-radius:var(--radius-pill);box-shadow:var(--shadow-1);
-    color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;
-    transition:background-color .18s var(--ease),color .18s var(--ease),border-color .18s var(--ease)}
-  .wm-tab-ic{position:absolute;left:-5px;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:0;
-    background:#FFFAEF;color:var(--accent);display:flex;align-items:center;justify-content:center;
-    box-shadow:0 0 0 2px var(--ink)}
-  .wm-tab-ic svg{width:20px;height:20px;display:block}
-  .wm-tab:hover{color:var(--ink)}
-  .wm-tab.active{background:var(--ink);color:#fff;border-color:var(--ink)}
-  .wm-tab.active .wm-tab-ic{box-shadow:0 0 0 2px var(--ink)}
-  .wm-legend{display:flex;flex-direction:column;gap:3px;max-width:340px}
-  .wm-leg-label{font-size:12px;font-weight:500;color:var(--muted)}
-  .wm-leg-bar{height:10px;border-radius:5px;border:1px solid var(--line)}
-  .wm-leg-ticks{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
-  .wm-leg-note{margin-top:5px;font-size:10px;color:var(--muted);display:flex;align-items:center;gap:5px;line-height:1.3}
-  .wm-leg-ring{width:11px;height:11px;border-radius:50%;border:1.4px solid #fff;background:rgba(22,19,16,.12);box-shadow:0 0 0 1px rgba(0,0,0,.15);flex:0 0 auto}
-  .wm-popup .leaflet-popup-content-wrap{border-radius:16px;box-shadow:var(--shadow-2)}
-  .wm-popup .leaflet-popup-content{margin:8px 12px}
-  .wm-pop{font-size:12.5px;line-height:1.5;color:var(--ink)}
-  .wm-pop-ttl{font-weight:700;margin-bottom:3px}
-  .wm-pop-wind{margin-bottom:1px}
-  .wm-pop svg{vertical-align:-2px;margin-right:3px}
-  .wm-pop-agree{margin-top:4px;padding-top:4px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
-  /* point callout: compact wind/swell/waves box anchored to the selected dot */
-  .wm-callout .leaflet-popup-content-wrap{border-radius:14px;box-shadow:var(--shadow-2);padding:0}
-  .wm-callout .leaflet-popup-content{margin:0;padding:7px 11px}
-  .wm-cl{font-size:12.5px;line-height:1.4;color:var(--ink);min-width:150px}
-  .wm-cl-row{display:flex;align-items:center;gap:9px;padding:4px 0}
-  .wm-cl-row+.wm-cl-row{border-top:1px solid var(--color-edge-soft)}
-  .wm-cl-ic{flex:0 0 auto;color:var(--muted);display:flex}
-  .wm-cl-ic svg{width:16px;height:16px;display:block}
-  .wm-cl-lbl{color:var(--muted);font-weight:500}
-  .wm-cl-val{margin-left:auto;font-weight:600;font-variant-numeric:tabular-nums}
-  .wm-seldot-wrap{background:none;border:none}
-  .wm-seldot{display:block;width:18px;height:18px;border-radius:50%;background:var(--accent);border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.6)}
-  .wm-mapwrap{position:relative}
-  .wm-landshade{mix-blend-mode:multiply}
-  .wm-landmask{filter:brightness(0) invert(0.82)}
-  /* wind map (nested under Forecast): full-bleed width, tall, in normal flow */
-  .wm-full{position:relative;width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw)}
-  /* dvh tracks the *visible* viewport on mobile (excludes the address bar),
-     so the bottom time bar isn't hidden behind it; vh is the desktop fallback. */
-  .wm-full #windmap{height:calc(100vh - 172px);height:calc(100dvh - 172px);min-height:440px;width:100%;border-radius:0;border:0;box-shadow:none}
-  /* Wind-map full-screen mode (body.wm-fs, toggled by JS when the Wind map
-     view is open): the map covers the whole viewport behind the floating nav
-     pill, and the page itself stops scrolling. */
-  body.wm-fs{overflow:hidden}
-  body.wm-fs .wm-full{position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;margin:0;z-index:500}
-  body.wm-fs .wm-full #windmap{height:100%;min-height:0}
-  .wm-full .wm-legend{position:absolute;left:10px;bottom:62px;z-index:1000;max-width:230px;
-    background:rgba(255,250,239,.94);border:2px solid var(--ink);border-radius:0;padding:10px 12px;box-shadow:var(--shadow-1)}
-  /* push Leaflet's bottom controls (scale + attribution) above the time bar */
-  .wm-full .leaflet-bottom{margin-bottom:52px}
-  /* time slider across the bottom of the full-screen map */
-  .wm-timebar{position:absolute;left:0;right:0;bottom:0;z-index:1100;display:flex;align-items:center;gap:12px;
-    padding:8px 16px 9px;background:linear-gradient(0deg,rgba(22,19,16,.85),rgba(22,19,16,.45))}
-  .wm-time-track{flex:1;display:flex;flex-direction:column;gap:1px}
-  .wm-time-range{width:100%;height:5px;accent-color:var(--accent);cursor:pointer;margin:0}
-  .wm-time-days{display:flex;width:100%}
-  .wm-day{flex:1;text-align:center;color:rgba(255,255,255,.8);font-size:10px;font-weight:500;line-height:1.2;
-    border-left:1px solid rgba(255,255,255,.18);padding-top:1px;white-space:nowrap;overflow:hidden}
-  .wm-day:first-child{border-left:0}
-  .wm-timelabel{color:#fff;font-size:13px;font-weight:600;min-width:138px;text-align:right;font-variant-numeric:tabular-nums}
-  .wm-time-now{flex:0 0 auto;font:inherit;font-size:12px;font-weight:500;color:#fff;background:rgba(255,255,255,.14);
-    border:1px solid rgba(255,255,255,.4);border-radius:var(--radius-pill);padding:6px 14px;cursor:pointer}
-  .wm-time-now:hover{background:rgba(255,255,255,.26);color:#fff}
-  .wm-scrub,.wm-scrub-marker{display:none} /* Windy-style timeline strip: mobile only */
-  /* On phones the time bar stacks: selected time centred on top, then a Windy-style
-     draggable timeline strip (slide the bar under a fixed centre marker) below. */
-  @media(max-width:560px){
-    /* colour scale: a full-width strip pinned to the very bottom, below the time bar */
-    .wm-full .wm-legend{left:0;right:0;bottom:0;width:auto;max-width:none;border-radius:0;border:0;
-      border-top:1px solid var(--line);padding:7px 14px 9px}
-    .wm-leg-note{display:none} /* drop the disagreement note on mobile to save height */
-    .wm-timebar{bottom:70px} /* sit above the ~67px scale strip */
-    .wm-full .leaflet-bottom{margin-bottom:160px} /* keep attribution/scale above the taller bottom stack */
-    /* point-forecast table floats above the scale strip as a rounded card (not flush-cut at the edge) */
-    #wmforecast{bottom:70px;border-radius:20px;max-height:54%}
-    .wm-timebar{flex-wrap:wrap;gap:6px 10px;padding:8px 14px 11px}
-    .wm-timelabel{order:-1;flex:0 0 100%;min-width:0;text-align:center}
-    .wm-timelabel #wmTimeLabel{display:inline-block;background:rgba(255,255,255,.18);color:#fff;
-      font-size:14px;font-weight:700;padding:3px 14px;border-radius:var(--radius-pill)}
-    .wm-time-now{order:1}
-    .wm-time-track{order:2;flex:1 1 auto;min-width:0;position:relative} /* min-width:0 lets it shrink so the strip scrolls */
-    .wm-time-range,.wm-time-days{display:none} /* replaced by the scrub strip */
-    .wm-scrub{display:block;min-width:0;overflow-x:auto;overflow-y:hidden;
-      -webkit-overflow-scrolling:touch;scrollbar-width:none;white-space:nowrap;padding:0 50%}
-    .wm-scrub::-webkit-scrollbar{display:none}
-    .wm-tick{display:inline-flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;
-      width:40px;height:32px;scroll-snap-align:center;vertical-align:bottom}
-    .wm-tick-day{font-size:10px;font-weight:700;color:#fff;white-space:nowrap;line-height:1}
-    .wm-tick-hr{font-size:11px;color:rgba(255,255,255,.6);line-height:1;font-variant-numeric:tabular-nums}
-    .wm-scrub-marker{display:block;position:absolute;left:50%;top:0;bottom:0;transform:translateX(-50%);
-      border-left:2px solid var(--accent);pointer-events:none;z-index:2}
-  }
-  #wmforecast{position:absolute;left:10px;right:10px;bottom:0;z-index:1200;max-height:62%;display:flex;flex-direction:column;
-    background:rgba(255,250,239,.97);border:1px solid var(--line);border-radius:20px 20px 0 0;box-shadow:var(--shadow-2);overflow:hidden}
-  #wmforecast[hidden]{display:none}
-  /* the point-forecast table overlays (hides) the time slider while open */
-  .wm-mapwrap.wmf-open .wm-timebar{display:none}
-  .wmf-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:12px 14px 10px;border-bottom:1px solid var(--line)}
-  .wmf-title{font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--ink)}
-  .wmf-coord{font-size:11px;color:var(--muted);margin-top:1px;font-variant-numeric:tabular-nums}
-  .wmf-close{border:none;background:none;color:var(--muted);font-size:22px;line-height:1;cursor:pointer;padding:0 4px;flex-shrink:0}
-  .wmf-close:hover{color:var(--poor)}
-  .wmf-wrap{overflow:auto;flex:1}
-  /* horizontal scroll arrows for the table/charts — shown on mobile (see media query) */
-  .wmf-scroll{display:none;align-items:center;justify-content:center;position:absolute;top:50%;transform:translateY(-50%);
-    width:34px;height:34px;padding:0;border:1px solid var(--line);border-radius:50%;background:rgba(255,250,239,.92);
-    box-shadow:var(--shadow-1);color:var(--ink);font-size:20px;line-height:1;cursor:pointer;z-index:5}
-  .wmf-scroll-l{left:6px}
-  .wmf-scroll-r{right:6px}
-  .wmf-grid{min-width:680px;position:relative}
-  .wmf-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
-  .wmf-table th{position:sticky;left:0;z-index:3;width:56px;box-sizing:border-box;background:var(--panel);text-align:left;color:var(--muted);font-weight:600;font-size:11px;text-transform:none;letter-spacing:0;padding:6px 6px;border-bottom:none;white-space:nowrap}
-  .wmf-table td{padding:6px 8px;text-align:center;border-bottom:none;white-space:nowrap;color:var(--ink)}
-  .wmf-time td{font-weight:600}
-  /* day-title row: each day's cell fully filled, alternating white / grey */
-  .wmf-dayrow td{padding:3px 4px;text-align:center;font-weight:700;font-size:11px;color:var(--ink)}
-  .wmf-day-a{background:#FFFAEF}
-  .wmf-day-b{background:#E7DDC2}
-  /* vertical hour/day gridlines: one continuous SVG overlay (built in JS) so the
-     lines are seamless across the table rows and the charts */
-  .wmf-vlines{position:absolute;left:0;pointer-events:none;z-index:1}
-  .wmf-rate{display:inline-block;min-width:22px;color:#fff;font-weight:600;border-radius:var(--radius-pill);padding:2px 9px}
-  .wmf-sky{font-size:15px}
-  .wmf-windrow td{padding:3px 8px}
-  .wmf-windcell{display:flex;flex-direction:column;align-items:center;gap:0}
-  .wmf-arrow{width:17px;height:17px;display:block;transform-origin:center center}
-  .wmf-ws{font-size:10px;color:var(--muted);line-height:1.1}
-  .wmf-crow{display:flex}
-  .wmf-clabel{flex:0 0 56px;min-width:0;overflow:hidden;box-sizing:border-box;padding:6px 6px;font-size:11px;font-weight:600;color:var(--muted);
-    display:flex;flex-direction:column;justify-content:center;line-height:1.4;white-space:nowrap}
-  .wmf-clabel i{font-style:normal}
-  .wmf-leg{display:flex;align-items:center;gap:4px;font-weight:600;font-size:10px}
-  .wmf-leg+.wmf-leg{margin-top:4px}
-  .wmf-leg i{width:11px;height:3px;border-radius:2px;flex:0 0 11px}
-  .wmf-cbox{flex:1;min-width:0;padding:3px 0 2px 0}
-  .wmf-cbox canvas{width:100%!important;height:94px!important}
 
   .surfbox{margin:14px 0 4px}
   .surfhd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
@@ -427,6 +279,17 @@
   @media(max-width:700px){.chlgrid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}}
   .chlcard{cursor:pointer}
   .chlcard .f2sci{font-family:var(--font-hud);font-style:normal;font-size:15px}
+  /* satellite legend — OVERWORLD sticker badges (VT323 label, accent fill,
+     2px ink border, tap shadow, ±2° rotation) + Inter descriptor */
+  .chllegend{display:flex;flex-wrap:wrap;gap:12px 26px;padding:4px 16px 12px;
+    font-size:13.5px;color:var(--muted)}
+  .chlleg{display:inline-flex;align-items:center;gap:9px}
+  .chlbadge{font-family:var(--font-hud);font-size:15px;line-height:1;letter-spacing:.04em;
+    text-transform:uppercase;padding:4px 8px;border:2px solid var(--ink);color:#FFFAEF;
+    box-shadow:2px 2px 0 0 var(--ink)}
+  .chlbadge-0{background:var(--accent);transform:rotate(-2deg)}
+  .chlbadge-1{background:var(--warm);transform:rotate(1deg)}
+  .chlbadge-2{background:var(--green);transform:rotate(-1deg)}
   /* selected-scan chrome floated over the map, clear of leaflet's top-left zoom control.
      #compmap gets its own stacking context so leaflet's z-1000 controls stay inside it;
      chlover then only needs z-5: above the map, below the fixed tabs (z 600). */
@@ -449,7 +312,7 @@
   .chlskel img{opacity:0}
   @keyframes chlskel{0%{background-position:100% 0}100%{background-position:-100% 0}}
   /* pager — base pixel button style already applies; layout + states only */
-  .fgpager{display:flex;justify-content:center;align-items:center;gap:12px;margin:36px 0 16px}
+  .fgpager{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px;margin:36px 0 16px}
   .fgpager button{min-width:46px}
   .fgpager button.cur{background:var(--accent);color:#fff;transform:translate(2px,2px);box-shadow:2px 2px 0 0 var(--ink)}
   .fgpager button:disabled{opacity:.4;pointer-events:none}
@@ -468,7 +331,7 @@
   /* Home is now the pixel "Overworld Oceanic" landing page (Tailwind, see index.html).
      Parchment fills any area around its full-bleed sections; no photo backdrop. */
   /* Full-bleed: break out of .wrap to the viewport edges and pull up under the
-     floating nav so the pixel hero reaches the very top (same trick as .wm-full). */
+     floating nav so the pixel hero reaches the very top (100vw + negative margin). */
   /* margin-top cancels the body's extra 18px top padding so the hero starts
      flush against the bottom of the fixed bar (no parchment gap). */
   #tab-home{display:block;text-align:left;min-height:0;padding:0;
@@ -501,6 +364,9 @@
   @media(max-width:560px){
     .wrap{box-sizing:border-box;padding:0 12px}
     h1{font-size:26px}
+    /* pager fits narrow screens: tighter gaps, smaller buttons, wraps if needed */
+    .fgpager{gap:8px}
+    .fgpager button{min-width:38px;padding:8px 10px;font-size:13px}
 
     /* --- Hamburger nav: a small round icon button in the top-left corner --- */
     .tabs{justify-content:flex-start} /* z inherited from base rule (1300) */
@@ -539,25 +405,16 @@
       opacity:1;visibility:visible;pointer-events:auto}
     .tab-menu-item{width:100%;padding:11px 14px;border-radius:10px}
 
-    /* roomier tap targets on the wind-map field chips */
-    .wm-toggle{gap:16px}
-    .wm-tab{padding:9px 20px 9px 54px}
-    .wm-tab-ic{width:48px;height:48px;left:-6px}
-    .wm-tab-ic svg{width:23px;height:23px}
-    .wm-time-now{padding:9px 16px}
-    .wmf-close{font-size:26px;padding:4px 10px}
-    .wmf-scroll{display:flex}
     .sbclose{padding:9px 16px}
 
     #map{height:340px}
     #geomap{height:380px}
     #bathymap{height:340px}
     #sstmap{height:380px}
-    #windmap{height:380px}
     .surfframe{height:620px}
     .geolegendbox{max-height:none}
     .geoinfo{max-width:calc(100% - 20px)}
-    /* guard against horizontal page scroll from the full-bleed wind map's 100vw */
+    /* guard against horizontal page scroll from full-bleed 100vw sections (home hero) */
     html,body{overflow-x:hidden}
   }
 
@@ -653,15 +510,14 @@
      hardens what the tokens can't reach. Placed last to win cascade.
      ============================================================= */
   /* chunky 2px ink frames on outer chrome (inner dividers stay border-tan) */
-  #map,#geomap,#bathymap,#windmap,.scard,.site,.card,.env,.panel,
-  .geolegendbox,.geoinfo,.liveframe,.surfframe,.wm-legend,#wmforecast,.wm-tab{border:2px solid var(--ink)}
+  #map,#geomap,#bathymap,#sstmap,.scard,.site,.card,.env,.panel,
+  .geolegendbox,.geoinfo,.liveframe,.surfframe{border:2px solid var(--ink)}
   /* kill leftover hardcoded curves — zero border-radius on chrome */
-  .wm-legend,.wm-popup .leaflet-popup-content-wrapper,.wm-callout .leaflet-popup-content-wrapper,
-  #wmforecast,.geoinfo,.sstlegend,.chip,.wbar,.mbar span,.wm-leg-bar,.dot,.livedot,
-  .tab-badge,.wmf-scroll,.rm,
+  .geoinfo,.sstlegend,.chip,.wbar,.mbar span,.dot,.livedot,
+  .tab-badge,.rm,
   .leaflet-popup-content-wrapper,.leaflet-bar,.leaflet-bar a{border-radius:0}
   /* small inline buttons must not inherit the generic block-shadow button look */
-  .wmf-close,.rm,.sbclose,.wm-time-now{box-shadow:none}
+  .rm,.sbclose{box-shadow:none}
   /* nav tabs press by 1px like the rest of the pixel chrome, not the full 4px */
   .tab:active{transform:translate(1px,1px)}
 
@@ -702,6 +558,13 @@
     border:2px solid var(--ink);box-shadow:4px 4px 0 0 var(--ink)}
   #map .leaflet-popup-content{font-family:var(--font-hud);font-size:20px;line-height:1.35;margin:12px 16px}
   #map .leaflet-popup-tip-container{display:none}
+
+
+
+
+
+
+
 
 
 

@@ -99,10 +99,3 @@
   --text-body-md: 16px;
   --text-body-md--line-height: 1.6;
 }
-
-/* The old mobile scroll-scrubber strip was dropped in the port; keep the native
-   time slider visible on every viewport so the wind map has a time control on
-   mobile (overworld.css hides it there to make room for the scrubber). */
-.wm-time-range {
-  display: block;
-}
