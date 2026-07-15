@@ -4,6 +4,7 @@ import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import TestingNotice from "@/components/TestingNotice";
+import { Analytics } from "@vercel/analytics/next";
 
 // OVERWORLD text faces + the pixel-homepage faces, self-hosted via next/font.
 const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-inter", display: "swap" });
@@ -34,6 +35,7 @@ export default function RootLayout({
           <Footer />
         </div>
         <TestingNotice />
+        <Analytics />
       </body>
     </html>
   );
