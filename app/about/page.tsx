@@ -18,7 +18,7 @@ export default function About() {
           <a href="https://open-meteo.com" target="_blank" rel="noopener">
             Open-Meteo
           </a>
-          , sea-surface temperature from NASA JPL MUR, chlorophyll from NOAA CoastWatch, seabed
+          , sea-surface temperature from NOAA ACSPO, chlorophyll from NOAA CoastWatch, seabed
           habitat from{" "}
           <a href="https://seamapaustralia.org" target="_blank" rel="noopener">
             Seamap Australia

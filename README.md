@@ -23,13 +23,15 @@ npm test           # rating-logic + ERDDAP-client self-checks
 - `app/` — routes (App Router). Home is SSG; each section is its own route.
   Maps are client components dynamically imported with `ssr:false`.
   - `/forecast` — dive-site ratings
-  - `/live/*` — SST, chlorophyll (daily-scan gallery), currents, altimetry,
-    salinity, Nepean cam
+  - `/live/*` — SST (12-day daily-scan gallery), chlorophyll (daily-scan
+    gallery), currents, altimetry, salinity, Nepean cam
   - `/geo/*` — seabed habitat, depth/bathymetry
   - `/fish` — species guide (OVERWORLD sprite cards)
 - `app/api/*` — server route handlers proxying the gov feeds that used to be
-  called via JSONP: ERDDAP `timestamp`, `sst-mean` (regional average that drives
-  the SST colour stretch), Nominatim `geocode`, Seamap `habitat`, DEECA `depth`,
+  called via JSONP: ERDDAP `timestamp`, `sst-stretch` (regional percentiles that
+  drive the SST colour stretch), `sst-fronts` (detected thermal-front cells for
+  the SST map overlay), `sst-point` (click-probe temperature readout),
+  Nominatim `geocode`, Seamap `habitat`, DEECA `depth`,
   and `depth-tile` (Terrarium elevation PNGs for the dive-map water shading).
 - `components/` — UI + map/chart components. `MapRecall` persists each map's
   last-viewed center/zoom to localStorage (`gsv:mapview:<name>`).
@@ -45,7 +47,8 @@ npm test           # rating-logic + ERDDAP-client self-checks
 
 ## Data sources
 
-Open-Meteo (marine + weather), NASA JPL MUR SST via NOAA ERDDAP, NASA GIBS VIIRS
+Open-Meteo (marine + weather), NOAA ACSPO L3S 2 km SST + thermal fronts via NOAA
+CoastWatch ERDDAP, NASA GIBS VIIRS
 chlorophyll (NOAA-20, NOAA-21, Suomi NPP), Seamap Australia benthic habitat,
 DEECA CoastKit bathymetry/contours,
 Esri basemaps, CARTO basemap + AWS Terrarium bathymetry (dive-sites pixel map).

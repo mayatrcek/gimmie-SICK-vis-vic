@@ -1,16 +1,7 @@
-import SstView from "@/components/SstView";
+import SstGallery from "@/components/SstGallery";
 
 export const metadata = { title: "Sea temperature — GIMMIE SICK VIS" };
 
 export default function Sst() {
-  return (
-    <div className="panel">
-      <div className="panel-hd">
-        <span className="panel-ttl">Sea surface temperature</span>
-      </div>
-      <div className="panel-bd">
-        <SstView />
-      </div>
-    </div>
-  );
+  return <SstGallery />;
 }

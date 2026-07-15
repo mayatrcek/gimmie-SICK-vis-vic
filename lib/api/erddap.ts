@@ -1,10 +1,21 @@
 // NOAA CoastWatch ERDDAP griddap image + metadata helpers (ported from app.js).
 export const BASE = "https://coastwatch.pfeg.noaa.gov/erddap/griddap/";
+// ACSPO L3S lives on the main CoastWatch host (pfeg only 302-redirects to it).
+export const SST_BASE = "https://coastwatch.noaa.gov/erddap/griddap/";
+export const SST_DS = "noaacwLEOACSPOSSTL3SnrtCDaily";
 export const LAT = "(-44):(-37.5)";
 export const LAT_DESC = "(-37.5):(-44)";
 export const LON = "(140):(151)";
 
 type Stretch = { min?: number | null; max?: number | null; bump?: number };
+
+// NOAA 403s UA-less requests (Node's fetch sends no User-Agent; browsers and
+// curl do). Server routes must fetch ERDDAP through this. Cached hourly.
+export const erddapFetch = (url: string) =>
+  fetch(url, {
+    headers: { "User-Agent": "gimmie-sick-vis" },
+    next: { revalidate: 3600 },
+  });
 
 // Colour bar: stretched to a local min/max when known, else auto (Rainbow).
 function colorBar({ min, max }: Stretch): string {
@@ -13,31 +24,45 @@ function colorBar({ min, max }: Stretch): string {
     : "Rainbow%7C%7C%7C%7C%7C";
 }
 
-// MUR SST as a transparent PNG data grid (no axes/legend), for a map overlay.
-export function sstURL(s: Stretch = {}): string {
+// Daily grid values sit at 12:00Z; no day = latest available.
+const sstTime = (day?: string) => (day ? `(${day}T12:00:00Z)` : "(last)");
+
+// SST data region — chlorophyll's box cut off at Tasmania's north coast
+// (southern Tas + Southern Ocean water dragged the percentile stretch wide
+// and washed out local contrast). Optional stride thins CSV pulls.
+export const SST_REGION: [[number, number], [number, number]] = [
+  [-41.2, 139.5],
+  [-33.8, 150.8],
+];
+const region = (stride = 0, lat0 = SST_REGION[0][0], lat1 = SST_REGION[1][0]) => {
+  const s = stride ? `:${stride}` : "";
+  return `%5B(${lat0})${s}:(${lat1})%5D%5B(139.5)${s}:(150.8)%5D`;
+};
+
+// ACSPO SST as a transparent PNG data grid (no axes/legend), for a map overlay.
+// Real 2 km retrievals: cloudy cells are NaN → transparent. Height keeps
+// 2 px per 0.02° grid cell; `lat` narrows to one latitude strip (the map
+// draws the overlay strip-wise so the equirectangular grid lines up with
+// leaflet's mercator basemap).
+export function sstURL(
+  s: Stretch = {},
+  day?: string,
+  lat: [number, number] = [SST_REGION[0][0], SST_REGION[1][0]],
+): string {
   return (
-    BASE +
-    "jplMURSST41.transparentPng?analysed_sst%5B(last)%5D%5B(-39.7):(-37.1)%5D%5B(140.8):(150.2)%5D" +
-    "&.draw=surface&.vars=longitude%7Clatitude%7Canalysed_sst&.colorBar=" +
+    SST_BASE +
+    SST_DS +
+    `.transparentPng?sea_surface_temperature%5B${sstTime(day)}%5D` +
+    region(0, lat[0], lat[1]) +
+    "&.draw=surface&.vars=longitude%7Clatitude%7Csea_surface_temperature&.colorBar=" +
     colorBar(s) +
-    "&.land=over&.size=1560%7C" +
-    (432 + (s.bump || 0))
+    "&.land=over&.size=1130%7C" +
+    (Math.round((lat[1] - lat[0]) * 100) + (s.bump || 0))
   );
 }
 
-// SST colour-scale legend only.
-export function sstLegendURL(s: Stretch = {}): string {
-  return (
-    BASE +
-    "jplMURSST41.png?analysed_sst%5B(last)%5D%5B(-39.7):(-37.1)%5D%5B(140.8):(150.2)%5D" +
-    "&.draw=surface&.vars=longitude%7Clatitude%7Canalysed_sst&.colorBar=" +
-    colorBar(s) +
-    "&.legend=Only"
-  );
-}
-
-// Averages the analysed_sst column of an ERDDAP griddap .csv response
-// (2 header rows, then time,latitude,longitude,analysed_sst; NaN over land).
+// Averages the SST column of an ERDDAP griddap .csv response
+// (2 header rows, then time,latitude,longitude,sst; NaN over land/cloud).
 export function meanFromCsv(csv: string): number | null {
   let sum = 0;
   let n = 0;
@@ -51,12 +76,72 @@ export function meanFromCsv(csv: string): number | null {
   return n ? sum / n : null;
 }
 
-// Same region as sstURL/sstLegendURL, strided to keep the CSV small.
-export function sstMeanURL(stride = 10): string {
+// Same region as sstURL, strided to keep the CSV small. Feeds the colour
+// stretch.
+export function sstStretchURL(stride = 10): string {
   return (
-    BASE +
-    `jplMURSST41.csv?analysed_sst%5B(last)%5D%5B(-39.7):${stride}:(-37.1)%5D%5B(140.8):${stride}:(150.2)%5D`
+    SST_BASE + SST_DS + `.csv?sea_surface_temperature%5B(last)%5D` + region(stride)
   );
+}
+
+// Colour-stretch endpoints from a region CSV: 2nd/98th percentile, rounded
+// to 0.1 °C. Percentiles (not mean±1) because the region spans ~7 °C — a
+// fixed window would clip most of it; outlier cells shouldn't set the ends.
+export function stretchFromCsv(csv: string): { min: number; max: number } | null {
+  const vals = csv
+    .trim()
+    .split("\n")
+    .slice(2)
+    .map((l) => Number(l.split(",").pop()))
+    .filter(Number.isFinite)
+    .sort((a, b) => a - b);
+  if (!vals.length) return null;
+  const p = (f: number) => Math.round(vals[Math.floor(f * (vals.length - 1))] * 10) / 10;
+  return { min: p(0.02), max: p(0.98) };
+}
+
+// Gallery card image — framed to the chlorophyll cards' coords (wider than
+// the SST map region, down to southern Tasmania) so both galleries' cards
+// read identically. Southern water clamps to the cold end of the stretch.
+export function sstThumbURL(s: Stretch = {}, day?: string): string {
+  return (
+    SST_BASE +
+    SST_DS +
+    `.transparentPng?sea_surface_temperature%5B${sstTime(day)}%5D%5B(-44.2):(-33.8)%5D%5B(139.5):(150.8)%5D` +
+    "&.draw=surface&.vars=longitude%7Clatitude%7Csea_surface_temperature&.colorBar=" +
+    colorBar(s) +
+    "&.land=over&.size=256%7C305"
+  );
+}
+
+// Single-cell SST read for the map's click probe — ERDDAP picks the grid
+// cell nearest the coordinates; the one-row CSV parses with meanFromCsv.
+export function sstPointURL(lat: number, lon: number, day?: string): string {
+  return (
+    SST_BASE +
+    SST_DS +
+    `.csv?sea_surface_temperature%5B${sstTime(day)}%5D%5B(${lat})%5D%5B(${lon})%5D`
+  );
+}
+
+// Detected thermal-front cells at stride 2 (~4 km): full res over this
+// region is a ~10 MB CSV; stride 2 is ~2.7 MB and front lines still read
+// clearly as dotted traces. Fetched server-side, cached hourly.
+export function sstFrontsURL(day?: string): string {
+  return (
+    SST_BASE + SST_DS + `.csv?sst_front_position%5B${sstTime(day)}%5D` + region(2)
+  );
+}
+
+// Extracts [lat, lon] of cells flagged 1 from the sst_front_position CSV
+// (2 header rows, then time,latitude,longitude,value; 0 = no front, NaN = cloud).
+export function frontsFromCsv(csv: string): [number, number][] {
+  const pts: [number, number][] = [];
+  for (const line of csv.trim().split("\n").slice(2)) {
+    const [, lat, lon, v] = line.split(",");
+    if (v?.trim() === "1") pts.push([Number(lat), Number(lon)]);
+  }
+  return pts;
 }
 
 export function chlURL(bump = 0): string {
@@ -71,7 +156,8 @@ export function chlURL(bump = 0): string {
   );
 }
 
-export const graphLink = (ds = "jplMURSST41") => BASE + ds + ".graph";
+export const graphLink = (ds = SST_DS) =>
+  (ds === SST_DS ? SST_BASE : BASE) + ds + ".graph";
 
 export function fmtDataDate(t: string | null): string {
   if (!t) return "unavailable";

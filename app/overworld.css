@@ -192,7 +192,28 @@
   .card .desc{padding:2px 16px 12px;color:var(--muted);font-size:12.5px;line-height:1.5}
   .imgbox{position:relative;background:var(--surface-sunken);min-height:280px;display:flex;align-items:center;justify-content:center}
   .imgbox img{width:100%;height:auto;display:block}
-  .sstlegend{display:block;max-width:300px;width:100%;height:auto;margin:8px 0 0;border-radius:6px}
+  /* OVERWORLD SST colour scale — ink-framed gradient bar, VT323 endpoint labels.
+     Stops sampled from ERDDAP's Rainbow palette so it matches the overlay. */
+  .sstscale{display:flex;align-items:center;gap:10px;max-width:340px;margin:12px 0 0;
+    font-family:var(--font-hud);font-size:17px;line-height:1;letter-spacing:.04em;color:var(--ink)}
+  .sstscale-bar{flex:1;height:14px;border:2px solid var(--ink);box-shadow:2px 2px 0 0 var(--ink);
+    background:linear-gradient(90deg,#8D008D,#C300EB,#3D28FF,#00B9E2,#00FF3C,#AFFF00,#FFBD00,#FA4B00,#C30000)}
+  /* full-screen daily SST map (gallery) — fill the chlfull overlay
+     (the map wrapper + loading divs size themselves inline; a bare
+     .sstfull>div height rule would also stretch the floating chrome) */
+  .sstfull #sstmap{height:100%;border:none;border-radius:0;box-shadow:none}
+  /* uniform 40px chrome row: gallery button, scale box, date badge */
+  .sstfull .chlover button{height:40px;padding:0 18px}
+  .sstfull .chldate{height:40px;display:inline-flex;align-items:center}
+  .sstscale-float{position:absolute;left:10px;bottom:10px;z-index:5;width:min(300px,58vw);
+    height:40px;display:flex;align-items:center;padding:0 10px;
+    background:var(--panel);border:2px solid var(--ink);box-shadow:2px 2px 0 0 var(--ink)}
+  .sstscale-float .sstscale{margin:0;max-width:none;flex:1}
+  /* phone: the scale spans the screen; the satellite/date badge stacks above it */
+  @media(max-width:560px){
+    .sstscale-float{width:auto;right:10px}
+    .sstfull .chldate{bottom:58px}
+  }
   .imgbox .ph{position:absolute;color:var(--muted);font-size:13px;text-align:center;padding:20px}
   /* big outlined gif variant — the plain one has no ink outlines and vanishes on parchment */
   .loadgif-lg::before{width:240px;height:240px;background-image:url("/assets/brand/loading-anims/BlackBG Snaggletooth Bite.gif")}
@@ -306,6 +327,9 @@
     border:2px solid var(--ink);padding:5px 9px;box-shadow:2px 2px 0 0 var(--ink)}
   .chlthumb{background:#16344a}
   .chlthumb img{width:100%;height:100%;object-fit:cover;transition:opacity .3s var(--ease)}
+  /* SST cards: cream land mask stacked over the data image (chl bakes its
+     land into one GetMap; ERDDAP can't, so it's a second img) */
+  .thumbland{position:absolute;inset:0}
   /* skeleton shimmer while the GIBS scan downloads; img stays hidden until load */
   .chlskel{background:linear-gradient(100deg,#16344a 30%,#2a5375 45%,#16344a 60%);
     background-size:300% 100%;animation:chlskel 1.4s linear infinite}
@@ -513,7 +537,7 @@
   #map,#geomap,#bathymap,#sstmap,.scard,.site,.card,.env,.panel,
   .geolegendbox,.geoinfo,.liveframe,.surfframe{border:2px solid var(--ink)}
   /* kill leftover hardcoded curves — zero border-radius on chrome */
-  .geoinfo,.sstlegend,.chip,.wbar,.mbar span,.dot,.livedot,
+  .geoinfo,.chip,.wbar,.mbar span,.dot,.livedot,
   .tab-badge,.rm,
   .leaflet-popup-content-wrapper,.leaflet-bar,.leaflet-bar a{border-radius:0}
   /* small inline buttons must not inherit the generic block-shadow button look */
@@ -554,22 +578,12 @@
   #map .leaflet-bar a:active{transform:translate(1px,1px)}
   /* popups: bone card with ink frame + block shadow; square tip is hidden.
      NB leaflet's class is -content-wrapPER — "-content-wrap" matches nothing. */
-  #map .leaflet-popup-content-wrapper{background:var(--panel);color:var(--ink);border-radius:0;
+  #map .leaflet-popup-content-wrapper,#sstmap .leaflet-popup-content-wrapper{
+    background:var(--panel);color:var(--ink);border-radius:0;
     border:2px solid var(--ink);box-shadow:4px 4px 0 0 var(--ink)}
-  #map .leaflet-popup-content{font-family:var(--font-hud);font-size:20px;line-height:1.35;margin:12px 16px}
-  #map .leaflet-popup-tip-container{display:none}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  #map .leaflet-popup-content,#sstmap .leaflet-popup-content{
+    font-family:var(--font-hud);font-size:20px;line-height:1.35;margin:12px 16px}
+  #map .leaflet-popup-tip-container,#sstmap .leaflet-popup-tip-container{display:none}
+  /* SST click-probe popup: all-caps HUD temp, centred, no close button
+     (clicking elsewhere moves the probe) */
+  #sstmap .leaflet-popup-content{text-transform:uppercase;text-align:center;margin:12px 18px}

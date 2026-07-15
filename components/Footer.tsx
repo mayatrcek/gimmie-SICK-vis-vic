@@ -19,7 +19,7 @@ export default function Footer() {
         <a href="https://open-meteo.com" target="_blank" rel="noopener">
           Open-Meteo
         </a>{" "}
-        (marine + weather models). SST: NASA JPL MUR. Chlorophyll: NOAA NESDIS CoastWatch (VIIRS), via{" "}
+        (marine + weather models). SST: NOAA ACSPO. Chlorophyll: NOAA NESDIS CoastWatch (VIIRS), via{" "}
         <a href="https://coastwatch.pfeg.noaa.gov/erddap/" target="_blank" rel="noopener">
           NOAA ERDDAP
         </a>
