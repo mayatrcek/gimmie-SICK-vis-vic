@@ -41,7 +41,7 @@ export default function Home() {
             </span>
             <span className="hidden md:block w-px h-6 bg-parchment/30" />
             <span className="font-hud-md text-hud-md italic opacity-90">
-              Region: VICTORIA_COAST_GRID_7
+              Region: VIC
             </span>
           </div>
         </div>
@@ -59,11 +59,11 @@ export default function Home() {
                 }`}
               >
                 {[
-                  "REAL-TIME SWELL DATA",
-                  "VICTORIAN COASTAL INTEL",
+                  "LIVE SWELL",
+                  "VICTORIAN COASTAL CONDITIONS",
                   "SATELLITE CHLOROPHYLL",
                   "SEA SURFACE TEMP",
-                  "PRECISION DIVE PLANNING",
+                  "DIVE PLANNING",
                 ].map((t) => (
                   <span key={t} className="flex items-center gap-md">
                     {t}
@@ -90,11 +90,9 @@ export default function Home() {
             <h2 className="home-h2 font-display-lg text-headline-lg text-ink-soft mb-md uppercase">
               SUMMARY
             </h2>
-            <p className="font-hud-md text-hud-md text-ink-soft opacity-70 leading-relaxed uppercase">
-              A daily dive- and fishing-conditions dashboard for the Victorian coast. It brings
-              real-time swell, wind, sea-surface temperature, chlorophyll and seabed data from marine
-              models and satellite feeds together, so you can tell at a glance whether tomorrow is
-              worth an early start.
+            <p className="font-body-md text-body-md text-ink-soft opacity-80 max-w-[40rem]">
+              Chasing the best diving and fishing days with live data and a bit of local know-how.
+              Built to help you find sick vis when it counts.
             </p>
           </div>
         </div>
@@ -103,9 +101,9 @@ export default function Home() {
       {/* Nav channels */}
       <section className="py-xxxl px-bleed max-w-page-max mx-auto bg-ink-soft">
         <div className="mb-xxl">
-          <h2 className="home-h1 font-display-xl text-display-xl uppercase text-bone">NAV_CHANNELS</h2>
-          <p className="font-hud-md text-hud-md text-parchment opacity-70 max-w-[36rem]">
-            ACCESS REAL-TIME ENVIRONMENTAL DATA AND OPERATIONAL INTELLIGENCE CHANNELS.
+          <h2 className="home-h1 font-display-xl text-display-xl uppercase text-bone">NAV CHANNELS</h2>
+          <p className="font-body-md text-body-md text-parchment opacity-80 max-w-[36rem]">
+            Jump into the good stuff — swell, sea temp, chlorophyll, and where the fish are biting.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-xl">
@@ -129,12 +127,12 @@ export default function Home() {
       <section className="py-xxxl px-bleed max-w-page-max mx-auto text-center">
         <div className="max-w-2xl mx-auto bg-bone p-xxl border-2 border-ink-soft shadow-[12px_12px_0px_0px_#2e5dd6]">
           <h3 className="home-h2 font-display-lg text-headline-lg text-ink-soft mb-md uppercase">
-            Find_Your_Drop
+            Find your drop
           </h3>
           <div className="relative mb-xl">
             <input
               className="w-full bg-parchment border-2 border-ink-soft p-md font-hud-md text-hud-md focus:ring-0 focus:outline-none focus:shadow-[4px_4px_0px_0px_#2e5dd6] transition-all"
-              placeholder="ENTER_COORDINATES_OR_SITE_NAME..."
+              placeholder="Search a site or drop in coordinates…"
               type="text"
             />
             <span className="material-symbols-outlined absolute right-md top-1/2 -translate-y-1/2 text-ink-soft text-3xl">
@@ -146,13 +144,13 @@ export default function Home() {
               type="button"
               className="bg-primary text-on-primary px-xl py-md font-hud-md text-hud-md border-2 border-ink-soft shadow-[4px_4px_0px_0px_#3A332A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none active:translate-x-[4px] active:translate-y-[4px] transition-all uppercase"
             >
-              SEARCH_STATIONS
+              SEARCH
             </button>
             <button
               type="button"
               className="bg-bone text-ink-soft px-xl py-md font-hud-md text-hud-md border-2 border-ink-soft shadow-[4px_4px_0px_0px_#3A332A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none active:translate-x-[4px] active:translate-y-[4px] transition-all uppercase"
             >
-              RANDOM_EXPEDITION
+              SURPRISE ME
             </button>
           </div>
         </div>

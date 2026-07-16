@@ -11,8 +11,9 @@ export default function Habitat() {
       </div>
       <div className="panel-bd">
         <div className="sub" style={{ margin: "0 0 10px" }}>
-          Benthic habitat from Seamap Australia over satellite imagery, with DEECA depth contours.
-          Click the seabed to identify the habitat type.
+          What&rsquo;s actually down there — seabed habitat from Seamap Australia mapped over
+          satellite imagery, with depth lines from DEECA. Tap the seabed to see what you&rsquo;re
+          looking at.
         </div>
         <div className="geowrap" style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
           <HabitatClient />

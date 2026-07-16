@@ -17,8 +17,8 @@ export default function Nepean() {
           <a href={DASH} target="_blank" rel="noopener">
             Open full dashboard &#8599;
           </a>{" "}
-          &middot; Source: Ports Victoria / OMC International. If the panel below is blank, the site is
-          blocking embedding — use the link.
+          &middot; Live from the Point Nepean wave buoy (Ports Victoria / OMC International). If the
+          panel below is blank, their site&rsquo;s refusing to embed — use the link instead.
         </div>
         <LiveFrame
           src={`${DASH}?kiosk&theme=light`}

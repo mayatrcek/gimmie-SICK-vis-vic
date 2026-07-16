@@ -8,11 +8,11 @@ export default function Footer() {
           GIMMIE SICK VIS
         </Link>
         <div className="foot-links">
-          <a href="#">PROTOCOL_VO_1</a>
-          <a href="#">SATELLITE_LINK</a>
-          <a href="#">GRID_COORD_REF</a>
+          <Link href="/">Links</Link>
+          <Link href="/about">Data sources</Link>
+          <Link href="/feedback">Contact</Link>
         </div>
-        <div className="foot-meta">&copy;2024 OVERWORLD_DYNAMICS // QUEST_STAR_SYSTEM</div>
+        <div className="foot-meta">&copy; 2026 Built by Maya, in the water more than at the desk</div>
       </div>
       <div className="foot-note">
         Forecasts:{" "}

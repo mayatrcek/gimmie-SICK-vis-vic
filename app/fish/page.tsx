@@ -10,20 +10,20 @@ export default function Fish() {
         list={
           <div className="panel">
             <div className="panel-hd">
-              <span className="panel-ttl">Target species</span>
+              <span className="panel-ttl">What&rsquo;s biting</span>
             </div>
             <div className="panel-bd">
               <div className="sub">
-                Species worth targeting around Victoria, shore or boat. Green = likely worth a go
-                around now. Always check current{" "}
+                Fish worth chasing around Victoria right now, from the shore or the boat. Green tags
+                mean it&rsquo;s a good time to go. Always check current{" "}
                 <a
                   href="https://vfa.vic.gov.au/recreational-fishing/recreational-fishing-guide"
                   target="_blank"
                   rel="noopener"
                 >
-                  VFA size &amp; bag limits and closed seasons
+                  VFA size &amp; bag limits
                 </a>{" "}
-                before keeping anything — the illustrations are stylised, not photos.
+                before you keep anything — pics are stylised, not real photos.
               </div>
               <FishCards />
             </div>

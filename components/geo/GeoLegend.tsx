@@ -11,7 +11,7 @@ export default function GeoLegend() {
   return (
     <div id="geolegend">
       <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)", marginBottom: 8 }}>
-        Seabed types — simple guide
+        The seabed, decoded
       </div>
       {GEO_GROUPS.map((g) => (
         <div key={g.name} style={{ display: "flex", gap: 8, margin: "8px 0" }}>

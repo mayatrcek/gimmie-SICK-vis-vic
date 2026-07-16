@@ -115,14 +115,14 @@ export default function SstGallery() {
     <>
       <div className="panel">
         <div className="panel-hd">
-          <span className="panel-ttl">SST SCANS</span>
+          <span className="panel-ttl">Sea temperature scans</span>
         </div>
         <div className="panel-bd flush">
           <div className="desc" style={{ padding: "14px 16px 8px" }}>
-            Daily NOAA ACSPO sea temperature (~2&nbsp;km) for the last 12 days — actual
-            satellite readings, so temperature fronts stay sharp; blank patches were under
-            cloud. Select a card to explore that day&apos;s scan with its detected thermal
-            fronts (white dots).
+            Sea temperature straight off the satellite (NOAA ACSPO, ~2&nbsp;km) for the last
+            12 days. It&apos;s actual readings, not a smoothed model, so the temperature fronts
+            stay sharp — blank patches were under cloud. Tap a card to explore that day&apos;s
+            scan; the white dots are detected thermal fronts.
           </div>
           <div style={{ padding: "8px 16px 16px" }}>
             <div className="fishgrid chlgrid">

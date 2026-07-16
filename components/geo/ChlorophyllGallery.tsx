@@ -89,14 +89,14 @@ export default function ChlorophyllGallery() {
     <>
     <div className="panel">
       <div className="panel-hd">
-        <span className="panel-ttl">CHLOROPHYLL SCANS</span>
+        <span className="panel-ttl">Chlorophyll scans</span>
       </div>
       <div className="panel-bd flush">
         <div className="desc" style={{ padding: "14px 16px 8px" }}>
-            Daily VIIRS chlorophyll scans (via NASA GIBS, ~4&nbsp;km) from three satellites —
-            NOAA-20, NOAA-21 and Suomi NPP. Greener = more plankton; sparse days are cloud cover,
-            and each satellite&apos;s gaps differ, so try another if your day is blank. Select a
-            card to explore that day&apos;s scan.
+            Daily chlorophyll scans from three satellites — NOAA-20, NOAA-21 and Suomi NPP (VIIRS
+            via NASA GIBS, ~4&nbsp;km). Greener means more plankton. Blank patches are just cloud,
+            and each satellite misses different bits — flick between them if your day&apos;s empty.
+            Tap a card to explore that day&apos;s scan.
           </div>
           {/* one-time satellite legend — sticker badge + main difference, from SATS */}
           <div className="chllegend">

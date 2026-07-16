@@ -10,8 +10,8 @@ export default function Depth() {
       </div>
       <div className="panel-bd">
         <div className="sub" style={{ margin: "0 0 10px" }}>
-          High-resolution bathymetry and depth contours from DEECA CoastKit. Click the map to read
-          the depth at a point.
+          How deep is it, exactly — fine-grained depth contours from DEECA CoastKit. Click
+          anywhere on the map to get a depth reading.
         </div>
         <DepthClient />
       </div>
