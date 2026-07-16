@@ -35,6 +35,7 @@ export type Hourly = {
   mtime: string[];
   swellH: number[];
   swellP: number[];
+  swellD: number[];
   tide: number[];
   wtime: string[];
   wind: number[];

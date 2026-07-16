@@ -11,22 +11,12 @@ import { compass, todayRating, todayRow } from "@/lib/logic/rating";
 import type { Hourly, Row, Spot } from "@/lib/types";
 import { dotIcon } from "@/lib/leaflet/icons";
 import { pixelBasemap, pixelBaseOverlay } from "@/lib/leaflet/pixelTiles";
-import SpotCharts from "./SpotCharts";
+import ForecastTable from "./ForecastTable";
 
 type St = { rows: Row[] | null; hourly: Hourly | null; loading: boolean; expanded: boolean };
 type SelMap = Record<string, St>;
 
 const fmt = (n: number | null, d = 1) => (n == null || isNaN(n) ? "—" : Number(n).toFixed(d));
-
-function dnameShort(ds: string): string {
-  const dt = new Date(ds + "T00:00:00");
-  const t = new Date();
-  t.setHours(0, 0, 0, 0);
-  const diff = Math.round((dt.getTime() - t.getTime()) / 86400000);
-  if (diff === 0) return "Today";
-  if (diff === 1) return "Tmw";
-  return dt.toLocaleDateString(undefined, { weekday: "short" });
-}
 
 const ICON = {
   wave: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2e7d6b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12c-.8-4-4.6-6.3-8.4-4.6C9.3 8.8 8 12.4 9.2 15.4c.9 2.2 3.4 3.2 5.4 2 1.5-.9 1.9-2.9.8-4.3"/><path d="M2 18c2.6 0 3.7-1 4.8-2.8"/></svg>',
@@ -39,21 +29,6 @@ function Tag({ svg, children }: { svg: string; children: React.ReactNode }) {
     <span className="tg">
       <span dangerouslySetInnerHTML={{ __html: svg }} /> {children}
     </span>
-  );
-}
-
-function WeekStrip({ s, rows }: { s: Spot; rows: Row[] }) {
-  return (
-    <div className="weekstrip">
-      {rows.map((r) => (
-        <div className="wcell" key={r.date}>
-          <div className="wd">{dnameShort(r.date)}</div>
-          <div className="wbar" style={{ background: r.rating.col }} title={String(r.rating.label)} />
-          <div className="wv">{s.sheltered ? "—" : fmt(r.h, 1) + "m"}</div>
-          <div className="wv2">{fmt(r.wind, 0)}k</div>
-        </div>
-      ))}
-    </div>
   );
 }
 
@@ -138,17 +113,8 @@ function SpotCard({
       </div>
       {st.expanded && (
         <div className="sbody">
-          <div className="sbtop">
-            <button className="sbclose" onClick={() => onToggle(id)} title="Close outlook">
-              × Close outlook
-            </button>
-          </div>
-          {st.hourly ? (
-            <>
-              <SpotCharts hourly={st.hourly} />
-              <div className="ctitle">The week ahead</div>
-              {st.rows && <WeekStrip s={s} rows={st.rows} />}
-            </>
+          {st.hourly && st.rows ? (
+            <ForecastTable s={s} hourly={st.hourly} rows={st.rows} />
           ) : st.loading ? (
             <div className="pad loadgif">Loading forecast…</div>
           ) : (

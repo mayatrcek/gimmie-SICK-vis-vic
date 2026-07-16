@@ -70,6 +70,57 @@ export function classify(
   return rate(label);
 }
 
+// ponytail: 0-10 per-slot score, a heuristic restatement of classify()'s tiers
+// using the same TH thresholds — tune the weights, not the structure.
+export function score10(
+  h: number | null,
+  p: number | null,
+  w: number | null,
+  windFrom: number | null,
+  onshore: number | null,
+  rainEff: number | null,
+  sheltered: boolean,
+): number | null {
+  let s: number;
+  if (sheltered) {
+    s = w == null ? 7 : w < TH.WIND_LIGHT ? 10 : w < TH.WIND_STRONG ? 7 : 4;
+  } else {
+    if (h == null) return null;
+    s = 10 - Math.min(7, Math.max(0, (h - 0.3) * 4.5));
+    if (p != null) s -= p >= TH.PERIOD_VHIGH ? 2 : p >= TH.PERIOD_GOOD ? 1 : 0;
+    if (w != null && w >= TH.WIND_STRONG) s -= windRel(windFrom, onshore).kind === "on" ? 3 : 2;
+    else if (w != null && w >= TH.WIND_LIGHT) s -= 1;
+  }
+  if (rainEff != null && rainEff >= TH.RAIN_HEAVY) s -= 2;
+  return Math.max(0, Math.min(10, Math.round(s)));
+}
+
+// score band -> the existing tier colour, so the page legend still applies.
+export function scoreCol(n: number | null): string {
+  if (n == null) return "#d7d4c8";
+  return n >= 8 ? COL.Amazing : n >= 6 ? COL.Good : n >= 3 ? COL.Marginal : COL.Poor;
+}
+
+export type TideMark = { date: string; kind: "H" | "L"; time: string; height: number };
+
+// Local extrema of the hourly sea-level series -> high/low tide marks.
+export function tideExtremes(mtime: string[], tide: number[]): TideMark[] {
+  const out: TideMark[] = [];
+  for (let i = 1; i < tide.length - 1; i++) {
+    const a = tide[i - 1], b = tide[i], c = tide[i + 1];
+    if (a == null || b == null || c == null) continue;
+    if ((b > a && b >= c) || (b < a && b <= c)) {
+      out.push({
+        date: mtime[i].slice(0, 10),
+        kind: b > a ? "H" : "L",
+        time: mtime[i].slice(11, 16),
+        height: b,
+      });
+    }
+  }
+  return out;
+}
+
 const EMPTY: Rating = { label: "—", col: "#d7d4c8", rank: 0 };
 
 // day name relative to today (Today/Tomorrow/short weekday).

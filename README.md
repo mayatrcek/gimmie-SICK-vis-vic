@@ -6,8 +6,8 @@ marine/satellite feeds.
 
 **Live:** https://gimmie-sick-vis-vic.vercel.app (Vercel, auto-deploys from `main`)
 
-Built with **Next.js (App Router) + React + TypeScript + Tailwind v4**, react-leaflet
-and Chart.js. (Ported from the original single-file static site.)
+Built with **Next.js (App Router) + React + TypeScript + Tailwind v4** and
+react-leaflet. (Ported from the original single-file static site.)
 
 ## Develop
 
@@ -22,7 +22,9 @@ npm test           # rating-logic + ERDDAP-client self-checks
 
 - `app/` — routes (App Router). Home is SSG; each section is its own route.
   Maps are client components dynamically imported with `ssr:false`.
-  - `/forecast` — dive-site ratings
+  - `/forecast` — dive-site ratings; each expanded spot card shows a 3-hourly
+    week table (0–10 score, wave height/direction/period, energy, wind,
+    high/low tides) from Open-Meteo hourly data
   - `/live/*` — SST (12-day daily-scan gallery), chlorophyll (daily-scan
     gallery), currents, altimetry, salinity, Nepean cam
   - `/geo/*` — seabed habitat, depth/bathymetry
@@ -35,8 +37,8 @@ npm test           # rating-logic + ERDDAP-client self-checks
   and `depth-tile` (Terrarium elevation PNGs for the dive-map water shading).
 - `components/` — UI + map/chart components. `MapRecall` persists each map's
   last-viewed center/zoom to localStorage (`gsv:mapview:<name>`).
-- `lib/` — data (`data/`), pure logic (`logic/`), API clients (`api/`), chart plugins
-  (`chart/`), Leaflet helpers (`leaflet/`).
+- `lib/` — data (`data/`), pure logic (`logic/`), API clients (`api/`),
+  Leaflet helpers (`leaflet/`).
 - `app/overworld.css` — the OVERWORLD pixel design system (see `ui_design/overworld/`);
   `app/globals.css` wires Tailwind v4 (no preflight) + the homepage `@theme` tokens.
 - `public/assets/` — brand, loading anims, pre-rendered geo basemaps.

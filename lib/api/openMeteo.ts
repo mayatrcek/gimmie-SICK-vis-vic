@@ -14,7 +14,7 @@ export async function fetchSite(s: Spot): Promise<SiteData> {
   const m =
     `${MARINE}?latitude=${lat}&longitude=${lon}` +
     "&daily=swell_wave_height_max,swell_wave_period_max,wave_height_max,wave_period_max" +
-    "&hourly=sea_surface_temperature,swell_wave_height,swell_wave_period,sea_level_height_msl" +
+    "&hourly=sea_surface_temperature,swell_wave_height,swell_wave_period,swell_wave_direction,sea_level_height_msl" +
     `&timezone=${TZ}&forecast_days=7`;
   const w =
     `${WEATHER}?latitude=${s.lat}&longitude=${s.lon}` +
@@ -87,6 +87,7 @@ export async function fetchSite(s: Spot): Promise<SiteData> {
     mtime: mh.time || [],
     swellH: mh.swell_wave_height || [],
     swellP: mh.swell_wave_period || [],
+    swellD: mh.swell_wave_direction || [],
     tide: mh.sea_level_height_msl || [],
     wtime: weather.hourly ? weather.hourly.time : [],
     wind: weather.hourly ? weather.hourly.wind_speed_10m : [],
