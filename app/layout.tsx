@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Inter, Inter_Tight, Instrument_Serif, Sora, Pixelify_Sans, VT323 } from "next/font/google";
 import "./globals.css";
 import Nav from "@/components/Nav";
@@ -28,6 +29,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={fontVars}>
       <body>
+        <Script
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8693670921761163"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
         <div className="wrap">
           <Nav />
           {children}
