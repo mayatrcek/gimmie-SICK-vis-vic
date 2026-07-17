@@ -531,14 +531,6 @@
   .tab-menu-item:hover{background:rgba(46,93,214,.12)}
   .tab-menu-item.active{background:#2E5DD6;color:#fff}
 
-  /* Fish guide view switch (list / aquarium) — pixel segmented control, top right above the intro */
-  .fg-switch{display:flex;justify-content:flex-end;margin-top:6px}
-  .fg-tab{border:2px solid var(--ink);background:var(--panel);padding:6px 18px;cursor:pointer;
-    font-family:var(--font-vt323),monospace;font-size:19px;line-height:1;letter-spacing:.04em;
-    text-transform:uppercase;color:var(--muted)}
-  .fg-tab+.fg-tab{border-left:0}
-  .fg-tab:hover{color:var(--ink)}
-  .fg-tab.active{background:#2E5DD6;color:#fff}
 
   /* Footer: full-bleed dark bar with brand / mock links / copyright, data note below */
   footer{width:100vw;margin-left:calc(50% - 50vw);margin-top:24px;

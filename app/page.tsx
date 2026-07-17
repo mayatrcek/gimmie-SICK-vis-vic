@@ -90,7 +90,7 @@ export default function Home() {
             <h2 className="home-h2 font-display-lg text-headline-lg text-ink-soft mb-md uppercase">
               SUMMARY
             </h2>
-            <p className="font-body-md text-body-md text-ink-soft opacity-80 max-w-[40rem]">
+            <p className="font-hud-md text-hud-md text-ink-soft opacity-80">
               Chasing the best diving and fishing days with live data and a bit of local know-how.
               Built to help you find sick vis when it counts.
             </p>
@@ -102,9 +102,6 @@ export default function Home() {
       <section className="py-xxxl px-bleed max-w-page-max mx-auto bg-ink-soft">
         <div className="mb-xxl">
           <h2 className="home-h1 font-display-xl text-display-xl uppercase text-bone">NAV CHANNELS</h2>
-          <p className="font-body-md text-body-md text-parchment opacity-80 max-w-[36rem]">
-            Jump into the good stuff — swell, sea temp, chlorophyll, and where the fish are biting.
-          </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-xl">
           {CHANNELS.map((c) => (
