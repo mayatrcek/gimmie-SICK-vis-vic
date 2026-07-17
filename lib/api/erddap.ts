@@ -114,13 +114,16 @@ export function sstThumbURL(s: Stretch = {}, day?: string): string {
   );
 }
 
-// Single-cell SST read for the map's click probe — ERDDAP picks the grid
-// cell nearest the coordinates; the one-row CSV parses with meanFromCsv.
-export function sstPointURL(lat: number, lon: number, day?: string): string {
+// SST read for the map's click probe — ERDDAP picks the grid cell nearest
+// the coordinates; the CSV parses with meanFromCsv. Optional radius `r`
+// (degrees) averages a small box instead, so shoreline points still get a
+// reading from nearby water cells (nearest cell alone is often land/cloud).
+export function sstPointURL(lat: number, lon: number, day?: string, r = 0): string {
+  const dim = (v: number) => (r ? `(${v - r}):(${v + r})` : `(${v})`);
   return (
     SST_BASE +
     SST_DS +
-    `.csv?sea_surface_temperature%5B${sstTime(day)}%5D%5B(${lat})%5D%5B(${lon})%5D`
+    `.csv?sea_surface_temperature%5B${sstTime(day)}%5D%5B${dim(lat)}%5D%5B${dim(lon)}%5D`
   );
 }
 

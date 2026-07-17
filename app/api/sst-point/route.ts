@@ -10,6 +10,9 @@ export async function GET(req: Request) {
   const lat = Math.round(Number(q.get("lat")) * 100) / 100;
   const lon = Math.round(Number(q.get("lon")) * 100) / 100;
   const day = q.get("day") ?? undefined;
+  // ?box=1 averages a ~±0.06° box — used by dive cards, whose shoreline
+  // coordinates usually have a land/cloud cell as their nearest neighbour.
+  const box = q.get("box") ? 0.06 : 0;
   if (day && !/^\d{4}-\d{2}-\d{2}$/.test(day)) {
     return NextResponse.json({ sst: null }, { status: 400 });
   }
@@ -17,7 +20,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ sst: null });
   }
   try {
-    const r = await erddapFetch(sstPointURL(lat, lon, day));
+    const r = await erddapFetch(sstPointURL(lat, lon, day, box));
     return NextResponse.json({ sst: meanFromCsv(await r.text()) });
   } catch {
     return NextResponse.json({ sst: null });

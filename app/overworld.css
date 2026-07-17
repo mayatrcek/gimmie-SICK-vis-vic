@@ -70,7 +70,7 @@
          margin:26px 0 12px;display:flex;align-items:center;gap:8px}
 
   /* Maps and media frames — 20px tile, hairline, tier-1 lift */
-  #map{height:460px;width:100%;margin:0 0 14px;border-radius:var(--radius-tile);border:1px solid var(--line);box-shadow:var(--shadow-1);z-index:0}
+  #map{height:368px;width:100%;margin:0 0 14px;border-radius:var(--radius-tile);border:1px solid var(--line);box-shadow:var(--shadow-1);z-index:0}
   #geomap{height:560px;flex:1;min-width:0;border-radius:var(--radius-tile);border:1px solid var(--line);box-shadow:var(--shadow-1);z-index:0}
   #geomap .leaflet-container{cursor:pointer}
   #bathymap{height:520px;border-radius:var(--radius-tile);border:1px solid var(--line);box-shadow:var(--shadow-1);z-index:0;margin-top:4px}
@@ -104,8 +104,9 @@
      it MUST come after the base .tabs/.tab/.tab-menu rules so its overrides win
      the cascade (equal specificity => later source position wins). */
 
-  .picker{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
-  .picker label{font-size:13px;font-weight:500;color:var(--muted)}
+  .picker{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;
+    font-family:var(--font-hud);font-size:16px}
+  .picker label{color:var(--muted)}
   .picker select{font:inherit;height:40px;padding:0 16px;border:2px solid var(--ink);border-radius:0;background:var(--panel);min-width:240px;color:var(--ink);cursor:pointer;box-shadow:2px 2px 0 0 var(--ink);transition:border-color .18s var(--ease),box-shadow .18s var(--ease)}
   .picker select:focus{outline:none;border-color:var(--accent);box-shadow:4px 4px 0 0 var(--accent)}
 
@@ -141,13 +142,13 @@
     box-shadow:2px 2px 0 0 var(--accent)}
 
   .divewrap{display:flex;gap:16px;align-items:flex-start;margin-bottom:6px}
-  @media(max-width:760px){.divewrap{flex-direction:column}#map{width:100%;flex:none;height:320px}}
+  @media(max-width:760px){.divewrap{flex-direction:column}#map{width:100%;flex:none;height:256px}}
   .sidepanel{display:flex;flex-direction:column;gap:10px;margin-bottom:6px}
   .sidepanel .empty{color:var(--muted);font-size:13px;background:var(--panel);border:1px dashed var(--line);border-radius:var(--radius-tile);padding:18px;line-height:1.5}
   .scard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-tile);overflow:hidden;box-shadow:var(--shadow-1)}
-  .schead{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer}
+  .schead{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;cursor:pointer}
   .schead:hover{background:var(--surface-sunken)}
-  .chev{color:var(--muted);font-size:12px;width:12px;flex-shrink:0}
+  .chev{color:var(--muted);font-size:12px;width:12px;flex-shrink:0;margin-top:3px}
   .smeta{flex:1;min-width:0}
   .sname{font-family:var(--font-display);font-weight:600;font-size:15px;letter-spacing:-.01em}
   .sreg{font-size:11px;color:var(--muted)}
@@ -155,9 +156,20 @@
   .rm:hover{color:var(--poor);background:none}
   .sbody{border-top:1px solid var(--line);padding:12px 14px}
   .sbody .pad{padding:14px;color:var(--muted);font-size:13px}
-  .stoday{font-size:12px;color:var(--muted);margin-top:2px}
-  .stoday .tg{margin-right:12px;white-space:nowrap}
-  .stoday svg{vertical-align:-2px;margin-right:1px}
+  .sweek{display:flex;gap:clamp(3px,0.8vw,6px);margin-top:7px;font-size:12px;color:var(--muted)}
+  /* OVERWORLD badge: vertical rectangle, 2px ink border, VT323 label, hard offset shadow */
+  .sday{display:flex;align-items:center;justify-content:center;flex:1;height:36px;
+    border:2px solid var(--ink);border-radius:0;box-shadow:2px 2px 0 0 var(--ink);
+    font-family:var(--font-hud);font-size:14px;line-height:1;text-transform:uppercase;
+    color:#FFFAEF;text-shadow:1px 1px 0 var(--ink)}
+  /* must stay after .sday so its overrides win the equal-specificity tie */
+  .stempbox{flex:none;margin-left:clamp(10px,3vw,28px);min-width:clamp(64px,10vw,88px);width:auto;
+    background:var(--panel);color:#000;padding:0 clamp(6px,1.5vw,12px);
+    text-shadow:none;white-space:nowrap;text-transform:none}
+  .stempbox .tg{display:inline-flex;align-items:center;gap:4px}
+  .stempbox .tg>span{line-height:0}
+  .sday-abbr{display:none} /* full day names ≥760px, 2-letter below */
+  @media(max-width:760px){.sday-abbr{display:inline}.sday-full{display:none}}
   .livetag{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--green);letter-spacing:.02em;margin-right:7px}
   .livedot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:livepulse 1.8s infinite}
   @keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(43,196,138,.5)}70%{box-shadow:0 0 0 6px rgba(43,196,138,0)}100%{box-shadow:0 0 0 0 rgba(43,196,138,0)}}
@@ -196,11 +208,11 @@
     .liveframe iframe{width:250%;transform:scale(.4);transform-origin:0 0}
   }
 
-  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:12px 2px 0;font-size:12.5px;color:var(--muted)}
-  .legend span{display:inline-flex;align-items:center;gap:6px}
-  .chip{width:14px;height:14px;border-radius:4px;display:inline-block}
-  .rules{margin:10px 2px 0;font-size:12.5px;color:var(--muted);line-height:1.6}
-  .rules b{color:var(--ink)}
+  .legend{display:flex;flex-wrap:wrap;gap:18px;margin:14px 2px 0;text-transform:uppercase;
+    font-family:var(--font-hud);font-size:18px;color:var(--ink)}
+  .legend span{display:inline-flex;align-items:center;gap:7px}
+  .chip{width:16px;height:16px;border-radius:0;display:inline-block;
+    border:2px solid var(--ink);box-shadow:2px 2px 0 0 var(--ink)}
   .best{background:#E7EFDF;border:2px solid var(--ink);border-radius:0;padding:13px 18px;margin-top:14px;
         font-size:14px;color:#24513A;box-shadow:var(--shadow-1)}
   .best b{color:#17331F}
@@ -211,7 +223,6 @@
   .site .top{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
   .site .top .name{font-family:var(--font-display);font-weight:600;font-size:15px;letter-spacing:-.01em}
   .site .top .sm{font-size:12px;color:var(--muted)}
-  .pill{font-size:12px;font-weight:600;color:#fff;padding:4px 12px;border-radius:var(--radius-pill);white-space:nowrap}
 
   table{width:100%;border-collapse:collapse;font-size:12.5px}
   th,td{padding:7px 8px;text-align:center;border-bottom:1px solid var(--color-edge-soft)}
@@ -470,7 +481,7 @@
       opacity:1;visibility:visible;pointer-events:auto}
     .tab-menu-item{width:100%;padding:11px 14px;border-radius:10px}
 
-    #map{height:340px}
+    #map{height:272px}
     #geomap{height:380px}
     #bathymap{height:340px}
     #sstmap{height:380px}

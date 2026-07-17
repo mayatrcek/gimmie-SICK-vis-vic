@@ -5,22 +5,23 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import { REGIONS, SPOTS, DEFAULTS } from "@/lib/data/regions";
 import MapLoading from "@/components/MapLoading";
-import MapRecall from "@/components/MapRecall";
 import { fetchSite } from "@/lib/api/openMeteo";
-import { compass, todayRating, todayRow } from "@/lib/logic/rating";
+import { todayRating, todayRow } from "@/lib/logic/rating";
 import type { Hourly, Row, Spot } from "@/lib/types";
 import { dotIcon } from "@/lib/leaflet/icons";
 import { pixelBasemap, pixelBaseOverlay } from "@/lib/leaflet/pixelTiles";
 import ForecastTable from "./ForecastTable";
 
-type St = { rows: Row[] | null; hourly: Hourly | null; loading: boolean; expanded: boolean };
+type St = { rows: Row[] | null; hourly: Hourly | null; loading: boolean; expanded: boolean; sst?: number | null };
 type SelMap = Record<string, St>;
 
 const fmt = (n: number | null, d = 1) => (n == null || isNaN(n) ? "—" : Number(n).toFixed(d));
 
+// Week-box labels: "Mo" on phones, "Monday" on wider screens (CSS swaps them)
+const wd = (ds: string) => new Date(ds + "T00:00:00").toLocaleDateString("en-AU", { weekday: "short" }).slice(0, 2);
+const wdFull = (ds: string) => new Date(ds + "T00:00:00").toLocaleDateString("en-AU", { weekday: "long" });
+
 const ICON = {
-  wave: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2e7d6b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12c-.8-4-4.6-6.3-8.4-4.6C9.3 8.8 8 12.4 9.2 15.4c.9 2.2 3.4 3.2 5.4 2 1.5-.9 1.9-2.9.8-4.3"/><path d="M2 18c2.6 0 3.7-1 4.8-2.8"/></svg>',
-  wind: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1b6ca8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10a3 3 0 1 0-3-3"/><path d="M3 12h14a3 3 0 1 1-3 3"/><path d="M3 16h7"/></svg>',
   temp: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d97757" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14V5a2 2 0 0 0-4 0v9a4 4 0 1 0 4 0z"/></svg>',
 };
 
@@ -53,6 +54,7 @@ function FitBounds({ positions }: { positions: LatLngExpression[] }) {
   useEffect(() => {
     if (positions.length === 1) map.setView(positions[0], 9);
     else if (positions.length > 1) map.fitBounds(positions as [number, number][], { padding: [30, 30] });
+    else map.setView([-38.75, 145.35], 7); // no selection → default VIC view
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
   return null;
@@ -72,7 +74,7 @@ function SpotCard({
   onRemove: (id: string) => void;
 }) {
   const td = st.rows ? todayRow(st.rows) : null;
-  const tr = td ? td.rating : { label: st.loading ? "…" : "n/a", col: "#d7d4c8" };
+  const sst = st.sst ?? td?.sst ?? null; // NOAA scan first, Open-Meteo fallback
   return (
     <div className="scard">
       <div className="schead" onClick={() => onToggle(id)}>
@@ -81,25 +83,31 @@ function SpotCard({
           <div className="sname">
             {s.name} <span className="sreg">{s.region}{s.sheltered ? " · sheltered" : ""}</span>
           </div>
-          <div className="stoday">
-            {td ? (
-              <>
-                <Tag svg={ICON.wave}>{s.sheltered ? "sheltered" : `${fmt(td.h, 1)} m / ${fmt(td.p, 0)} s`}</Tag>
-                <Tag svg={ICON.wind}>
-                  {fmt(td.wind, 0)} km/h{td.wdir != null ? " " + compass(td.wdir) : ""}
-                </Tag>
-                <Tag svg={ICON.temp}>{fmt(td.sst, 1)}°C</Tag>
-              </>
+          <div className="sweek">
+            {st.rows ? (
+              st.rows.slice(0, 7).map((r) => (
+                <span
+                  key={r.date}
+                  className="sday"
+                  style={{ background: r.rating.col }}
+                  title={`${wdFull(r.date)}: ${r.rating.label}`}
+                >
+                  <span className="sday-abbr">{wd(r.date)}</span>
+                  <span className="sday-full">{wdFull(r.date)}</span>
+                </span>
+              ))
             ) : st.loading ? (
               <span className="loadgif-sm">loading…</span>
             ) : (
               "unavailable"
             )}
+            {sst != null && (
+              <span className="sday stempbox" title="Water temperature (latest NOAA satellite scan)">
+                <Tag svg={ICON.temp}>{fmt(sst, 1)}°C</Tag>
+              </span>
+            )}
           </div>
         </div>
-        <span className="pill" style={{ background: tr.col }}>
-          {tr.label}
-        </span>
         <button
           className="rm"
           title="Remove"
@@ -137,6 +145,13 @@ export default function DiveSites() {
       if (prev[id]) return prev;
       return { ...prev, [id]: { rows: null, hourly: null, loading: true, expanded: false } };
     });
+    // Water temp from the latest NOAA ACSPO scan (same source as the SST page)
+    fetch(`/api/sst-point?lat=${s.lat}&lon=${s.lon}&box=1`)
+      .then((r) => r.json())
+      .then((j) =>
+        setSelected((prev) => (prev[id] ? { ...prev, [id]: { ...prev[id], sst: j.sst } } : prev)),
+      )
+      .catch(() => {}); // card falls back to Open-Meteo sst
     fetchSite(s)
       .then((res) =>
         setSelected((prev) =>
@@ -198,7 +213,7 @@ export default function DiveSites() {
             </optgroup>
           ))}
         </select>
-        <span style={{ color: "var(--muted)", fontSize: 12 }}>
+        <span style={{ color: "var(--muted)" }}>
           Grouped by region (Surf-Forecast VIC). Click a card to expand its 7-day outlook.
         </span>
       </div>
@@ -209,20 +224,17 @@ export default function DiveSites() {
             id="map"
             center={[-38.75, 145.35]}
             zoom={7}
-            scrollWheelZoom
             attributionControl={false}
             zoomSnap={0.25}
-            zoomDelta={0.5}
-            wheelPxPerZoomLevel={90}
-            minZoom={6}
-            maxBounds={[
-              [-44.2, 139.5],
-              [-33.8, 150.8],
-            ]}
-            maxBoundsViscosity={1.0}
+            zoomControl={false}
+            dragging={false}
+            scrollWheelZoom={false}
+            doubleClickZoom={false}
+            touchZoom={false}
+            boxZoom={false}
+            keyboard={false}
           >
             <MapLoading />
-            <MapRecall name="dive" />
             {/* Base tiles are canvas-recoloured to the OVERWORLD palette (lib/leaflet/
                 pixelTiles.ts) and 4x-stretched; labels ride on top at 2x. */}
             <PixelBasemap />
@@ -291,12 +303,6 @@ export default function DiveSites() {
         <span><i className="chip" style={{ background: "var(--good)" }} />Good</span>
         <span><i className="chip" style={{ background: "var(--marg)" }} />Marginal</span>
         <span><i className="chip" style={{ background: "var(--poor)" }} />Poor</span>
-      </div>
-      <div className="rules">
-        <b>Amazing</b>: swell &lt;1&nbsp;m, good period (&lt;13&nbsp;s) &amp; light wind (&lt;15&nbsp;km/h). &nbsp;
-        <b>Good</b>: swell &lt;1&nbsp;m but wind moderate or period a touch high. &nbsp;
-        <b>Marginal</b>: swell 1&ndash;1.5&nbsp;m, <i>or</i> &lt;1&nbsp;m with very high period (&ge;14&nbsp;s), <i>or</i> strong onshore wind. &nbsp;
-        <b>Poor</b>: swell &gt;1.5&nbsp;m. &nbsp; (Heavy recent rain knocks a tier off; sheltered bay sites ignore swell.)
       </div>
     </div>
   );

@@ -24,7 +24,8 @@ npm test           # rating-logic + ERDDAP-client self-checks
   Maps are client components dynamically imported with `ssr:false`.
   - `/forecast` — dive-site ratings; each expanded spot card shows a 3-hourly
     week table (0–10 score, wave height/direction/period, energy, wind,
-    high/low tides) from Open-Meteo hourly data
+    high/low tides) from Open-Meteo hourly data; card water temp comes from
+    the latest NOAA ACSPO scan via `sst-point?box=1` (Open-Meteo fallback)
   - `/live/*` — SST (12-day daily-scan gallery), chlorophyll (daily-scan
     gallery), currents, altimetry, salinity, Nepean cam
   - `/geo/*` — seabed habitat, depth/bathymetry
