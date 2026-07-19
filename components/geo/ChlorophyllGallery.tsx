@@ -132,6 +132,19 @@ export default function ChlorophyllGallery({
             ))}
           </div>
         </div>
+        {/* same footer as the SST gallery — latest scan day + source link */}
+        <div className="foot">
+          <span>
+            NASA GIBS &middot; latest: <span>{SCANS.length ? fmt(SCANS[0].day) : "unavailable"}</span>
+          </span>
+          <a
+            href={`https://worldview.earthdata.nasa.gov/?v=139.5,-44.2,150.8,-33.8&l=Coastlines_15m,${SATS[0].layer}${SCANS.length ? `&t=${SCANS[0].day}` : ""}`}
+            target="_blank"
+            rel="noopener"
+          >
+            Open data &#8599;
+          </a>
+        </div>
       </div>
     </div>
     {/* same OVERWORLD pixel pager as the fish guide — outside the panel */}

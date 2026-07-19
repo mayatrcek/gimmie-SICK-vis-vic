@@ -2,19 +2,16 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import { fmtDataDate, graphLink, SST_DS, sstThumbURL } from "@/lib/api/erddap";
+import { CUR_DS, curThumbURL, fmtDataDate, graphLink } from "@/lib/api/erddap";
 import { THUMB_LAND } from "@/components/geo/gibs";
-import SstScale from "@/components/SstScale";
 
-const SstMap = dynamic(() => import("./geo/SstMap"), {
+const CurrentsMap = dynamic(() => import("./geo/CurrentsMap"), {
   ssr: false,
   loading: () => <div className="pad loadgif" style={{ height: "100%" }} />,
 });
 
-type Stretch = { min?: number; max?: number };
-
 // Skeleton shimmer on the thumb until its ERDDAP image arrives.
-function Thumb({ day, stretch }: { day: string; stretch: Stretch }) {
+function Thumb({ day }: { day: string }) {
   const [loaded, setLoaded] = useState(false);
   const ref = useRef<HTMLImageElement>(null);
   // cached images can fire load before hydration — catch them here
@@ -23,12 +20,17 @@ function Thumb({ day, stretch }: { day: string; stretch: Stretch }) {
   }, []);
   return (
     <div className={`f2img chlthumb${loaded ? "" : " chlskel"}`}>
+      {/* stacked: speed gradient under the arrows, land mask on top — all
+          .thumbland (absolute inset-0) so paint order follows DOM order */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="thumbland" loading="lazy" src={`/api/cur-speed?day=${day}`} alt="" aria-hidden />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         ref={ref}
+        className="thumbland"
         loading="lazy"
-        src={sstThumbURL(stretch, day)}
-        alt={`SST scan ${fmtDataDate(day)}`}
+        src={curThumbURL(day)}
+        alt={`Surface currents ${fmtDataDate(day)}`}
         onLoad={() => setLoaded(true)}
       />
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -39,32 +41,17 @@ function Thumb({ day, stretch }: { day: string; stretch: Stretch }) {
 
 const PAGE_SIZE = 6;
 
-export default function SstGallery() {
+export default function CurrentsGallery() {
   const [selected, setSelected] = useState<string | null>(null);
   const [page, setPage] = useState(0);
-  // ponytail: latest day's colour stretch reused for all 12 days; per-day
-  // stretches via /api/sst-stretch?day= if the drift ever clips older days
-  const [stretch, setStretch] = useState<Stretch | null>(null);
   // Latest available grid time — anchors the 12-day window so the newest
   // card is never an unpublished (broken) day. undefined = still loading.
   const [latest, setLatest] = useState<string | undefined>(undefined);
-  // Median measurement time per day ("1:14 am"), keyed by day; {} until loaded
-  const [times, setTimes] = useState<Record<string, string>>({});
-  // if the timestamp query fails: 2 days behind now, past the ~1-day publication lag
+  // if the timestamp query fails: 2 days behind now, past the publication lag
   const fallback = () => new Date(Date.now() - 2 * 864e5).toISOString();
 
   useEffect(() => {
-    fetch("/api/sst-stretch")
-      .then((r) => r.json())
-      .then((j) => setStretch(j.min != null && j.max != null ? j : {}))
-      .catch(() => setStretch({}));
-
-    fetch("/api/sst-times")
-      .then((r) => r.json())
-      .then((j) => setTimes(j.times ?? {}))
-      .catch(() => {});
-
-    fetch(`/api/timestamp?ds=${SST_DS}`)
+    fetch(`/api/timestamp?ds=${CUR_DS}`)
       .then((r) => r.json())
       .then((j) => setLatest(j.time ?? fallback()))
       .catch(() => setLatest(fallback()));
@@ -91,25 +78,18 @@ export default function SstGallery() {
     };
   }, [selected]);
 
-  if (!stretch || !days) return null;
+  if (!days) return null;
 
   if (selected) {
     return (
       // fixed full-viewport overlay: covers the footer, nav (z 1300) stays on top
       <div className="chlfull sstfull">
-        <SstMap stretch={stretch} day={selected} />
+        <CurrentsMap day={selected} />
         {/* overlaid chrome — above leaflet panes/controls (z ~1000) */}
         <div className="chlover">
           <button onClick={() => setSelected(null)}>&lt; Gallery</button>
         </div>
-        {stretch.min != null && stretch.max != null && (
-          <div className="sstscale-float">
-            <SstScale min={stretch.min} max={stretch.max} />
-          </div>
-        )}
-        <span className="chldate">
-          {fmtDataDate(selected)} &middot; NOAA ACSPO{times[selected] ? ` · ${times[selected]}` : ""}
-        </span>
+        <span className="chldate">{fmtDataDate(selected)} &middot; NOAA altimetry blend</span>
       </div>
     );
   }
@@ -118,14 +98,15 @@ export default function SstGallery() {
     <>
       <div className="panel">
         <div className="panel-hd">
-          <span className="panel-ttl">Sea temperature scans</span>
+          <span className="panel-ttl">Surface current scans</span>
         </div>
         <div className="panel-bd flush">
           <div className="desc" style={{ padding: "14px 16px 8px" }}>
-            Sea temperature straight off the satellite (NOAA ACSPO, ~2&nbsp;km) for the last
-            12 days. It&apos;s actual readings, not a smoothed model, so the temperature fronts
-            stay sharp — blank patches were under cloud. Tap a card to explore that day&apos;s
-            scan; the white dots are detected thermal fronts.
+            Open-ocean surface currents from satellite altimetry (NOAA blend, ~25&nbsp;km) for
+            the last 12 days. Arrows point where the water&apos;s going — longer means faster.
+            This shows the big movers (East Australian Current, Tasman eddies, Bass Strait
+            through-flow), not local tidal streams: for those check the tide graph on the
+            forecast page. Tap a card to explore that day.
           </div>
           <div style={{ padding: "8px 16px 16px" }}>
             <div className="fishgrid chlgrid">
@@ -138,18 +119,18 @@ export default function SstGallery() {
                   onClick={() => setSelected(day)}
                   onKeyDown={(e) => e.key === "Enter" && setSelected(day)}
                 >
-                  <Thumb day={day} stretch={stretch} />
+                  <Thumb day={day} />
                   <h3 className="f2name">{fmtDataDate(day)}</h3>
-                  <p className="f2sci">NOAA ACSPO &middot; 2 km{times[day] ? ` · ${times[day]}` : ""}</p>
+                  <p className="f2sci">NOAA altimetry &middot; 25 km</p>
                 </article>
               ))}
             </div>
           </div>
           <div className="foot">
             <span>
-              NOAA ACSPO &middot; latest: <span>{fmtDataDate(latest ?? null)}</span>
+              NOAA altimetry blend &middot; latest: <span>{fmtDataDate(latest ?? null)}</span>
             </span>
-            <a href={graphLink()} target="_blank" rel="noopener">
+            <a href={graphLink(CUR_DS)} target="_blank" rel="noopener">
               Open data &#8599;
             </a>
           </div>

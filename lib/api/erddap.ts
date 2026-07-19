@@ -188,8 +188,52 @@ export function chlURL(bump = 0): string {
   );
 }
 
-export const graphLink = (ds = SST_DS) =>
-  (ds === SST_DS ? SST_BASE : BASE) + ds + ".graph";
+// noaacw* datasets live on the main CoastWatch host; pfeg doesn't know them
+// all (the blended currents 404 there), so route by id prefix.
+export const hostFor = (ds: string) => (ds.startsWith("noaacw") ? SST_BASE : BASE);
+
+export const graphLink = (ds = SST_DS) => hostFor(ds) + ds + ".graph";
+
+// Blended altimetry geostrophic surface currents, global 0.25°, daily at
+// 00:00Z, ~2 days behind. Coarse: open-ocean flow only, no tidal streams.
+export const CUR_DS = "noaacwBLENDEDNRTcurrentsDaily";
+const curTime = (day?: string) => (day ? `(${day}T00:00:00Z)` : "(last)");
+
+// One day of u/v at native 0.25° for the speed-gradient PNG (/api/cur-speed).
+// "card" matches the thumb frame, "map" the leaflet overlay region.
+export function curSpeedCsvURL(day?: string, frame: "card" | "map" = "card"): string {
+  const box =
+    frame === "map"
+      ? `%5B(-41.2):(-33.8)%5D%5B(139.5):(150.8)%5D`
+      : `%5B(-44.2):(-33.8)%5D%5B(139.5):(150.8)%5D`;
+  return (
+    SST_BASE + CUR_DS + `.csv?u_current%5B${curTime(day)}%5D${box},v_current%5B${curTime(day)}%5D${box}`
+  );
+}
+
+// Card thumb: full-grid arrows, same frame as the SST/chl cards. Cream — the
+// card's sea background (.chlthumb) is dark navy, ink arrows vanish on it.
+export function curThumbURL(day?: string): string {
+  const box = `%5B(-44.2):(-33.8)%5D%5B(139.5):(150.8)%5D`;
+  return (
+    SST_BASE + CUR_DS + `.transparentPng?u_current%5B${curTime(day)}%5D${box},v_current%5B${curTime(day)}%5D${box}` +
+    // 2x the display size: ERDDAP draws aliased 1px arrows; browser downscale smooths them
+    "&.draw=vectors&.vars=longitude%7Clatitude%7Cu_current%7Cv_current&.color=0xFFFAEF&.vec=0.3&.size=512%7C610"
+  );
+}
+
+// Full-map overlay: cream arrows over satellite imagery, one image across
+// SST_REGION. No latitude strips — at 0.25° cells the equirect-on-mercator
+// placement error (<8 km) is well under one data cell, and strips would clip
+// arrows at their seams.
+export function curURL(day?: string): string {
+  const box = `%5B(-41.2):(-33.8)%5D%5B(139.5):(150.8)%5D`;
+  return (
+    SST_BASE + CUR_DS + `.transparentPng?u_current%5B${curTime(day)}%5D${box},v_current%5B${curTime(day)}%5D${box}` +
+    // 2x for the same anti-aliasing-by-downscale as the thumbs
+    "&.draw=vectors&.vars=longitude%7Clatitude%7Cu_current%7Cv_current&.color=0xFFFAEF&.vec=0.3&.size=2260%7C1480"
+  );
+}
 
 export function fmtDataDate(t: string | null): string {
   if (!t) return "unavailable";

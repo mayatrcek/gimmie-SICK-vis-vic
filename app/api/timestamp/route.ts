@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { BASE, erddapFetch, SST_DS } from "@/lib/api/erddap";
+import { erddapFetch, hostFor, SST_DS } from "@/lib/api/erddap";
 
 // Server proxy for the ERDDAP "latest data time" query. Replaces the old
 // client-side JSONP (fetchLastTime) — no CORS/JSONP hack needed server-side.
@@ -11,9 +11,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ time: null }, { status: 400 });
   }
   try {
-    // pfeg 302-redirects datasets hosted on coastwatch.noaa.gov (e.g. ACSPO
-    // SST); fetch follows it, so one base covers both hosts.
-    const r = await erddapFetch(`${BASE}${ds}.json?time%5B(last)%5D`);
+    const r = await erddapFetch(`${hostFor(ds)}${ds}.json?time%5B(last)%5D`);
     const j = await r.json();
     const time = j?.table?.rows?.[0]?.[0] ?? null;
     return NextResponse.json({ time });

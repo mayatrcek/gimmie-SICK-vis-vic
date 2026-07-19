@@ -27,7 +27,8 @@ npm test           # rating-logic + ERDDAP-client self-checks
     high/low tides) from Open-Meteo hourly data; card water temp comes from
     the latest NOAA ACSPO scan via `sst-point?box=1` (Open-Meteo fallback)
   - `/live/*` — SST (12-day daily-scan gallery), chlorophyll (daily-scan
-    gallery), currents, altimetry, salinity, Nepean cam
+    gallery), currents (12-day vector-arrow gallery), altimetry, salinity,
+    Nepean cam
   - `/geo/*` — seabed habitat, depth/bathymetry
   - `/fish` — species guide (OVERWORLD sprite cards)
 - `app/api/*` — server route handlers proxying the gov feeds that used to be
@@ -51,7 +52,8 @@ npm test           # rating-logic + ERDDAP-client self-checks
 ## Data sources
 
 Open-Meteo (marine + weather), NOAA ACSPO L3S 2 km SST + thermal fronts via NOAA
-CoastWatch ERDDAP, NASA GIBS VIIRS
+CoastWatch ERDDAP, NOAA blended altimetry surface currents (0.25°, geostrophic)
+via the same ERDDAP, NASA GIBS VIIRS
 chlorophyll (NOAA-20, NOAA-21, Suomi NPP), Seamap Australia benthic habitat,
 DEECA CoastKit bathymetry/contours,
 Esri basemaps, CARTO basemap + AWS Terrarium bathymetry (dive-sites pixel map).

@@ -12,6 +12,13 @@ export const SATS = [
 ] as const;
 export type Sat = (typeof SATS)[number];
 
+// Cream land mask for ERDDAP-image cards, in EPSG:4326 — ERDDAP thumbs are
+// equirectangular, so a mercator mask drifts off the coast mid-frame.
+// WMS 1.3.0 + EPSG:4326 puts latitude first in BBOX.
+export const THUMB_LAND =
+  `${GIBS.replace("epsg3857", "epsg4326")}?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=OSM_Land_Mask&CRS=EPSG:4326` +
+  `&BBOX=-44.2,139.5,-33.8,150.8&WIDTH=256&HEIGHT=305&FORMAT=image/png&TRANSPARENT=true`;
+
 const iso = (ms: number) => new Date(ms).toISOString().slice(0, 10);
 
 // Lag-based day list (newest first) — the pre-Domains behaviour, kept as the
