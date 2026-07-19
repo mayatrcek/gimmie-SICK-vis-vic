@@ -1,6 +1,6 @@
 // Self-check for the GIBS Domains parser. Run: node components/geo/gibs.test.ts
 import assert from "node:assert";
-import { fallbackDays, parseDomain } from "./gibs.ts";
+import { fallbackDays, parseDomain, passTimes } from "./gibs.ts";
 
 // Real SNPP response shape: two periods with a gap (Jul 11–15 missing).
 const snpp =
@@ -32,5 +32,15 @@ const fb = fallbackDays(2, 12);
 assert.equal(fb.length, 12);
 assert.equal(fb[0], new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10));
 assert.ok(fb[0] > fb[11]);
+
+// Adjacent granules of one swath (<30 min apart) collapse into one pass;
+// the later swath stays separate. Times render Melbourne local (UTC+10).
+assert.deepEqual(
+  passTimes(["2026-07-16T03:12:00.000Z", "2026-07-16T03:18:00.000Z", "2026-07-16T04:54:01.000Z"]),
+  ["1:12 pm", "2:54 pm"],
+);
+assert.deepEqual(passTimes(["2026-07-17T23:48:00.000Z"]), ["9:48 am"]); // next-day local, am side
+assert.deepEqual(passTimes([]), []);
+assert.deepEqual(passTimes(["garbage"]), []);
 
 console.log("gibs.test.ts ok");

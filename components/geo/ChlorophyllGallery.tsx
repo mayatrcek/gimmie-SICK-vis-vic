@@ -45,7 +45,18 @@ const PAGE_SIZE = 6;
 
 type Scan = { day: string; sat: Sat };
 
-export default function ChlorophyllGallery({ daysBySat }: { daysBySat: Record<string, string[]> }) {
+export default function ChlorophyllGallery({
+  daysBySat,
+  timesBySat,
+}: {
+  daysBySat: Record<string, string[]>;
+  timesBySat: Record<string, Record<string, string[]>>;
+}) {
+  // "1:48 & 3:30 pm" pass-time suffix for a scan; "" when CMR had nothing
+  const at = (scan: Scan) => {
+    const t = timesBySat[scan.sat.id]?.[scan.day];
+    return t?.length ? ` · ${t.join(" & ")}` : "";
+  };
   // merged newest-first; stable sort keeps SATS order within a day
   const SCANS = SATS.flatMap((sat) => (daysBySat[sat.id] ?? []).map((day) => ({ day, sat })))
     .sort((a, b) => b.day.localeCompare(a.day));
@@ -76,7 +87,7 @@ export default function ChlorophyllGallery({ daysBySat }: { daysBySat: Record<st
           <button onClick={() => setSelected(null)}>&lt; Gallery</button>
         </div>
         <span className="chldate">
-          {fmt(selected.day)} &middot; {selected.sat.label} VIIRS
+          {fmt(selected.day)} &middot; {selected.sat.label} VIIRS{at(selected)}
         </span>
       </div>
     );
@@ -116,7 +127,7 @@ export default function ChlorophyllGallery({ daysBySat }: { daysBySat: Record<st
               >
                 <Thumb day={scan.day} layer={scan.sat.layer} />
                 <h3 className="f2name">{fmt(scan.day)}</h3>
-                <p className="f2sci">{scan.sat.label} &middot; VIIRS</p>
+                <p className="f2sci">{scan.sat.label} &middot; VIIRS{at(scan)}</p>
               </article>
             ))}
           </div>
