@@ -9,14 +9,8 @@ const ChlorophyllMap = dynamic(() => import("./ChlorophyllMap"), {
   loading: () => <div className="pad loadgif" style={{ height: "100%" }} />,
 });
 
-// Last 12 scans per satellite, starting `lag` days back (each publishes on its
-// own delay), merged into one list: newest day first, satellites in SATS order.
-const days = (lag: number) =>
-  Array.from({ length: 12 }, (_, i) =>
-    new Date(Date.now() - (i + lag) * 864e5).toISOString().slice(0, 10),
-  );
-const SCANS = SATS.flatMap((sat) => days(sat.lag).map((day) => ({ day, sat })))
-  .sort((a, b) => b.day.localeCompare(a.day)); // stable: keeps SATS order within a day
+// Scan days per satellite come from the server (GIBS Domains query in
+// app/live/chlorophyll/page.tsx), keyed by sat id.
 
 // One GetMap composites the scan + land mask (later layer draws on top).
 const thumb = (day: string, layer: string) =>
@@ -51,7 +45,10 @@ const PAGE_SIZE = 6;
 
 type Scan = { day: string; sat: Sat };
 
-export default function ChlorophyllGallery() {
+export default function ChlorophyllGallery({ daysBySat }: { daysBySat: Record<string, string[]> }) {
+  // merged newest-first; stable sort keeps SATS order within a day
+  const SCANS = SATS.flatMap((sat) => (daysBySat[sat.id] ?? []).map((day) => ({ day, sat })))
+    .sort((a, b) => b.day.localeCompare(a.day));
   const [selected, setSelected] = useState<Scan | null>(null);
   const [page, setPage] = useState(0);
   const pages = Math.ceil(SCANS.length / PAGE_SIZE);

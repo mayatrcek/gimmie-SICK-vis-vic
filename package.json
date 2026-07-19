@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node lib/logic/rating.test.ts && node lib/api/erddap.test.ts"
+    "test": "node lib/logic/rating.test.ts && node lib/api/erddap.test.ts && node components/geo/gibs.test.ts"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
