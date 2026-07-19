@@ -54,6 +54,8 @@ export default function SstGallery() {
   // Latest available grid time — anchors the 12-day window so the newest
   // card is never an unpublished (broken) day. undefined = still loading.
   const [latest, setLatest] = useState<string | undefined>(undefined);
+  // Median measurement time per day ("1:14 am"), keyed by day; {} until loaded
+  const [times, setTimes] = useState<Record<string, string>>({});
   // if the timestamp query fails: 2 days behind now, past the ~1-day publication lag
   const fallback = () => new Date(Date.now() - 2 * 864e5).toISOString();
 
@@ -62,6 +64,11 @@ export default function SstGallery() {
       .then((r) => r.json())
       .then((j) => setStretch(j.min != null && j.max != null ? j : {}))
       .catch(() => setStretch({}));
+
+    fetch("/api/sst-times")
+      .then((r) => r.json())
+      .then((j) => setTimes(j.times ?? {}))
+      .catch(() => {});
 
     fetch(`/api/timestamp?ds=${SST_DS}`)
       .then((r) => r.json())
@@ -106,7 +113,9 @@ export default function SstGallery() {
             <SstScale min={stretch.min} max={stretch.max} />
           </div>
         )}
-        <span className="chldate">{fmtDataDate(selected)} &middot; NOAA ACSPO</span>
+        <span className="chldate">
+          {fmtDataDate(selected)} &middot; NOAA ACSPO{times[selected] ? ` · ${times[selected]}` : ""}
+        </span>
       </div>
     );
   }
@@ -137,7 +146,7 @@ export default function SstGallery() {
                 >
                   <Thumb day={day} stretch={stretch} />
                   <h3 className="f2name">{fmtDataDate(day)}</h3>
-                  <p className="f2sci">NOAA ACSPO &middot; 2 km</p>
+                  <p className="f2sci">NOAA ACSPO &middot; 2 km{times[day] ? ` · ${times[day]}` : ""}</p>
                 </article>
               ))}
             </div>

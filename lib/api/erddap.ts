@@ -127,6 +127,35 @@ export function sstPointURL(lat: number, lon: number, day?: string, r = 0): stri
   );
 }
 
+// Per-cell measurement offsets for the last 12 grid days in one strided CSV
+// (~1 MB, cached hourly). (last-n) arithmetic is in axis units — seconds.
+export function sstDtimeURL(): string {
+  return SST_BASE + SST_DS + `.csv?sst_dtime%5B(last-950400):(last)%5D` + region(10);
+}
+
+// Median measurement time per day from the sst_dtime CSV, as Melbourne local
+// strings keyed by day ("2026-07-17" → "1:14 am"). The L3S blend favours the
+// overnight JPSS passes here, so one median per day reads honestly; days
+// whose cells are all NaN (full cloud) are simply absent.
+export function medianTimesFromCsv(csv: string): Record<string, string> {
+  const byDay: Record<string, number[]> = {};
+  for (const line of csv.trim().split("\n").slice(2)) {
+    const [t, , , v] = line.split(",");
+    const dt = Number(v);
+    if (Number.isFinite(dt)) (byDay[t.slice(0, 10)] ??= []).push(dt);
+  }
+  return Object.fromEntries(
+    Object.entries(byDay).map(([day, vals]) => {
+      vals.sort((a, b) => a - b);
+      const ms = Date.parse(`${day}T12:00:00Z`) + vals[Math.floor(vals.length / 2)] * 1000;
+      const s = new Date(ms)
+        .toLocaleTimeString("en-AU", { timeZone: "Australia/Melbourne", hour: "numeric", minute: "2-digit" })
+        .replace(/\s/g, " "); // some ICUs put narrow NBSP before am/pm
+      return [day, s];
+    }),
+  );
+}
+
 // Detected thermal-front cells at stride 2 (~4 km): full res over this
 // region is a ~10 MB CSV; stride 2 is ~2.7 MB and front lines still read
 // clearly as dotted traces. Fetched server-side, cached hourly.
