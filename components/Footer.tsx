@@ -8,23 +8,11 @@ export default function Footer() {
           GIMMIE SICK VIS
         </Link>
         <div className="foot-links">
-          <Link href="/">Links</Link>
-          <Link href="/about">Data sources</Link>
-          <Link href="/feedback">Contact</Link>
+          <Link href="/contact">Contact</Link>
+          <Link href="/about">About</Link>
+          <Link href="/feedback">Feedback</Link>
         </div>
-        <div className="foot-meta">&copy; 2026 Built by Maya, in the water more than at the desk</div>
-      </div>
-      <div className="foot-note">
-        Forecasts:{" "}
-        <a href="https://open-meteo.com" target="_blank" rel="noopener">
-          Open-Meteo
-        </a>{" "}
-        (marine + weather models). SST: NOAA ACSPO. Chlorophyll: NOAA NESDIS CoastWatch (VIIRS), via{" "}
-        <a href="https://coastwatch.pfeg.noaa.gov/erddap/" target="_blank" rel="noopener">
-          NOAA ERDDAP
-        </a>
-        . Free public data, a planning aid, not for navigation or safety-of-life decisions. Built for
-        Maya.
+        <div className="foot-meta">&copy; 2026 Built by Maya</div>
       </div>
     </footer>
   );

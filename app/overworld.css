@@ -429,6 +429,25 @@
   /* maps/iframes inside a panel shed their own chrome to avoid a box-in-a-box */
   .panel-bd #map{margin:0;border:0;border-radius:0;box-shadow:none}
 
+  /* ===== Form fields (contact page) — same ink-border/block-shadow language
+     as .picker select above, ported from ui_design/overworld/css/system.css ===== */
+  .field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+  .field-label{font-family:var(--font-hud);font-size:18px;letter-spacing:.04em;
+    text-transform:uppercase;color:var(--ink);line-height:1}
+  .input,.textarea{display:block;width:100%;padding:12px 14px;font-family:var(--font-hud);
+    font-size:20px;line-height:1.2;color:var(--ink);background:var(--panel);
+    border:2px solid var(--ink);border-radius:0;box-shadow:2px 2px 0 0 var(--ink);outline:none;
+    transition:border-color .18s var(--ease),box-shadow .18s var(--ease)}
+  .input{height:48px}
+  .textarea{min-height:140px;resize:vertical;font-family:var(--font-sans);font-size:15px}
+  .input::placeholder,.textarea::placeholder{color:var(--muted);opacity:.7}
+  .input:focus,.textarea:focus{border-color:var(--accent);box-shadow:4px 4px 0 0 var(--accent)}
+  .field-error .input,.field-error .textarea{border-color:var(--warm)}
+  .field-error .input:focus,.field-error .textarea:focus{box-shadow:4px 4px 0 0 var(--warm)}
+  .field-msg{font-family:var(--font-hud);font-size:15px;color:var(--warm);letter-spacing:.02em}
+  /* honeypot: off-screen, never shown to real visitors */
+  .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
   /* =============================================================
      Phone layout (<=560px). Placed LAST on purpose: these rules
      override the base .tabs / .tab / .tab-menu definitions above,

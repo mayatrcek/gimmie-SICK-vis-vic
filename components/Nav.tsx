@@ -24,7 +24,10 @@ const GROUPS: Group[] = [
   {
     id: "learn",
     label: "Learn",
-    items: [{ label: "Fish guide", href: "/fish" }],
+    items: [
+      { label: "Fish guide", href: "/fish" },
+      { label: "Back beach forecasting", href: "/back-beach" },
+    ],
   },
   {
     id: "geo",
@@ -94,6 +97,9 @@ export default function Nav() {
           <Dropdown key={g.id} g={g} open={openDD === g.id} onToggle={setOpenDD} active={groupActive(g)} isActive={isActive} />
         ))}
 
+        <Link className={`tab${isActive("/contact") ? " active" : ""}`} href="/contact">
+          Contact
+        </Link>
         <Link className={`tab${isActive("/about") ? " active" : ""}`} href="/about">
           About
         </Link>
