@@ -16,6 +16,7 @@ npm install
 npm run dev        # http://localhost:3000
 npm run build      # production build
 npm test           # rating-logic + ERDDAP-client self-checks
+python test_cmems_currents.py  # currents rasterizer self-check (no CMEMS creds needed)
 ```
 
 ## Structure
@@ -52,12 +53,19 @@ npm test           # rating-logic + ERDDAP-client self-checks
 ## Data sources
 
 Open-Meteo (marine + weather), NOAA ACSPO L3S 2 km SST + thermal fronts via NOAA
-CoastWatch ERDDAP, NOAA blended altimetry surface currents (0.25°, geostrophic)
-via the same ERDDAP, NASA GIBS VIIRS
+CoastWatch ERDDAP, Copernicus Marine global ocean forecast surface currents
+(0.083°, `uo`/`vo`) via the `copernicusmarine` Python client, NASA GIBS VIIRS
 chlorophyll (NOAA-20, NOAA-21, Suomi NPP), Seamap Australia benthic habitat,
 DEECA CoastKit bathymetry/contours,
 Esri basemaps, CARTO basemap + AWS Terrarium bathymetry (dive-sites pixel map).
 All free/public; a planning aid, not for navigation or safety-of-life use.
+
+Currents needs a free Copernicus Marine account (register at
+data.marine.copernicus.eu) with `COPERNICUSMARINE_SERVICE_USERNAME` /
+`COPERNICUSMARINE_SERVICE_PASSWORD` set as Vercel env vars — see
+`api/cmems-currents.py`, a Python serverless function (requires the Python
+runtime; deps in the root `requirements.txt`) since Copernicus retired
+OPeNDAP/ERDDAP/WMS in 2024 and only ships a Python client.
 
 ## Known quirks
 

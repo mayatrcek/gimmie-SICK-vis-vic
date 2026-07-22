@@ -4,25 +4,26 @@ import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 
-import { curURL, SST_REGION } from "@/lib/api/erddap";
+import { SST_REGION } from "@/lib/api/erddap";
+import { curSpeedURL, curURL } from "@/lib/api/cmems";
 import MapRecall from "@/components/MapRecall";
 
-// One image overlay, no latitude strips (unlike SstMap): at 0.25° data cells
+// One image overlay, no latitude strips (unlike SstMap): at 0.083° data cells
 // the equirect-on-mercator error (<8 km) is under a cell, and strips would
 // clip arrows at their seams.
-function CurrentsLayer({ day, onLoaded }: { day?: string; onLoaded: () => void }) {
+function CurrentsLayer({ day, onLoaded }: { day: string; onLoaded: () => void }) {
   const map = useMap();
   useEffect(() => {
     const safety = setTimeout(onLoaded, 12000);
     // speed gradient (native-res PNG, browser-stretched) under the arrows
-    const speed = L.imageOverlay(`/api/cur-speed?frame=map${day ? `&day=${day}` : ""}`, SST_REGION, {
+    const speed = L.imageOverlay(curSpeedURL(day, "map"), SST_REGION, {
       pane: "tilePane",
       opacity: 0.7,
     }).addTo(map);
     speed.setZIndex(150);
     const lyr = L.imageOverlay(curURL(day), SST_REGION, {
       pane: "tilePane",
-      attribution: "currents: NOAA altimetry blend via NOAA CoastWatch ERDDAP",
+      attribution: "currents: Copernicus Marine global ocean forecast",
     }).addTo(map);
     lyr.on("load", onLoaded);
     lyr.on("error", onLoaded);
@@ -37,7 +38,7 @@ function CurrentsLayer({ day, onLoaded }: { day?: string; onLoaded: () => void }
   return null;
 }
 
-export default function CurrentsMap({ day }: { day?: string }) {
+export default function CurrentsMap({ day }: { day: string }) {
   const [loading, setLoading] = useState(true);
   return (
     <div style={{ position: "relative", height: "100%" }}>
@@ -56,7 +57,7 @@ export default function CurrentsMap({ day }: { day?: string }) {
         <MapRecall name="cur" />
         <TileLayer
           url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-          attribution="Imagery &copy; Esri, Maxar; currents: NOAA via NOAA CoastWatch ERDDAP"
+          attribution="Imagery &copy; Esri, Maxar; currents: Copernicus Marine"
           maxZoom={19}
           zIndex={100}
         />

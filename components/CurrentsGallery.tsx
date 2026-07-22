@@ -1,8 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
-import { CUR_DS, curThumbURL, fmtDataDate, graphLink } from "@/lib/api/erddap";
+import { useRef, useState, useEffect } from "react";
+import { fmtDataDate } from "@/lib/api/erddap";
+import { CMEMS_PRODUCT_URL, curSpeedURL, curThumbURL, latestCurDay } from "@/lib/api/cmems";
 import { THUMB_LAND } from "@/components/geo/gibs";
 
 const CurrentsMap = dynamic(() => import("./geo/CurrentsMap"), {
@@ -10,7 +11,7 @@ const CurrentsMap = dynamic(() => import("./geo/CurrentsMap"), {
   loading: () => <div className="pad loadgif" style={{ height: "100%" }} />,
 });
 
-// Skeleton shimmer on the thumb until its ERDDAP image arrives.
+// Skeleton shimmer on the thumb until its currents image arrives.
 function Thumb({ day }: { day: string }) {
   const [loaded, setLoaded] = useState(false);
   const ref = useRef<HTMLImageElement>(null);
@@ -23,7 +24,7 @@ function Thumb({ day }: { day: string }) {
       {/* stacked: speed gradient under the arrows, land mask on top — all
           .thumbland (absolute inset-0) so paint order follows DOM order */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="thumbland" loading="lazy" src={`/api/cur-speed?day=${day}`} alt="" aria-hidden />
+      <img className="thumbland" loading="lazy" src={curSpeedURL(day, "card")} alt="" aria-hidden />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         ref={ref}
@@ -44,26 +45,16 @@ const PAGE_SIZE = 6;
 export default function CurrentsGallery() {
   const [selected, setSelected] = useState<string | null>(null);
   const [page, setPage] = useState(0);
-  // Latest available grid time — anchors the 12-day window so the newest
-  // card is never an unpublished (broken) day. undefined = still loading.
-  const [latest, setLatest] = useState<string | undefined>(undefined);
-  // if the timestamp query fails: 2 days behind now, past the publication lag
-  const fallback = () => new Date(Date.now() - 2 * 864e5).toISOString();
-
-  useEffect(() => {
-    fetch(`/api/timestamp?ds=${CUR_DS}`)
-      .then((r) => r.json())
-      .then((j) => setLatest(j.time ?? fallback()))
-      .catch(() => setLatest(fallback()));
-  }, []);
+  // No live "latest available time" metadata exists for CMEMS (unlike
+  // ERDDAP) — the product publishes on a known ~1 day lag, so anchor the
+  // 12-day window on that fixed lag instead of a live check.
+  const latest = latestCurDay();
 
   // 12 days newest-first from the latest grid.
-  const days = latest
-    ? Array.from({ length: 12 }, (_, i) =>
-        new Date(Date.parse(latest) - i * 864e5).toISOString().slice(0, 10),
-      )
-    : null;
-  const pages = days ? Math.ceil(days.length / PAGE_SIZE) : 0;
+  const days = Array.from({ length: 12 }, (_, i) =>
+    new Date(Date.parse(latest) - i * 864e5).toISOString().slice(0, 10),
+  );
+  const pages = Math.ceil(days.length / PAGE_SIZE);
 
   // back to the top so the new page's cards start in view
   const go = (p: number) => {
@@ -78,8 +69,6 @@ export default function CurrentsGallery() {
     };
   }, [selected]);
 
-  if (!days) return null;
-
   if (selected) {
     return (
       // fixed full-viewport overlay: covers the footer, nav (z 1300) stays on top
@@ -89,7 +78,7 @@ export default function CurrentsGallery() {
         <div className="chlover">
           <button onClick={() => setSelected(null)}>&lt; Gallery</button>
         </div>
-        <span className="chldate">{fmtDataDate(selected)} &middot; NOAA altimetry blend</span>
+        <span className="chldate">{fmtDataDate(selected)} &middot; Copernicus Marine forecast</span>
       </div>
     );
   }
@@ -102,8 +91,9 @@ export default function CurrentsGallery() {
         </div>
         <div className="panel-bd flush">
           <div className="desc" style={{ padding: "14px 16px 8px" }}>
-            Open-ocean surface currents from satellite altimetry (NOAA blend, ~25&nbsp;km) for
-            the last 12 days. Arrows point where the water&apos;s going — longer means faster.
+            Open-ocean surface currents from Copernicus Marine&apos;s global forecast model
+            (~9&nbsp;km) for the last 12 days. Arrows point where the water&apos;s going — longer
+            means faster.
             This shows the big movers (East Australian Current, Tasman eddies, Bass Strait
             through-flow), not local tidal streams: for those check the tide graph on the
             forecast page. Tap a card to explore that day.
@@ -121,16 +111,16 @@ export default function CurrentsGallery() {
                 >
                   <Thumb day={day} />
                   <h3 className="f2name">{fmtDataDate(day)}</h3>
-                  <p className="f2sci">NOAA altimetry &middot; 25 km</p>
+                  <p className="f2sci">Copernicus Marine &middot; 9 km</p>
                 </article>
               ))}
             </div>
           </div>
           <div className="foot">
             <span>
-              NOAA altimetry blend &middot; latest: <span>{fmtDataDate(latest ?? null)}</span>
+              Copernicus Marine forecast &middot; latest: <span>{fmtDataDate(latest)}</span>
             </span>
-            <a href={graphLink(CUR_DS)} target="_blank" rel="noopener">
+            <a href={CMEMS_PRODUCT_URL} target="_blank" rel="noopener">
               Open data &#8599;
             </a>
           </div>
