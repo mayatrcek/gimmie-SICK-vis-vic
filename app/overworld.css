@@ -429,6 +429,18 @@
   /* maps/iframes inside a panel shed their own chrome to avoid a box-in-a-box */
   .panel-bd #map{margin:0;border:0;border-radius:0;box-shadow:none}
 
+  /* ===== Long-form article content (back-beach guide, etc.) — headings and
+     spacing do the separating, no bordered card per section */
+  .guide p{margin:0 0 12px;line-height:1.6}
+  .guide h2{font-family:var(--font-display);font-size:22px;font-weight:700;
+    letter-spacing:-.01em;color:var(--ink);margin:30px 0 10px}
+  .guide h2:first-child{margin-top:0}
+  .guide h3{font-family:var(--font-display);font-size:16px;font-weight:600;
+    letter-spacing:-.01em;color:var(--ink);margin:18px 0 6px}
+  .guide ul,.guide ol{margin:0 0 14px;padding-left:22px;line-height:1.6}
+  .guide li{margin-bottom:6px}
+  .guide .note{margin:10px 0 18px}
+
   /* ===== Form fields (contact page) — same ink-border/block-shadow language
      as .picker select above, ported from ui_design/overworld/css/system.css ===== */
   .field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
