@@ -17,9 +17,12 @@ export function latestCurDay(): string {
 const speedURL = (day: string, frame: "card" | "map") =>
   `/api/cmems-currents?day=${day}&frame=${frame}&kind=speed`;
 
-const vectorsURL = (day: string, frame: "card" | "map") =>
-  `/api/cmems-currents?day=${day}&frame=${frame}&kind=vectors`;
+const vectorsURL = (day: string, frame: "card" | "map", stride?: number) =>
+  `/api/cmems-currents?day=${day}&frame=${frame}&kind=vectors` +
+  (stride ? `&stride=${stride}` : "");
 
 export const curSpeedURL = speedURL;
 export const curThumbURL = (day: string) => vectorsURL(day, "card");
-export const curURL = (day: string) => vectorsURL(day, "map");
+// stride: grid-point spacing for the map's arrow density (lower = finer);
+// the map requests a smaller stride as the user zooms in.
+export const curURL = (day: string, stride?: number) => vectorsURL(day, "map", stride);

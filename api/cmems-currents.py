@@ -6,10 +6,13 @@ speed-gradient rasterizer from app/api/cur-speed/route.ts to Python, since
 this data can only be pulled via the `copernicusmarine` Python package.
 
 Query params:
-  day   YYYY-MM-DD, defaults to yesterday (product publishes ~1 day behind)
-  frame "card" (thumbnail box) or "map" (full overlay box)
-  kind  "speed" (native-res gradient PNG, browser upscales) or
-        "vectors" (fixed-size arrow PNG at the display resolution)
+  day    YYYY-MM-DD, defaults to yesterday (product publishes ~1 day behind)
+  frame  "card" (thumbnail box) or "map" (full overlay box)
+  kind   "speed" (native-res gradient PNG, browser upscales) or
+         "vectors" (fixed-size arrow PNG at the display resolution)
+  stride vectors only: grid-point spacing (1 = every native 0.083 deg cell,
+         higher = sparser/coarser). Defaults to 3; the map view requests a
+         lower stride as the user zooms in for more detailed arrows.
 """
 
 import math
@@ -83,7 +86,6 @@ def fetch_uv(day: str, frame: str):
 def render_speed(u, v, lat, lon) -> bytes:
     h, w = len(lat), len(lon)
     speed = np.hypot(u, v)
-    finite = speed[np.isfinite(speed)]
     # ERDDAP's cur-speed hard-codes no normalization ceiling either — the
     # ramp already clamps at 1 m/s via STOPS' last stop.
     img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
@@ -101,17 +103,16 @@ def render_speed(u, v, lat, lon) -> bytes:
     return buf.getvalue()
 
 
-def render_vectors(u, v, lat, lon, size: tuple[int, int]) -> bytes:
+def render_vectors(u, v, lat, lon, size: tuple[int, int], stride: int = 3) -> bytes:
+    # CMEMS's 0.083 deg grid is ~3x denser than NOAA's old 0.25 deg one;
+    # stride=3 roughly matches that prior arrow density. Callers zoomed in
+    # on the map request a lower stride for finer, more detailed arrows.
     w, h = size
     img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     lat0, lat1 = lat.min(), lat.max()
     lon0, lon1 = lon.min(), lon.max()
     color = (0xFF, 0xFA, 0xEF, 255)
-    # CMEMS's 0.083 deg grid is ~3x denser than NOAA's 0.25 deg one; stride
-    # so arrow spacing on screen roughly matches the old rendering's density
-    # rather than drawing 9x as many arrows into the same canvas.
-    stride = 3
     max_len = 9.0
     for yi in range(0, len(lat), stride):
         py = (lat1 - lat[yi]) / (lat1 - lat0) * h
@@ -149,6 +150,7 @@ class handler(BaseHTTPRequestHandler):
         day = (q.get("day") or [None])[0]
         frame = (q.get("frame") or ["card"])[0]
         kind = (q.get("kind") or ["speed"])[0]
+        stride_raw = (q.get("stride") or [None])[0]
 
         if day and not re.match(r"^\d{4}-\d{2}-\d{2}$", day):
             self.send_response(400)
@@ -160,13 +162,15 @@ class handler(BaseHTTPRequestHandler):
             return
         if not day:
             day = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
+        # clamp: 1 = every native grid cell (densest), 4 = coarsest we serve
+        stride = min(max(int(stride_raw), 1), 4) if stride_raw and stride_raw.isdigit() else 3
 
         try:
             u, v, lat, lon = fetch_uv(day, frame)
             png = (
                 render_speed(u, v, lat, lon)
                 if kind == "speed"
-                else render_vectors(u, v, lat, lon, VECTOR_SIZE[frame])
+                else render_vectors(u, v, lat, lon, VECTOR_SIZE[frame], stride)
             )
             self.send_response(200)
             self.send_header("Content-Type", "image/png")

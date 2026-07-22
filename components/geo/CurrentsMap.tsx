@@ -11,6 +11,15 @@ import MapRecall from "@/components/MapRecall";
 // One image overlay, no latitude strips (unlike SstMap): at 0.083° data cells
 // the equirect-on-mercator error (<8 km) is under a cell, and strips would
 // clip arrows at their seams.
+// Arrow density scales with zoom: coarse (stride 3) at the default zoom-out
+// view, down to stride 1 (every native 0.083° cell) once zoomed in far
+// enough to actually resolve individual arrows.
+function strideForZoom(zoom: number): number {
+  if (zoom >= 10) return 1;
+  if (zoom >= 8) return 2;
+  return 3;
+}
+
 function CurrentsLayer({ day, onLoaded }: { day: string; onLoaded: () => void }) {
   const map = useMap();
   useEffect(() => {
@@ -21,15 +30,26 @@ function CurrentsLayer({ day, onLoaded }: { day: string; onLoaded: () => void })
       opacity: 0.7,
     }).addTo(map);
     speed.setZIndex(150);
-    const lyr = L.imageOverlay(curURL(day), SST_REGION, {
+    let stride = strideForZoom(map.getZoom());
+    const lyr = L.imageOverlay(curURL(day, stride), SST_REGION, {
       pane: "tilePane",
       attribution: "currents: Copernicus Marine global ocean forecast",
     }).addTo(map);
     lyr.on("load", onLoaded);
     lyr.on("error", onLoaded);
     lyr.setZIndex(200);
+    // re-render the arrow overlay at finer stride as the user zooms in
+    const onZoom = () => {
+      const next = strideForZoom(map.getZoom());
+      if (next !== stride) {
+        stride = next;
+        lyr.setUrl(curURL(day, stride));
+      }
+    };
+    map.on("zoomend", onZoom);
     return () => {
       clearTimeout(safety);
+      map.off("zoomend", onZoom);
       speed.remove();
       lyr.remove();
     };

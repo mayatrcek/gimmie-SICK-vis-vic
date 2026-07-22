@@ -49,6 +49,19 @@ def test_render_vectors_produces_requested_size():
     assert img.getbands() == ("R", "G", "B", "A")
 
 
+def test_render_vectors_finer_stride_draws_more_arrows():
+    lat = np.linspace(-44, -34, 20)
+    lon = np.linspace(140, 150, 20)
+    u = np.full((20, 20), 0.3)
+    v = np.full((20, 20), 0.1)
+
+    def painted_px(stride):
+        img = Image.open(BytesIO(mod.render_vectors(u, v, lat, lon, (200, 200), stride)))
+        return int((np.array(img)[:, :, 3] > 0).sum())
+
+    assert painted_px(1) > painted_px(3)
+
+
 if __name__ == "__main__":
     tests = [v for k, v in list(globals().items()) if k.startswith("test_")]
     for t in tests:
