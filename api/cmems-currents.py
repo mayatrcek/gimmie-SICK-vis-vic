@@ -108,14 +108,21 @@ def render_vectors(u, v, lat, lon, size: tuple[int, int], stride: int = 3) -> by
     # stride=3 roughly matches that prior arrow density. Callers zoomed in
     # on the map request a lower stride for finer, more detailed arrows.
     w, h = size
-    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    # PIL's ImageDraw has no line anti-aliasing, so 1px strokes turned
+    # jagged/blobby once Leaflet scaled the raster up. Draw at 2x and
+    # downsample with LANCZOS instead — cheap, effective fix. (Higher than
+    # 2x gets memory-heavy on serverless for the full map-size canvas.)
+    SS = 2
+    W, H = w * SS, h * SS
+    img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     lat0, lat1 = lat.min(), lat.max()
     lon0, lon1 = lon.min(), lon.max()
     color = (0xFF, 0xFA, 0xEF, 255)
-    max_len = 9.0
+    max_len = 9.0 * SS
+    shaft_w = max(1, round(1.3 * SS))
     for yi in range(0, len(lat), stride):
-        py = (lat1 - lat[yi]) / (lat1 - lat0) * h
+        py = (lat1 - lat[yi]) / (lat1 - lat0) * H
         for xi in range(0, len(lon), stride):
             uu, vv = float(u[yi, xi]), float(v[yi, xi])
             if not (np.isfinite(uu) and np.isfinite(vv)):
@@ -123,22 +130,22 @@ def render_vectors(u, v, lat, lon, size: tuple[int, int], stride: int = 3) -> by
             speed = math.hypot(uu, vv)
             if speed == 0:
                 continue
-            px = (lon[xi] - lon0) / (lon1 - lon0) * w
-            length = min(2.0 + speed * 6.0, max_len)
+            px = (lon[xi] - lon0) / (lon1 - lon0) * W
+            length = min((2.0 + speed * 6.0) * SS, max_len)
             dx = uu / speed * length
             dy = -vv / speed * length  # image y grows downward, north is up
             x0, y0 = px - dx / 2, py - dy / 2
             x1, y1 = px + dx / 2, py + dy / 2
-            draw.line([(x0, y0), (x1, y1)], fill=color, width=1)
+            draw.line([(x0, y0), (x1, y1)], fill=color, width=shaft_w)
+            # filled triangular head reads cleaner post-downsample than the
+            # old two-stroke "V", which thinned into a blurry dot when small
             ang = math.atan2(dy, dx)
-            head = 2.5
-            for side in (0.5, -0.5):
-                a = ang + math.pi + side
-                draw.line(
-                    [(x1, y1), (x1 + head * math.cos(a), y1 + head * math.sin(a))],
-                    fill=color,
-                    width=1,
-                )
+            head_len, head_w = 3.5 * SS, 2.2 * SS
+            bx, by = x1 - head_len * math.cos(ang), y1 - head_len * math.sin(ang)
+            left = (bx + head_w * math.cos(ang + math.pi / 2), by + head_w * math.sin(ang + math.pi / 2))
+            right = (bx + head_w * math.cos(ang - math.pi / 2), by + head_w * math.sin(ang - math.pi / 2))
+            draw.polygon([(x1, y1), left, right], fill=color)
+    img = img.resize((w, h), Image.LANCZOS)
     buf = BytesIO()
     img.save(buf, format="PNG")
     return buf.getvalue()
