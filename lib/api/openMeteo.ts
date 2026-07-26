@@ -1,5 +1,5 @@
 import type { Hourly, Row, SiteData, Spot } from "@/lib/types";
-import { classify, windRel } from "@/lib/logic/rating";
+import { dayRating, score10, windRel } from "@/lib/logic/rating";
 
 export const MARINE = "https://marine-api.open-meteo.com/v1/marine";
 export const WEATHER = "https://api.open-meteo.com/v1/forecast";
@@ -48,6 +48,39 @@ export async function fetchSite(s: Spot): Promise<SiteData> {
     });
   }
 
+  // Rain-runoff downgrade uses the same effective-rain figure per day, needed
+  // both per-row and per-hour below, so compute it once.
+  const rEffByDate: Record<string, number> = {};
+  wd.time.forEach((date: string, i: number) => {
+    const rToday = wd.precipitation_sum[i] || 0;
+    const rYest = i > 0 ? wd.precipitation_sum[i - 1] || 0 : 0;
+    rEffByDate[date] = rToday + 0.5 * rYest;
+  });
+
+  // Day "rough guide" = mode of that day's hourly score10 buckets, restricted
+  // to daylight hours (6am-8pm — nobody's rating a 1am reading), so the tab
+  // agrees with what the hourly table underneath actually shows during the
+  // hours people are in the water, instead of a separate max-based calc.
+  const whIdx: Record<string, number> = {};
+  (weather.hourly?.time || []).forEach((t: string, i: number) => {
+    whIdx[t] = i;
+  });
+  const scoresByDate: Record<string, (number | null)[]> = {};
+  if (mh.time) {
+    mh.time.forEach((t: string, k: number) => {
+      const hour = +t.slice(11, 13);
+      if (hour < 6 || hour > 20) return;
+      const date = t.slice(0, 10);
+      const h = mh.swell_wave_height ? mh.swell_wave_height[k] : null;
+      const p = mh.swell_wave_period ? mh.swell_wave_period[k] : null;
+      const wi = whIdx[t];
+      const wind = wi != null ? weather.hourly.wind_speed_10m[wi] : null;
+      const wdir = wi != null ? weather.hourly.wind_direction_10m[wi] : null;
+      const sc = score10(h, p, wind, wdir, s.onshore, rEffByDate[date] ?? null, s.sheltered);
+      if (sc != null) (scoresByDate[date] ??= []).push(sc);
+    });
+  }
+
   const rows: Row[] = [];
   md.time.forEach((date: string, i: number) => {
     const h =
@@ -66,8 +99,7 @@ export async function fetchSite(s: Spot): Promise<SiteData> {
     const wind = wi != null ? wd.wind_speed_10m_max[wi] : null;
     const wdir = wi != null ? wd.wind_direction_10m_dominant[wi] : null;
     const rToday = wi != null ? wd.precipitation_sum[wi] || 0 : 0;
-    const rYest = wi != null && wi > 0 ? wd.precipitation_sum[wi - 1] || 0 : 0;
-    const rEff = rToday + 0.5 * rYest;
+    const rEff = rEffByDate[date] ?? 0;
     const sst = sstN[date] ? sstSum[date] / sstN[date] : null;
     rows.push({
       date,
@@ -79,7 +111,7 @@ export async function fetchSite(s: Spot): Promise<SiteData> {
       rel: windRel(wdir, s.onshore),
       rainToday: rToday,
       rainEff: rEff,
-      rating: classify(h, p, wind, wdir, s.onshore, rEff, s.sheltered),
+      rating: dayRating(scoresByDate[date] ?? []),
     });
   });
 

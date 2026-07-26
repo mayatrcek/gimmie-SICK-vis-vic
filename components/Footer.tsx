@@ -8,6 +8,7 @@ export default function Footer() {
           GIMMIE SICK VIS
         </Link>
         <div className="foot-links">
+          <Link href="/store">Store</Link>
           <Link href="/contact">Contact</Link>
           <Link href="/about">About</Link>
           <Link href="/feedback">Feedback</Link>

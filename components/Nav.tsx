@@ -32,7 +32,7 @@ const GROUPS: Group[] = [
   },
   {
     id: "geo",
-    label: "Underwater geography",
+    label: "Geography",
     items: [
       { label: "Seabed habitat", href: "/geo/habitat" },
       { label: "Depth detail", href: "/geo/depth" },
@@ -98,6 +98,9 @@ export default function Nav() {
           <Dropdown key={g.id} g={g} open={openDD === g.id} onToggle={setOpenDD} active={groupActive(g)} isActive={isActive} />
         ))}
 
+        <Link className={`tab${isActive("/store") ? " active" : ""}`} href="/store">
+          Store
+        </Link>
         <Link className={`tab${isActive("/contact") ? " active" : ""}`} href="/contact">
           Contact
         </Link>
@@ -107,10 +110,6 @@ export default function Nav() {
         <Link className={`tab${isActive("/feedback") ? " active" : ""}`} href="/feedback">
           Feedback<span className="tab-badge" aria-label="new" />
         </Link>
-      </div>
-      <div className="nav-actions" aria-hidden="true">
-        <span className="material-symbols-outlined">account_circle</span>
-        <span className="material-symbols-outlined">settings</span>
       </div>
     </div>
   );

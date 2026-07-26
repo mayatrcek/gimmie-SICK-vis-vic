@@ -101,6 +101,30 @@ export function scoreCol(n: number | null): string {
   return n >= 8 ? COL.Amazing : n >= 6 ? COL.Good : n >= 3 ? COL.Marginal : COL.Poor;
 }
 
+function scoreLabel(n: number | null): RatingLabel {
+  if (n == null) return "Marginal";
+  return n >= 8 ? "Amazing" : n >= 6 ? "Good" : n >= 3 ? "Marginal" : "Poor";
+}
+
+// Daily "rough guide" = the mode of that day's hourly score10 buckets, so the
+// day tab agrees with what the hourly table underneath actually shows (rather
+// than a separate classify() call off the day's max height/period, which can
+// land on Marginal even when every visible hour reads Good).
+export function dayRating(scores: (number | null)[]): Rating {
+  const counts: Partial<Record<RatingLabel, number>> = {};
+  let best: RatingLabel = "Marginal";
+  let bestN = 0;
+  for (const sc of scores) {
+    const lbl = scoreLabel(sc);
+    const n = (counts[lbl] = (counts[lbl] || 0) + 1);
+    if (n > bestN) {
+      bestN = n;
+      best = lbl;
+    }
+  }
+  return rate(best);
+}
+
 export type TideMark = { date: string; kind: "H" | "L"; time: string; height: number };
 
 // Local extrema of the hourly sea-level series -> high/low tide marks.

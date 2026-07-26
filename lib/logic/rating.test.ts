@@ -1,7 +1,7 @@
 // Self-check for the rating logic. Run: node lib/logic/rating.test.ts
 // (Node 24 strips TS types natively; uses relative imports so no alias resolver needed.)
 import assert from "node:assert";
-import { classify, compass, score10, scoreCol, tideExtremes, windRel } from "./rating.ts";
+import { classify, compass, dayRating, score10, scoreCol, tideExtremes, windRel } from "./rating.ts";
 
 // Amazing: small swell, good period, light wind, no rain.
 assert.equal(classify(0.5, 10, 10, 200, 200, 0, false).label, "Amazing");
@@ -50,5 +50,10 @@ assert.deepEqual(
   marks.map((m) => [m.kind, m.time]),
   [["H", "01:00"], ["L", "03:00"]],
 );
+
+// dayRating: mode of the day's hourly buckets, not a single worst-case slot.
+assert.equal(dayRating([8, 8, 8, 6, 6]).label, "Amazing");
+assert.equal(dayRating([3, 3, 3, 8, 8]).label, "Marginal");
+assert.equal(dayRating([]).label, "Marginal");
 
 console.log("rating.test.ts: all assertions passed");
