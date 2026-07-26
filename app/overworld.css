@@ -254,6 +254,12 @@
      (the map wrapper + loading divs size themselves inline; a bare
      .sstfull>div height rule would also stretch the floating chrome) */
   .sstfull #sstmap{height:100%;border:none;border-radius:0;box-shadow:none}
+  /* full-screen satellite detail map (gallery) — same fill as .sstfull above.
+     z-index:0 seals the leaflet container into its own stacking context (like
+     #compmap/#sstmap below) so chlover/chldate's z-5 reliably wins — without
+     it, leaflet's internal panes stack against chlover with undefined order. */
+  .satfull #satmap{height:100%}
+  #satmap{z-index:0}
   /* uniform 40px chrome row: gallery button, scale box, date badge */
   .sstfull .chlover button{height:40px;padding:0 18px}
   .sstfull .chldate{height:40px;display:inline-flex;align-items:center}
@@ -382,6 +388,9 @@
   /* SST cards: cream land mask stacked over the data image (chl bakes its
      land into one GetMap; ERDDAP can't, so it's a second img) */
   .thumbland{position:absolute;inset:0}
+  /* Satellite cards: land mask stacked *under* the scan (opposite of SST
+     above) — the scan itself now carries real alpha in its no-data gaps */
+  .satdata{position:absolute;inset:0}
   /* skeleton shimmer while the GIBS scan downloads; img stays hidden until load */
   .chlskel{background:linear-gradient(100deg,#16344a 30%,#2a5375 45%,#16344a 60%);
     background-size:300% 100%;animation:chlskel 1.4s linear infinite}
