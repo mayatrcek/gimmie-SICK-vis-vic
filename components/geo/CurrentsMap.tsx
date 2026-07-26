@@ -7,6 +7,7 @@ import L from "leaflet";
 import { SST_REGION } from "@/lib/api/erddap";
 import { curSpeedURL, curURL } from "@/lib/api/cmems";
 import MapRecall from "@/components/MapRecall";
+import CoordCopy from "@/components/geo/CoordCopy";
 
 // One image overlay, no latitude strips (unlike SstMap): at 0.083° data cells
 // the equirect-on-mercator error (<8 km) is under a cell, and strips would
@@ -88,6 +89,7 @@ export default function CurrentsMap({ day }: { day: string }) {
           zIndex={650}
         />
         <CurrentsLayer day={day} onLoaded={() => setLoading(false)} />
+        <CoordCopy />
       </MapContainer>
       {loading && <div className="maploader loadgif" />}
     </div>

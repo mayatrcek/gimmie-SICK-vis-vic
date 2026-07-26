@@ -7,6 +7,7 @@ import { esriExport } from "@/lib/leaflet/EsriExport";
 import { pinIcon } from "@/lib/leaflet/icons";
 import MapLoading from "@/components/MapLoading";
 import MapRecall from "@/components/MapRecall";
+import CopyCoordButton from "@/components/CopyCoordButton";
 import { classifyHab, type GeoGroup } from "@/lib/data/geoGroups";
 import { addGeoBase, buildLegendColors, nearestClass, readHabitatColor, type LegendColor } from "@/lib/leaflet/geoBase";
 
@@ -157,8 +158,9 @@ export default function HabitatMap() {
         {detail && (
           <div className="gi-detail" style={{ borderTop: "1px solid var(--line)", marginTop: 8, paddingTop: 8 }}>
             <div style={{ fontWeight: 700, fontSize: 13 }}>{detail.name || "Selected point"}</div>
-            <div style={{ fontSize: 11, color: "var(--muted)", margin: "2px 0 6px" }}>
-              {detail.lat.toFixed(3)}, {detail.lng.toFixed(3)}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "var(--muted)", margin: "2px 0 6px" }}>
+              <span>{detail.lat.toFixed(5)}, {detail.lng.toFixed(5)}</span>
+              <CopyCoordButton lat={detail.lat} lng={detail.lng} />
             </div>
             {detail.group ? (
               <>

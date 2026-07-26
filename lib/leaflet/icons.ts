@@ -23,3 +23,25 @@ export function pinIcon(): L.DivIcon {
     popupAnchor: [0, -34],
   });
 }
+
+// Blocky pixel-art circle, centred exactly on the clicked point (coord-copy popups).
+const PIXEL_CIRCLE = ["..XXX..", ".XOOOX.", "XOOOOOX", "XOOOOOX", "XOOOOOX", ".XOOOX.", "..XXX.."];
+
+export function pixelDotIcon(fill = "#FFFAEF"): L.DivIcon {
+  const px = 3;
+  const size = PIXEL_CIRCLE.length * px;
+  let rects = "";
+  PIXEL_CIRCLE.forEach((row, y) => {
+    [...row].forEach((c, x) => {
+      if (c === ".") return;
+      rects += `<rect x="${x * px}" y="${y * px}" width="${px}" height="${px}" fill="${c === "X" ? "#161310" : fill}"/>`;
+    });
+  });
+  return L.divIcon({
+    className: "",
+    html: `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges">${rects}</svg>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -size / 2],
+  });
+}

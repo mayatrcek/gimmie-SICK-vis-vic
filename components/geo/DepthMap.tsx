@@ -7,6 +7,7 @@ import { esriExport } from "@/lib/leaflet/EsriExport";
 import { pinIcon } from "@/lib/leaflet/icons";
 import MapLoading from "@/components/MapLoading";
 import MapRecall from "@/components/MapRecall";
+import CopyCoordButton from "@/components/CopyCoordButton";
 import { addGeoBase } from "@/lib/leaflet/geoBase";
 
 function segDist(px: number, py: number, ax: number, ay: number, bx: number, by: number) {
@@ -51,15 +52,18 @@ function BathyLayers() {
   return null;
 }
 
-function Clicks({ onDepth }: { onDepth: (html: string) => void }) {
+function Clicks({ onDepth, onCoord }: { onDepth: (html: string) => void; onCoord: (c: { lat: number; lng: number }) => void }) {
   const map = useMap();
   const pin = useRef<L.Marker | null>(null);
   const cb = useRef(onDepth);
   cb.current = onDepth;
+  const coordCb = useRef(onCoord);
+  coordCb.current = onCoord;
   useEffect(() => {
     const handler = (e: L.LeafletMouseEvent) => {
       if (pin.current) map.removeLayer(pin.current);
       pin.current = L.marker(e.latlng, { icon: pinIcon(), keyboard: false }).addTo(map);
+      coordCb.current({ lat: e.latlng.lat, lng: e.latlng.lng });
       cb.current("reading…");
       const P = L.CRS.EPSG3857;
       const p = P.project(e.latlng);
@@ -110,6 +114,7 @@ function Clicks({ onDepth }: { onDepth: (html: string) => void }) {
 
 export default function DepthMap() {
   const [depth, setDepth] = useState<string | null>(null);
+  const [coord, setCoord] = useState<{ lat: number; lng: number } | null>(null);
   return (
     <div style={{ position: "relative" }}>
       <MapContainer
@@ -139,7 +144,7 @@ export default function DepthMap() {
           zIndex={650}
         />
         <BathyLayers />
-        <Clicks onDepth={setDepth} />
+        <Clicks onDepth={setDepth} onCoord={setCoord} />
       </MapContainer>
       <div className="geoinfo">
         {depth == null ? (
@@ -149,6 +154,12 @@ export default function DepthMap() {
             <b>Depth</b>
             <br />
             <span dangerouslySetInnerHTML={{ __html: depth }} />
+            {coord && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
+                <span style={{ fontSize: 11, color: "var(--muted)" }}>{coord.lat.toFixed(5)}, {coord.lng.toFixed(5)}</span>
+                <CopyCoordButton lat={coord.lat} lng={coord.lng} />
+              </div>
+            )}
           </span>
         )}
       </div>

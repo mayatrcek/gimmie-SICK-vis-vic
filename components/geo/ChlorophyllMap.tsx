@@ -6,6 +6,7 @@ import L from "leaflet";
 
 import { BBOX, GIBS } from "./gibs";
 import MapRecall from "@/components/MapRecall";
+import CoordCopy from "@/components/geo/CoordCopy";
 
 const B: [[number, number], [number, number]] = [
   [-44.2, 139.5],
@@ -107,6 +108,7 @@ export default function ChlorophyllMap({ day, layer }: { day: string; layer: str
           zIndex={650}
         />
         <CompLayers day={day} layer={layer} onLoaded={() => setLoading(false)} />
+        <CoordCopy />
       </MapContainer>
       {loading && <div className="maploader loadgif" />}
     </div>

@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import MapLoading from "@/components/MapLoading";
 import MapRecall from "@/components/MapRecall";
+import CoordCopy from "@/components/geo/CoordCopy";
 import { VIC_COAST_BOUNDS, landBackdropMercatorURL } from "@/lib/api/sentinel";
 
 // Simple land/sea silhouette under the satellite tiles, showing through
@@ -53,6 +54,7 @@ export default function SatelliteMap({ date }: { date: string }) {
         noWrap
         zIndex={200}
       />
+      <CoordCopy />
     </MapContainer>
   );
 }

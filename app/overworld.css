@@ -669,3 +669,17 @@
   /* SST click-probe popup: all-caps HUD temp, centred, no close button
      (clicking elsewhere moves the probe) */
   #sstmap .leaflet-popup-content{text-transform:uppercase;text-align:center;margin:12px 18px}
+
+  /* Coordinate-copy popup/row — dropped into every geo map's click popup or
+     readout box (CoordCopy.tsx / CopyCoordButton.tsx). Not id-scoped like
+     the rules above so it works on #compmap/#satmap too. */
+  .coord-popup .leaflet-popup-content-wrapper{background:var(--panel);color:var(--ink);
+    border-radius:0;border:2px solid var(--ink);box-shadow:4px 4px 0 0 var(--ink)}
+  .coord-popup .leaflet-popup-content{margin:10px 12px}
+  .coord-popup .leaflet-popup-tip-container{display:none}
+  .coord-popup-body{display:flex;align-items:center;justify-content:center;gap:10px;
+    font-family:var(--font-hud);font-size:16px}
+  .coord-copy-btn{padding:4px 6px;min-width:26px;box-shadow:2px 2px 0 0 var(--ink);
+    display:inline-flex;align-items:center;justify-content:center;line-height:1}
+  .coord-copy-btn:active{box-shadow:none}
+  .coord-copy-btn.is-copied,.coord-copy-btn.is-copied:hover{background:var(--ink);color:var(--panel)}

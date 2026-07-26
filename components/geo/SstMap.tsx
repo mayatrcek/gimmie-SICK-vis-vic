@@ -7,6 +7,7 @@ import L from "leaflet";
 import { SST_REGION, sstURL } from "@/lib/api/erddap";
 import { dotIcon } from "@/lib/leaflet/icons";
 import MapRecall from "@/components/MapRecall";
+import { coordPopupContent } from "@/lib/coords";
 
 type Stretch = { min?: number; max?: number };
 
@@ -94,21 +95,26 @@ function Probe({ day }: { day?: string }) {
     const handler = (e: L.LeafletMouseEvent) => {
       const my = ++seq;
       pin?.remove();
+      const body = document.createElement("div");
+      const temp = document.createElement("div");
+      temp.textContent = "…";
+      body.appendChild(temp);
+      body.appendChild(coordPopupContent(e.latlng.lat, e.latlng.lng));
       // OVERWORLD square dot — white with ink frame + block shadow keeps it
       // visible over any overlay colour
       pin = L.marker(e.latlng, { icon: dotIcon("#FFFAEF"), keyboard: false })
         .addTo(map)
-        .bindPopup("…", { maxWidth: 220, autoPan: false, closeButton: false })
+        .bindPopup(body, { maxWidth: 220, autoPan: false, closeButton: false })
         .openPopup();
       const q = `lat=${e.latlng.lat.toFixed(2)}&lon=${e.latlng.lng.toFixed(2)}${day ? `&day=${day}` : ""}`;
       fetch(`/api/sst-point?${q}`)
         .then((r) => r.json())
         .then((j) => {
           if (my !== seq) return;
-          pin?.setPopupContent(j.sst != null ? `<b>${j.sst.toFixed(1)}&nbsp;&deg;C</b>` : "no data");
+          temp.innerHTML = j.sst != null ? `<b>${j.sst.toFixed(1)}&nbsp;&deg;C</b>` : "no data";
         })
         .catch(() => {
-          if (my === seq) pin?.setPopupContent("retry");
+          if (my === seq) temp.textContent = "retry";
         });
     };
     map.on("click", handler);
