@@ -92,14 +92,15 @@ export default function SatelliteGallery() {
         <div className="panel-bd flush">
           <div className="desc" style={{ padding: "14px 16px 8px" }}>
             True-colour scans of the Victorian coast from Copernicus Sentinel-2
-            (~10&nbsp;m resolution), filtered to days with low cloud cover over the
-            last 30 days. Sentinel-2 only passes over every 3&ndash;5 days, so expect
-            fewer cards than the chlorophyll or sea temperature galleries. Tap a card
-            to explore that day&apos;s scan at full resolution.
+            (~10&nbsp;m resolution) over the last 30 days, including cloudy passes —
+            cloud cover is shown on each card. Sentinel-2 only passes over every
+            3&ndash;5 days, so expect fewer cards than the chlorophyll or sea
+            temperature galleries. Tap a card to explore that day&apos;s scan at full
+            resolution.
           </div>
           <div style={{ padding: "8px 16px 16px" }}>
             {scenes.length === 0 ? (
-              <p className="desc">No low-cloud scans in the last 30 days — check back soon.</p>
+              <p className="desc">No scans in the last 30 days — check back soon.</p>
             ) : (
               <div className="fishgrid chlgrid">
                 {scenes.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map((scene) => (

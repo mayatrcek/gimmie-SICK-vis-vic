@@ -16,11 +16,6 @@ export const VIC_COAST_BOUNDS: [[number, number], [number, number]] = [
 ];
 export const VIC_COAST_BBOX = [140.9, -39.3, 150.0, -37.2]; // [minLon, minLat, maxLon, maxLat]
 
-// ponytail: whole-tile cloud%, not clipped to the AOI — a rough first filter,
-// revisit with the Statistics API if it's giving false positives/negatives
-// over the actual coast.
-export const CLOUD_THRESHOLD = 30;
-
 // dataMask is Sentinel Hub's built-in "is this pixel real data" band (0
 // outside the swath/collection footprint) — carried through as alpha so the
 // land-mask backdrop shows through gaps instead of solid black.

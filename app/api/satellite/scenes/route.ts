@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
-import { CLOUD_THRESHOLD, VIC_COAST_BBOX, getToken } from "@/lib/api/sentinel";
+import { VIC_COAST_BBOX, getToken } from "@/lib/api/sentinel";
 
-// Low-cloud Sentinel-2 dates over the VIC coast from the last 30 days, newest
-// first. Server proxy: the catalog needs the CDSE bearer token, same as the
-// tile/thumbnail routes. Rechecked hourly, not on every load.
+// Every Sentinel-2 date over the VIC coast from the last 30 days, newest
+// first — cloud cover is shown on each card rather than filtered out, so
+// users can judge scan quality themselves. Server proxy: the catalog needs
+// the CDSE bearer token, same as the tile/thumbnail routes. Rechecked
+// hourly, not on every load.
 export async function GET() {
   try {
     const token = await getToken();
@@ -15,15 +17,22 @@ export async function GET() {
       `Collection/Name eq 'SENTINEL-2'`,
       `OData.CSC.Intersects(area=geography'SRID=4326;${wkt}')`,
       `ContentDate/Start gt ${since}`,
-      `Attributes/OData.CSC.DoubleAttribute/any(att:att/Name eq 'cloudCover' and att/OData.CSC.DoubleAttribute/Value lt ${CLOUD_THRESHOLD})`,
+      // L2A only — matches the sentinel-2-l2a collection the actual thumbnail
+      // renders from (lib/api/sentinel.ts). The AOI spans several MGRS tiles,
+      // each with both L1C and L2A products; without this every day's L1C
+      // granules doubled the per-day product count.
+      `Attributes/OData.CSC.StringAttribute/any(att:att/Name eq 'processingLevel' and att/OData.CSC.StringAttribute/Value eq 'S2MSI2A')`,
     ].join(" and ");
 
     // $expand=Attributes: the filter above can test Attributes without it, but
     // the response only includes the Attributes nav property (cloudCover) when
-    // it's explicitly expanded.
+    // it's explicitly expanded. $top=1000: the AOI spans ~6 MGRS tiles and
+    // Sentinel-2 revisits every ~5 days, so 30 days of L2A-only granules is
+    // well under 1000 — but the API's default page size (20) was silently
+    // truncating results to a handful of granules from the single latest day.
     const url = `https://catalogue.dataspace.copernicus.eu/odata/v1/Products?$filter=${encodeURIComponent(
       filter,
-    )}&$expand=Attributes&$orderby=ContentDate/Start desc`;
+    )}&$expand=Attributes&$orderby=ContentDate/Start desc&$top=1000`;
 
     const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
     if (!res.ok) throw new Error(`${res.status}`);
