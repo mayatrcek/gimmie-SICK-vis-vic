@@ -312,7 +312,18 @@
   @media(hover:hover){.tab-dd:hover .tab-menu{opacity:1;visibility:visible;pointer-events:auto;transform:translateX(-50%) translateY(0)}
         .tab-dd:hover .tab-caret{transform:rotate(180deg)}}
   .tab-menu-item{border:none;background:transparent;text-align:left;padding:9px 13px;border-radius:9px;color:var(--ink);
-        font-weight:500;font-size:14px;cursor:pointer;white-space:nowrap;transition:background-color .14s var(--ease),color .14s var(--ease)}
+        font-weight:500;font-size:14px;cursor:pointer;white-space:nowrap;
+        transition:background-color .14s var(--ease),color .14s var(--ease),opacity .16s var(--ease),transform .16s var(--ease);
+        opacity:0;transform:translateY(-4px)}
+  /* cascade: items fade/drop in one after another instead of all at once */
+  .tab-dd.open .tab-menu-item,.tab-dd:hover .tab-menu-item{opacity:1;transform:translateY(0)}
+  .tab-menu-item:nth-child(1){transition-delay:0ms}
+  .tab-menu-item:nth-child(2){transition-delay:35ms}
+  .tab-menu-item:nth-child(3){transition-delay:70ms}
+  .tab-menu-item:nth-child(4){transition-delay:105ms}
+  .tab-menu-item:nth-child(5){transition-delay:140ms}
+  .tab-menu-item:nth-child(6){transition-delay:175ms}
+  .tab-menu-item:nth-child(7){transition-delay:210ms}
   .tab-menu-item:hover{background:rgba(22,19,16,.06)}
   .tab-menu-item.active{color:#fff;background:var(--ink)}
   .tab-badge{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--warm);margin-left:6px;vertical-align:middle;animation:fbpulse 1.8s ease-in-out infinite}
