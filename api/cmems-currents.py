@@ -185,6 +185,9 @@ class handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(png)
         except Exception:
+            import traceback
+
+            traceback.print_exc()
             # 1x1 transparent PNG, matching cur-speed/route.ts's failure mode
             empty = Image.new("RGBA", (1, 1), (0, 0, 0, 0))
             buf = BytesIO()
