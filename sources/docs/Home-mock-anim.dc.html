@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&family=VT323&family=Sora:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0}
+  a{color:inherit}
+  @keyframes glitch-stagger{0%{transform:translate(12px,-8px);opacity:0;filter:contrast(2)}15%{transform:translate(-12px,8px);opacity:1;filter:contrast(1)}30%{transform:translate(6px,-4px)}45%{transform:translate(-6px,4px)}60%{transform:translate(2px,-2px)}75%{transform:translate(-2px,2px)}90%{transform:translate(0,0)}100%{transform:translate(0,0)}}
+  @keyframes subtle-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+  @keyframes float-pixel{0%{transform:translateY(0)}25%{transform:translateY(-4px)}50%{transform:translateY(0)}75%{transform:translateY(4px)}100%{transform:translateY(0)}}
+  @keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+  @keyframes fbpulse{0%,100%{box-shadow:0 0 0 0 rgba(226,82,46,.5)}50%{box-shadow:0 0 0 5px rgba(226,82,46,0)}}
+</style>
+</helmet>
+
+<div style="position:relative;font-family:'Sora',sans-serif;background:#F2EAD6;color:#161310;overflow-x:hidden;--ease:cubic-bezier(.22,1,.36,1);">
+
+  <div style="position:fixed;inset:0;pointer-events:none;opacity:.1;display:flex;align-items:center;justify-content:center;z-index:0;">
+    <div style="width:800px;height:800px;background-image:radial-gradient(circle at 50% 50%, rgba(46,93,214,0.05) 0%, transparent 70%);mask-image:url(&quot;data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 0 L55 45 L100 50 L55 55 L50 100 L45 55 L0 50 L45 45 Z' fill='black'/%3E%3C/svg%3E&quot;);mask-size:200px 200px;mask-repeat:no-repeat;"></div>
+  </div>
+
+  <div data-dd-root="true" style="position:fixed;top:0;left:0;right:0;height:60px;z-index:1300;display:flex;align-items:stretch;background:#F2EAD6;border-bottom:2px solid #161310;box-shadow:0 4px 0 0 #161310;">
+    <a href="#" style="display:flex;align-items:center;padding:0 24px;font-family:'Pixelify Sans',sans-serif;font-weight:700;font-size:26px;letter-spacing:-0.02em;text-transform:uppercase;color:#161310;text-decoration:none;white-space:nowrap;" style-hover="color:#2E5DD6;">
+      <img src="public/assets/brand/alpha-dive-flag-32.png" alt="" width="26" height="26" style="display:block;margin-right:10px;image-rendering:pixelated;" />
+      GIMMIE SICK VIS
+    </a>
+    <div style="display:flex;align-items:stretch;gap:2px;margin-left:auto;padding:0 20px 0 0;flex-wrap:wrap;justify-content:flex-end;">
+      <a href="#" style="display:flex;align-items:center;padding:0 14px;font-family:'VT323',monospace;font-size:22px;text-transform:uppercase;color:#2E5DD6;text-decoration:none;box-shadow:inset 0 -4px 0 0 #2E5DD6;">Home</a>
+      <a href="#" style="display:flex;align-items:center;padding:0 14px;font-family:'VT323',monospace;font-size:22px;text-transform:uppercase;color:#3A332A;text-decoration:none;" style-hover="color:#2E5DD6;">Forecast</a>
+
+      <sc-for list="{{ groups }}" as="g" hint-placeholder-count="3">
+        <div style="position:relative;display:flex;align-items:stretch;">
+          <button type="button" onClick="{{ g.toggle }}" aria-haspopup="true" aria-expanded="{{ g.open }}" style="{{ g.btnStyle }}">
+            {{ g.label }}
+            <span style="{{ g.caretStyle }}">▾</span>
+          </button>
+          <div style="{{ g.menuStyle }}" role="menu">
+            <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="3">
+              <a href="#" role="menuitem" style="{{ it.style }}" style-hover="background:rgba(46,93,214,.12);">{{ it.label }}</a>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+
+      <a href="#" style="display:flex;align-items:center;padding:0 14px;font-family:'VT323',monospace;font-size:22px;text-transform:uppercase;color:#3A332A;text-decoration:none;" style-hover="color:#2E5DD6;">Store</a>
+      <a href="#" style="display:flex;align-items:center;padding:0 14px;font-family:'VT323',monospace;font-size:22px;text-transform:uppercase;color:#3A332A;text-decoration:none;" style-hover="color:#2E5DD6;">Contact</a>
+      <a href="#" style="display:flex;align-items:center;padding:0 14px;font-family:'VT323',monospace;font-size:22px;text-transform:uppercase;color:#3A332A;text-decoration:none;" style-hover="color:#2E5DD6;">About</a>
+      <a href="#" style="display:flex;align-items:center;padding:0 14px;font-family:'VT323',monospace;font-size:22px;text-transform:uppercase;color:#3A332A;text-decoration:none;" style-hover="color:#2E5DD6;">
+        Feedback<span style="{{ feedbackBadgeStyle }}"></span>
+      </a>
+    </div>
+  </div>
+
+  <section style="position:relative;min-height:85vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden;margin-top:60px;">
+    <div style="position:absolute;inset:0;z-index:0;">
+      <div style="width:100%;height:100%;background-image:url('https://lh3.googleusercontent.com/aida-public/AB6AXuCm38URIzWfOZJxYBaurCzTAuRp-mUcHAdINfFsc-6rSNw0ZNDUp5yTPhEUP8Nv7vrnDKZHsK3AJmBjntthJsssDefwoxii7eNiqfDvDFsvMEYbfUflTlJjUc0ucxk4d7f3TyD5NLuJE84ASbZxkXYeXVVUadQ9tCQm6JcJB3BSMEzh4KCIeA0Ig3Ss0HIv3VNTcZgBq_kxbESBGCEKBZ62shqCXbTMr18HXIgPJIsHJJtGNa2saqM0c1knGSHIBDw0lZXjTEF-Cr8');background-size:cover;background-position:center;image-rendering:pixelated;"></div>
+      <div style="position:absolute;inset:0;background:rgba(58,51,42,.4);mix-blend-mode:overlay;"></div>
+    </div>
+    <div style="position:relative;z-index:10;padding:0 16px;">
+      <h1 style="{{ heroTitleStyle }}">GIMME SICK VIS</h1>
+      <div style="display:inline-flex;flex-wrap:wrap;align-items:center;gap:16px;background:#3A332A;color:#F2EAD6;padding:12px 32px;border:2px solid #2E5DD6;box-shadow:6px 6px 0 0 #2e5dd6;">
+        <span style="font-family:'VT323',monospace;font-size:22px;letter-spacing:.2em;text-transform:uppercase;">Daily Ocean &amp; Dive Update</span>
+        <span style="width:1px;height:24px;background:rgba(242,234,214,.3);"></span>
+        <span style="font-family:'VT323',monospace;font-size:22px;font-style:italic;opacity:.9;">Region: VIC</span>
+      </div>
+    </div>
+  </section>
+
+  <div style="width:100%;overflow:hidden;">
+    <section style="background:#3A332A;border-top:2px solid #2E5DD6;border-bottom:2px solid #2E5DD6;padding:12px 0;position:relative;overflow:hidden;">
+      <div style="{{ marqueeStyle }}">
+        <sc-for list="{{ marqueeGroups }}" as="mg" hint-placeholder-count="2">
+          <div style="{{ mg.rowStyle }}">
+            <sc-for list="{{ marqueeItems }}" as="t" hint-placeholder-count="5">
+              <span style="display:flex;align-items:center;gap:16px;">
+                {{ t }}
+                <img src="public/assets/brand/alpha-dive-flag-32.png" alt="" width="30" height="30" style="display:inline-block;vertical-align:middle;image-rendering:pixelated;" />
+              </span>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </div>
+
+  <section ref="{{ setRef('summary') }}" data-reveal-key="summary" style="background:#F2EAD6;padding:64px clamp(16px,8vw,96px);">
+    <div style="max-width:1280px;margin:0 auto;">
+      <div style="background:#F2EAD6;padding:clamp(20px,5vw,48px);border:2px solid #3A332A;box-shadow:8px 8px 0 0 #3A332A;{{ summaryReveal }}">
+        <h2 style="font-family:'Pixelify Sans',sans-serif;font-size:clamp(1.6rem,6.5vw,44px);line-height:1.02;font-weight:700;letter-spacing:-.015em;text-transform:uppercase;color:#3A332A;margin:0 0 16px;">SUMMARY</h2>
+        <p style="font-family:'VT323',monospace;font-size:22px;color:#3A332A;opacity:.8;margin:0;line-height:1.3;">Chasing the best diving and fishing days with live data and a bit of local know-how. Built to help you find sick vis when it counts.</p>
+      </div>
+    </div>
+  </section>
+
+  <section ref="{{ setRef('channels') }}" data-reveal-key="channels" style="background:#3A332A;padding:64px clamp(16px,8vw,96px);max-width:1280px;margin:0 auto;">
+    <h2 style="font-family:'Pixelify Sans',sans-serif;font-size:clamp(1.9rem,9.5vw,96px);text-transform:uppercase;color:#FFFAEF;margin:0 0 48px;font-weight:700;{{ channelsReveal }}">NAV CHANNELS</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:32px;">
+      <sc-for list="{{ channels }}" as="c" hint-placeholder-count="4">
+        <a href="#" style="{{ c.style }}" style-hover="{{ c.hoverStyle }}" style-active="transform:translate(4px,4px);box-shadow:none;animation:none;">
+          <div style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;padding:16px;">
+            <h3 style="font-family:'Pixelify Sans',sans-serif;font-size:28px;font-weight:600;text-transform:uppercase;text-align:center;margin:0;">{{ c.title }}</h3>
+          </div>
+        </a>
+      </sc-for>
+    </div>
+  </section>
+
+  <section ref="{{ setRef('drop') }}" data-reveal-key="drop" style="padding:64px clamp(16px,8vw,96px);max-width:1280px;margin:0 auto;text-align:center;">
+    <div style="max-width:640px;margin:0 auto;background:#FFFAEF;padding:clamp(20px,5vw,48px);border:2px solid #3A332A;box-shadow:12px 12px 0 0 #2E5DD6;{{ dropReveal }}">
+      <h3 style="font-family:'Pixelify Sans',sans-serif;font-size:clamp(1.6rem,6.5vw,44px);text-transform:uppercase;color:#3A332A;margin:0 0 16px;font-weight:700;">Find your drop</h3>
+      <div style="position:relative;margin-bottom:32px;">
+        <input type="text" placeholder="Search a site or drop in coordinates…" style="width:100%;background:#F2EAD6;border:2px solid #3A332A;padding:16px;font-family:'VT323',monospace;font-size:22px;color:#161310;outline:none;transition:box-shadow .18s var(--ease);" style-focus="box-shadow:4px 4px 0 0 #2e5dd6;" />
+      </div>
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:12px;">
+        <button type="button" style="background:#2E5DD6;color:#FFFAEF;padding:16px 32px;font-family:'VT323',monospace;font-size:22px;border:2px solid #3A332A;box-shadow:4px 4px 0 0 #3A332A;text-transform:uppercase;cursor:pointer;transition:transform .1s,box-shadow .1s;" style-hover="transform:translate(2px,2px);box-shadow:none;" style-active="transform:translate(4px,4px);box-shadow:none;">SEARCH</button>
+        <button type="button" style="background:#FFFAEF;color:#3A332A;padding:16px 32px;font-family:'VT323',monospace;font-size:22px;border:2px solid #3A332A;box-shadow:4px 4px 0 0 #3A332A;text-transform:uppercase;cursor:pointer;transition:transform .1s,box-shadow .1s;" style-hover="transform:translate(2px,2px);box-shadow:none;" style-active="transform:translate(4px,4px);box-shadow:none;">SURPRISE ME</button>
+      </div>
+    </div>
+  </section>
+
+  <footer style="width:100%;background:#3A332A;border-top:2px solid #2E5DD6;color:#F2EAD6;padding:32px 24px;font-family:'Sora',sans-serif;">
+    <div style="max-width:1280px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:24px;">
+      <a href="#" style="font-family:'Pixelify Sans',sans-serif;font-weight:700;font-size:28px;color:#F2EAD6;text-decoration:none;" style-hover="color:#FFFAEF;">GIMMIE SICK VIS</a>
+      <div style="display:flex;gap:24px;font-family:'VT323',monospace;font-size:16px;letter-spacing:.1em;text-transform:uppercase;opacity:.75;flex-wrap:wrap;justify-content:center;">
+        <a href="#" style="color:#F2EAD6;text-decoration:none;" style-hover="color:#FFFAEF;">Store</a>
+        <a href="#" style="color:#F2EAD6;text-decoration:none;" style-hover="color:#FFFAEF;">Contact</a>
+        <a href="#" style="color:#F2EAD6;text-decoration:none;" style-hover="color:#FFFAEF;">About</a>
+        <a href="#" style="color:#F2EAD6;text-decoration:none;" style-hover="color:#FFFAEF;">Feedback</a>
+      </div>
+      <div style="font-family:'VT323',monospace;font-size:16px;letter-spacing:.08em;opacity:.5;">© 2026 Built by Maya</div>
+    </div>
+  </footer>
+
+  <sc-if value="{{ testingOpen }}" hint-placeholder-val="{{ true }}">
+    <div onClick="{{ dismissTesting }}" style="position:fixed;inset:0;z-index:2000;background:rgba(22,19,16,.45);display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div onClick="{{ stopProp }}" style="position:relative;max-width:440px;background:#FFFAEF;border:2px solid #161310;box-shadow:6px 6px 0 0 #161310;padding:28px 26px 24px;">
+        <span style="position:absolute;top:-14px;left:18px;transform:rotate(-2deg);background:#E2522E;color:#FFFAEF;border:2px solid #161310;font-family:'VT323',monospace;font-size:18px;letter-spacing:.04em;padding:4px 10px;">TESTING</span>
+        <h3 style="font-family:'Pixelify Sans',sans-serif;font-size:28px;line-height:1.1;margin:0 0 10px;color:#161310;">Work in progress</h3>
+        <p style="font-size:15px;line-height:1.55;margin:0 0 18px;color:#3A332A;">GIMMIE SICK VIS is still in testing — some features may not work yet or may change without warning. If something looks broken, <a href="#" style="color:#2E5DD6;font-weight:600;">feedback</a> is highly valuable.</p>
+        <button onClick="{{ dismissTesting }}" style="font-family:'Pixelify Sans',sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;background:#2E5DD6;color:#FFFAEF;border:2px solid #161310;box-shadow:4px 4px 0 0 #161310;padding:12px 20px;cursor:pointer;" style-active="transform:translate(4px,4px);box-shadow:none;">GOT IT</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1440, &quot;height&quot;: 1000}, &quot;dropdownMotion&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;cascade&quot;, &quot;options&quot;: [&quot;cascade&quot;, &quot;fade&quot;, &quot;pop&quot;], &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Nav dropdown&quot;}, &quot;reduceMotion&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Motion&quot;}, &quot;marqueeSpeed&quot;: {&quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 30, &quot;min&quot;: 15, &quot;max&quot;: 60, &quot;step&quot;: 1, &quot;unit&quot;: &quot;s&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Motion&quot;}}">
+const GROUPS = [
+  { id: "live", label: "Live data", items: [
+    { label: "Point Nepean wave buoy" }, { label: "Chlorophyll" }, { label: "Sea temperature" },
+    { label: "Currents" }, { label: "Altimetry" }, { label: "Salinity" }, { label: "Satellite imagery" },
+  ]},
+  { id: "learn", label: "Learn", items: [
+    { label: "Fish guide" }, { label: "Back beach forecasting" },
+  ]},
+  { id: "geo", label: "Geography", items: [
+    { label: "Seabed habitat" }, { label: "Depth detail" },
+  ]},
+];
+
+const CHANNELS = [
+  { title: "Forecast", bg: "#2E5DD6", fg: "#FFFAEF" },
+  { title: "Live Data", bg: "#FFFAEF", fg: "#3A332A" },
+  { title: "Learn", bg: "#E2522E", fg: "#FFFAEF" },
+  { title: "Geography", bg: "#337253", fg: "#FFFAEF" },
+];
+
+const MARQUEE_ITEMS = ["LIVE SWELL", "VICTORIAN COASTAL CONDITIONS", "SATELLITE CHLOROPHYLL", "SEA SURFACE TEMP", "DIVE PLANNING"];
+
+class Component extends DCLogic {
+  state = { openDD: null, testingOpen: true, reveal: { summary: false, channels: false, drop: false } };
+
+  componentDidMount() {
+    this._onDoc = (e) => {
+      if (!e.target.closest || !e.target.closest('[data-dd-root]')) {
+        this.setState({ openDD: null });
+      }
+    };
+    document.addEventListener("click", this._onDoc);
+
+    this._els = {};
+    this._io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        const key = en.target.getAttribute("data-reveal-key");
+        if (!key) return;
+        this.setState((s) => ({ reveal: { ...s.reveal, [key]: en.isIntersecting } }));
+      });
+    }, { threshold: 0.15 });
+    requestAnimationFrame(() => {
+      Object.values(this._els).forEach((el) => el && this._io.observe(el));
+    });
+  }
+  componentWillUnmount() {
+    document.removeEventListener("click", this._onDoc);
+    if (this._io) this._io.disconnect();
+  }
+
+  setRef = (key) => (el) => { this._els[key] = el; };
+
+  revealCss(key, reduceMotion, delayMs) {
+    if (reduceMotion) return "";
+    const visible = this.state.reveal[key];
+    const delay = delayMs ? `${delayMs}ms` : "0ms";
+    return `opacity:${visible ? 1 : 0};transform:translateY(${visible ? 0 : 28}px);transition:opacity .6s cubic-bezier(.22,1,.36,1) ${delay}, transform .6s cubic-bezier(.22,1,.36,1) ${delay};`;
+  }
+
+  toggleDD = (id) => (e) => {
+    e.stopPropagation();
+    this.setState((s) => ({ openDD: s.openDD === id ? null : id }));
+  };
+
+  dismissTesting = () => this.setState({ testingOpen: false });
+  stopProp = (e) => e.stopPropagation();
+
+  buildGroups(reduceMotion, dropdownMotion) {
+    const openId = this.state.openDD;
+    return GROUPS.map((g) => {
+      const open = openId === g.id;
+      const btnStyle = {
+        display: "flex", alignItems: "center", gap: 6, border: "none", background: "none",
+        padding: "0 14px", fontFamily: "'VT323',monospace", fontSize: 22, lineHeight: 1,
+        letterSpacing: ".02em", textTransform: "uppercase", height: "100%", cursor: "pointer",
+        color: open ? "#2E5DD6" : "#3A332A",
+        boxShadow: open ? "inset 0 -4px 0 0 #2E5DD6" : "none",
+      };
+      const caretStyle = {
+        display: "inline-block", fontSize: 10, marginLeft: 6, opacity: .65,
+        transition: "transform .25s cubic-bezier(.34,1.56,.64,1)",
+        transform: open ? "rotate(180deg)" : "rotate(0deg)",
+      };
+      let menuStyle = {
+        position: "absolute", top: "100%", left: "50%", minWidth: 210, background: "#F2EAD6",
+        border: "2px solid #161310", boxShadow: "4px 4px 0 0 #161310", padding: 6, display: "flex",
+        flexDirection: "column", gap: 2, zIndex: 700, pointerEvents: open ? "auto" : "none",
+      };
+      if (reduceMotion) {
+        menuStyle = { ...menuStyle, opacity: open ? 1 : 0, visibility: open ? "visible" : "hidden", transform: "translateX(-50%)" };
+      } else if (dropdownMotion === "pop") {
+        menuStyle = { ...menuStyle, opacity: open ? 1 : 0, visibility: open ? "visible" : "hidden",
+          transformOrigin: "top center",
+          transform: `translateX(-50%) scale(${open ? 1 : .9}) translateY(${open ? 0 : -4}px)`,
+          transition: "opacity .22s cubic-bezier(.34,1.56,.64,1), transform .22s cubic-bezier(.34,1.56,.64,1), visibility .22s" };
+      } else if (dropdownMotion === "fade") {
+        menuStyle = { ...menuStyle, opacity: open ? 1 : 0, visibility: open ? "visible" : "hidden",
+          transform: `translateX(-50%) translateY(${open ? 0 : -6}px)`,
+          transition: "opacity .18s ease, transform .18s ease, visibility .18s" };
+      } else {
+        menuStyle = { ...menuStyle, opacity: open ? 1 : 0, visibility: open ? "visible" : "hidden",
+          transform: `translateX(-50%) translateY(${open ? 0 : -8}px)`,
+          transition: "opacity .16s ease, transform .16s ease, visibility .2s" };
+      }
+      const items = g.items.map((it, i) => {
+        let itemStyle = {
+          display: "block", border: "none", background: "none", textAlign: "left", padding: "9px 13px",
+          color: "#161310", fontFamily: "'VT323',monospace", fontSize: 19, letterSpacing: ".02em",
+          textTransform: "uppercase", textDecoration: "none", cursor: "pointer", whiteSpace: "nowrap",
+        };
+        if (!reduceMotion && dropdownMotion === "cascade") {
+          const delay = open ? i * 80 : 0;
+          itemStyle = { ...itemStyle,
+            opacity: open ? 1 : 0,
+            transform: open ? "translateY(0)" : "translateY(-4px)",
+            transition: `opacity .32s var(--ease) ${delay}ms, transform .32s var(--ease) ${delay}ms` };
+        }
+        return { label: it.label, style: itemStyle };
+      });
+      return { id: g.id, label: g.label, open, toggle: this.toggleDD(g.id), btnStyle, caretStyle, menuStyle, items };
+    });
+  }
+
+  renderVals() {
+    const reduceMotion = this.props.reduceMotion ?? false;
+    const dropdownMotion = this.props.dropdownMotion ?? "cascade";
+    const marqueeSpeed = this.props.marqueeSpeed ?? 30;
+
+    const heroTitleStyle = {
+      fontFamily: "'Pixelify Sans',sans-serif", fontSize: "clamp(2.5rem,14vw,128px)", fontWeight: 700,
+      lineHeight: .92, letterSpacing: "-0.02em", color: "#FFFAEF", textTransform: "uppercase",
+      textShadow: "8px 8px 0px rgba(25,19,16,1)", margin: "0 0 12px",
+      animation: reduceMotion ? "none" : "glitch-stagger .6s steps(6) forwards, subtle-float 3s ease-in-out infinite .7s",
+    };
+
+    const marqueeStyle = {
+      display: "flex", width: "max-content",
+      animation: reduceMotion ? "none" : `marquee ${marqueeSpeed}s linear infinite`,
+    };
+    const marqueeGroups = [0, 1].map((n) => ({
+      rowStyle: {
+        display: "flex", alignItems: "center", fontFamily: "'Pixelify Sans',sans-serif", fontSize: 22,
+        color: "#FFFAEF", textTransform: "uppercase", letterSpacing: ".05em", whiteSpace: "nowrap", gap: 32,
+        marginLeft: n === 1 ? 32 : 0,
+      },
+    }));
+
+    const channelsVisible = this.state.reveal.channels;
+    const channels = CHANNELS.map((c, i) => ({
+      title: c.title,
+      style: {
+        display: "block", position: "relative", border: "2px solid #3A332A", overflow: "hidden",
+        boxShadow: "6px 6px 0 0 #2e5dd6", cursor: "pointer", textDecoration: "none",
+        background: c.bg, color: c.fg,
+        transition: reduceMotion
+          ? "transform .1s steps(2)"
+          : `transform .1s steps(2), opacity .5s cubic-bezier(.22,1,.36,1) ${i * 80}ms, translate .5s cubic-bezier(.22,1,.36,1) ${i * 80}ms`,
+        opacity: reduceMotion ? 1 : (channelsVisible ? 1 : 0),
+        translate: reduceMotion ? "0 0" : (channelsVisible ? "0 0" : "0 28px"),
+      },
+      hoverStyle: reduceMotion ? "" : "animation:float-pixel 1.2s steps(4) infinite;",
+    }));
+
+    return {
+      groups: this.buildGroups(reduceMotion, dropdownMotion),
+      feedbackBadgeStyle: {
+        display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#E2522E",
+        marginLeft: 6, animation: reduceMotion ? "none" : "fbpulse 1.8s ease-in-out infinite",
+      },
+      heroTitleStyle, marqueeStyle, marqueeGroups, marqueeItems: MARQUEE_ITEMS, channels,
+      testingOpen: this.state.testingOpen, dismissTesting: this.dismissTesting, stopProp: this.stopProp,
+      setRef: this.setRef,
+      summaryReveal: this.revealCss("summary", reduceMotion),
+      channelsReveal: this.revealCss("channels", reduceMotion),
+      dropReveal: this.revealCss("drop", reduceMotion),
+    };
+  }
+}
+
+</script>
+</body>
+</html>
