@@ -24,13 +24,18 @@ export default function About() {
             <p style={{ margin: "0 0 16px" }}>
               This site you&rsquo;re on is a passion project. I designed it with the idea that
               you&rsquo;ll still need some idea about analysing the data, rather than having it
-              somewhat spoon-fed like other sites and apps. When diving the back beaches,
-              you&rsquo;ll still need to understand the major components that determine a back
-              beach dive day. However you still get a rough 7-day forecast which outlines
-              diveable days, calculated on a scale of 1&ndash;10. Combining this with live
-              chlorophyll scans can give you an idea where ideal dive spots lie. I have added a{" "}
-              <a href="/back-beach">learn section</a>{" "}
-              onto this site to teach others. I&rsquo;m still learning on dive forecasting
+              somewhat spoon-fed like other sites and apps.
+            </p>
+            <p style={{ margin: "0 0 16px" }}>
+              When diving the back beaches, I feel you should still understand the major
+              components that drive it (swell, wind, and so on). The forecast section has been
+              designed as an outlook for the next seven days, calculated on a scale of
+              1&ndash;10. Combining this with live chlorophyll scans can give you an idea where
+              ideal dive spots lie.
+            </p>
+            <p style={{ margin: "0 0 16px" }}>
+              I&rsquo;ve added a <b>learn section</b>{" "}
+              onto this site to help teach others. I&rsquo;m still learning on dive forecasting
               myself, so if you have any ideas for improvement please let me know! :D
             </p>
             <a href="/feedback" className="btn btn-vermillion">
