@@ -499,6 +499,8 @@
   @media(max-width:560px){
     .wrap{box-sizing:border-box;padding:0 12px}
     h1{font-size:26px}
+    /* About page's long-form prose reads dense at the base 15px on a phone */
+    .about-copy{font-size:13px}
     /* pager fits narrow screens: tighter gaps, smaller buttons, wraps if needed */
     .fgpager{gap:8px}
     .fgpager button{min-width:38px;padding:8px 10px;font-size:13px}
