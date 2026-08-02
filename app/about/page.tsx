@@ -6,6 +6,8 @@ export const metadata = { title: "About — GIMMIE SICK VIS" };
 // border + hard shadow as the site's map frames
 const framed: React.CSSProperties = {
   display: "block",
+  maxWidth: "100%",
+  height: "auto",
   border: "2px solid var(--ink)",
   boxShadow: "var(--shadow-1)",
 };
