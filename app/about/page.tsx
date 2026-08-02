@@ -38,7 +38,6 @@ export default function About() {
               onto this site to help teach others. I&rsquo;m still learning on dive forecasting
               myself, so if you have any ideas for improvement please let me know! :D
             </p>
-            {/* bridges toward the paired photo on the right */}
             <div style={{ textAlign: "right" }}>
               <a href="/feedback" className="btn btn-vermillion">
                 Send feedback
@@ -61,14 +60,16 @@ export default function About() {
             Science, I&rsquo;ve been able to apply some of my skills into building this site
             along with the help of various AI models. Mainly Claude Code in this case.
           </p>
-          <a
-            href="https://github.com/mayatrcek/gimmie-SICK-vis-vic"
-            target="_blank"
-            rel="noopener"
-            className="btn"
-          >
-            View the GitHub repo
-          </a>
+          <div style={{ textAlign: "right" }}>
+            <a
+              href="https://github.com/mayatrcek/gimmie-SICK-vis-vic"
+              target="_blank"
+              rel="noopener"
+              className="btn"
+            >
+              View the GitHub repo
+            </a>
+          </div>
         </div>
 
         <div className="grid2" style={{ marginTop: 64, alignItems: "center" }}>
@@ -89,10 +90,11 @@ export default function About() {
               I&rsquo;ve got an official shop &ldquo;in the making&rdquo;, you can take a look at
               and support me if you wish!
             </p>
-            {/* bridges back toward the paired photo on the left */}
-            <a href="/store" className="btn btn-primary">
-              Visit the shop
-            </a>
+            <div style={{ textAlign: "right" }}>
+              <a href="/store" className="btn btn-primary">
+                Visit the shop
+              </a>
+            </div>
           </div>
         </div>
 
