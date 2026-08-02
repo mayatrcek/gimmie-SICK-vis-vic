@@ -20,7 +20,7 @@ export default function About() {
       <div className="panel-hd">
         <span className="panel-ttl">About this site</span>
       </div>
-      <div className="panel-bd about-copy" style={{ padding: "18px 20px", lineHeight: 1.6 }}>
+      <div className="panel-bd" style={{ padding: "18px 20px", lineHeight: 1.6 }}>
         <div className="grid2" style={{ marginTop: 0, alignItems: "center" }}>
           <div>
             <p style={pStyle}>
