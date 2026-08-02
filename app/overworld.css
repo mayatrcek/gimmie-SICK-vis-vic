@@ -52,17 +52,25 @@
   .sub{color:var(--muted);font-size:15px;margin-bottom:18px;line-height:1.55}
   .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0}
 
-  /* Buttons — square, 2px ink border, block shadow, press-into-shadow on :active */
-  button{font-family:var(--font-display);font-size:14px;font-weight:700;letter-spacing:.04em;
+  /* Buttons — square, 2px ink border, block shadow, press-into-shadow on :active.
+     .btn is the same look as a bare <button>, for <a> CTAs (ui_design/overworld's
+     button component — see DESIGN.md — ported onto the app's own token names). */
+  button,.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+         font-family:var(--font-display);font-size:14px;font-weight:700;letter-spacing:.04em;
          text-transform:uppercase;border:2px solid var(--ink);background:var(--panel);
-         color:var(--ink);padding:9px 18px;border-radius:0;cursor:pointer;
-         box-shadow:4px 4px 0 0 var(--ink);
+         color:var(--ink);padding:9px 18px;border-radius:0;cursor:pointer;text-decoration:none;
+         box-shadow:4px 4px 0 0 var(--ink);white-space:nowrap;
          transition:background-color .18s var(--ease),color .18s var(--ease)}
-  button:hover{background:var(--paper);color:var(--ink)}
-  button:active{transform:translate(4px,4px);box-shadow:none}
-  button:focus-visible{outline:none;box-shadow:var(--focus-ring)}
-  button.primary{background:var(--accent);color:#FFFAEF;border-color:var(--ink)}
-  button.primary:hover{background:#1F47B0;color:#FFFAEF}
+  button:hover,.btn:hover{background:var(--paper);color:var(--ink)}
+  button:active,.btn:active{transform:translate(4px,4px);box-shadow:none}
+  button:focus-visible,.btn:focus-visible{outline:none;box-shadow:var(--focus-ring)}
+  button.primary,.btn-primary{background:var(--accent);color:#FFFAEF;border-color:var(--ink)}
+  button.primary:hover,.btn-primary:hover{background:#1F47B0;color:#FFFAEF}
+  .btn-vermillion{background:var(--warm);color:#FFFAEF;border-color:var(--ink)}
+  .btn-vermillion:hover{background:#B73D1D;color:#FFFAEF}
+  .btn-moss{background:var(--green);color:#FFFAEF;border-color:var(--ink)}
+  .btn-moss:hover{background:#1F5238;color:#FFFAEF}
+  .btn-sm{padding:7px 13px;font-size:12px}
   .stamp{color:var(--muted);font-size:13px;margin-left:auto}
 
   h2.sec{font-family:var(--font-display);font-size:clamp(1.6rem,6.5vw,44px);line-height:1.02;
