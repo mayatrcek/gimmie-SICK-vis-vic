@@ -46,31 +46,21 @@ export default function About() {
           />
         </div>
 
-        <div className="grid2" style={{ marginTop: 48, alignItems: "center" }}>
-          <div>
-            <p style={{ margin: "0 0 16px" }}>
-              Anyways, a little bit extra about myself. I love my fishing and diving along the
-              Victorian coast in my spare time. As a uni student currently studying Computer
-              Science, I&rsquo;ve been able to apply some of my skills into building this site
-              along with the help of various AI models. Mainly Claude Code in this case.
-            </p>
-            <a
-              href="https://github.com/mayatrcek/gimmie-SICK-vis-vic"
-              target="_blank"
-              rel="noopener"
-              className="btn"
-            >
-              View the GitHub repo
-            </a>
-          </div>
-          <Image
-            src="/assets/about/crab-sticker.png"
-            alt=""
-            aria-hidden
-            width={600}
-            height={312}
-            style={{ width: "70%", height: "auto", display: "block", margin: "0 auto" }}
-          />
+        <div style={{ marginTop: 48 }}>
+          <p style={{ margin: "0 0 16px" }}>
+            Anyways, a little bit extra about myself. I love my fishing and diving along the
+            Victorian coast in my spare time. As a uni student currently studying Computer
+            Science, I&rsquo;ve been able to apply some of my skills into building this site
+            along with the help of various AI models. Mainly Claude Code in this case.
+          </p>
+          <a
+            href="https://github.com/mayatrcek/gimmie-SICK-vis-vic"
+            target="_blank"
+            rel="noopener"
+            className="btn"
+          >
+            View the GitHub repo
+          </a>
         </div>
 
         <div className="grid2" style={{ marginTop: 48, alignItems: "center" }}>
