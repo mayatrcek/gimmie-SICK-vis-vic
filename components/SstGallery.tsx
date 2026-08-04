@@ -120,7 +120,7 @@ export default function SstGallery() {
       <div className="panel">
         <div className="panel-hd">
           <span className="panel-ttl">Sea temperature scans</span>
-          <SnaggleInfo text="Sea temperature straight off the satellite (NOAA ACSPO, ~2 km) for the last 12 days. It’s actual readings, not a smoothed model, so the temperature fronts stay sharp — blank patches were under cloud. Tap a card to explore that day’s scan; the white dots are detected thermal fronts." />
+          <SnaggleInfo text="Sea surface temps are good for tracking seasonal fish and finding those temperature breaks. And also if you’re just curious about the water temp haha. You can select a point and copy coordinates if you’re planning a trip offshore." />
         </div>
         <div className="panel-bd flush">
           <div style={{ padding: "8px 16px 16px" }}>

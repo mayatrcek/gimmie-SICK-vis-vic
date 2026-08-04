@@ -464,11 +464,12 @@
   /* desktop: the absolute shark must never poke past the header into the panel body —
      reserve enough header height for the cropped art (10px offset + ~96px at 240px wide) */
   .panel-hd:has(.snaggle-info-btn){min-height:112px}
-  /* phones: the wrapped title runs under the absolute shark, so drop the sprite into
-     the flex flow instead — own row under the meta line, right-aligned, no overlap */
+  /* phones: shark stays pinned top-right (same absolute anchor as desktop) at a
+     fixed 150px; the title reserves that corner so wrapped lines never run under
+     it — a long title breaks its last word(s) down instead */
   @media(max-width:560px){
-    .snaggle-info-btn,.snaggle-info-btn:hover,.snaggle-info-btn:active{position:static;order:3;
-      margin-left:auto;margin-top:-30px;margin-right:-14px}
+    .snaggle-info-btn img{width:150px}
+    .panel-hd:has(.snaggle-info-btn) .panel-ttl{padding-right:150px}
   }
   /* the shark's popup note — OVERWORLD card that expands in from the shark's corner.
      Lives inside .panel-hd's flex-wrap: full-width row after title/meta/button. */
@@ -477,9 +478,12 @@
     transform-origin:top right;animation:snaggle-pop .18s var(--ease)}
   .snaggle-note a{color:var(--accent);font-weight:600;text-decoration:none}
   .snaggle-note a:hover{text-decoration:underline}
-  /* cap the text measure inside the full-width card (also keeps the first lines
-     clear of the shark hanging over the card's top-right corner on desktop) */
-  .snaggle-note-txt{display:block;max-width:66ch}
+  /* --snaggle-reserve is the strip of the card the shark hangs over: 0 on phones
+     (there it's pinned up by the title), the sprite's width + slack on desktop.
+     The copy keys off it so no line ends up under the sprite. */
+  .snaggle-note{--snaggle-reserve:0px;padding-right:calc(18px + var(--snaggle-reserve))}
+  .snaggle-note-txt{display:block}
+  @media(min-width:561px){.snaggle-note{--snaggle-reserve:240px}}
   @keyframes snaggle-pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
   .panel-bd{padding:18px 20px}
   .panel-bd.flush{padding:0}

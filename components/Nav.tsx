@@ -19,6 +19,7 @@ const GROUPS: Group[] = [
       { label: "Currents", href: "/live/currents" },
       { label: "Altimetry", href: "/live/altimetry" },
       { label: "Salinity", href: "/live/salinity" },
+      { label: "Bathymetry", href: "/live/bathymetry" },
       { label: "Satellite imagery", href: "/live/satellite" },
     ],
   },

@@ -99,7 +99,7 @@ export default function ChlorophyllGallery({
     <div className="panel">
       <div className="panel-hd">
         <span className="panel-ttl">Chlorophyll scans</span>
-        <SnaggleInfo text="Daily chlorophyll scans from three satellites — NOAA-20, NOAA-21 and Suomi NPP (VIIRS via NASA GIBS, ~4 km). Greener means more plankton. Blank patches are just cloud, and each satellite misses different bits — flick between them if your day’s empty. Tap a card to explore that day’s scan." />
+        <SnaggleInfo text="You’re looking at live scans of algae/plankton present in the water. A lot of this stuff directly impacts water visibility and it doesn’t go away quickly. Red typically means terrible, yellow and green are pretty good, and blue is amazing! Empty gaps is cloud cover." />
       </div>
       <div className="panel-bd flush">
           {/* one-time satellite legend — sticker badge + main difference, from SATS */}

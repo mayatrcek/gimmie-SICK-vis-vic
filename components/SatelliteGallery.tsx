@@ -89,7 +89,7 @@ export default function SatelliteGallery() {
       <div className="panel">
         <div className="panel-hd">
           <span className="panel-ttl">Satellite imagery</span>
-          <SnaggleInfo text="True-colour scans of the Victorian coast from Copernicus Sentinel-2 (~10 m resolution) over the last 30 days, including cloudy passes — cloud cover is shown on each card. Sentinel-2 only passes over every 3–5 days, so expect fewer cards than the chlorophyll or sea temperature galleries. Tap a card to explore that day’s scan at full resolution." />
+          <SnaggleInfo text="Live scans from Copernicus. You can checkout the visibility on some spots by looking for patches of reef (dark spots) over shallow water." />
         </div>
         <div className="panel-bd flush">
           <div style={{ padding: "8px 16px 16px" }}>

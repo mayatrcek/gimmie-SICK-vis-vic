@@ -18,10 +18,7 @@ export default function SnaggleInfo({
   const [show, setShow] = useState(false);
   const [reveal, setReveal] = useState(0);
   useEffect(() => {
-    if (!show) {
-      setReveal(0);
-      return;
-    }
+    if (!show) return;
     const id = setInterval(() => {
       setReveal((r) => {
         if (r >= text.length) {
@@ -41,7 +38,10 @@ export default function SnaggleInfo({
         className="snaggle-info-btn"
         aria-expanded={show}
         aria-label={show ? "Hide info" : "Show info"}
-        onClick={() => setShow((v) => !v)}
+        onClick={() => {
+          setShow((v) => !v);
+          setReveal(0); // replay the reveal from the top on each open
+        }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/assets/brand/Snaggletooth Hover.gif" alt="" />

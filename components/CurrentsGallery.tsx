@@ -89,7 +89,7 @@ export default function CurrentsGallery() {
       <div className="panel">
         <div className="panel-hd">
           <span className="panel-ttl">Surface current scans</span>
-          <SnaggleInfo text="Open-ocean surface currents from Copernicus Marine’s global forecast model (~9 km) for the last 12 days. Arrows point where the water’s going — longer means faster. This shows the big movers (East Australian Current, Tasman eddies, Bass Strait through-flow), not local tidal streams: for those check the tide graph on the forecast page. Tap a card to explore that day." />
+          <SnaggleInfo text="Large scale currents, good for tracking down pelagics." />
         </div>
         <div className="panel-bd flush">
           <div style={{ padding: "8px 16px 16px" }}>

@@ -8,7 +8,7 @@ export default function Depth() {
     <div className="panel">
       <div className="panel-hd">
         <span className="panel-ttl">Depth detail</span>
-        <SnaggleInfo text="How deep is it, exactly — fine-grained depth contours from DEECA CoastKit. Click anywhere on the map to get a depth reading." />
+        <SnaggleInfo text="A rough depth map in intervals of 10m." />
       </div>
       <div className="panel-bd">
         <DepthClient />
