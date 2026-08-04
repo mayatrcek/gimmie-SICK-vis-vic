@@ -31,11 +31,6 @@ const GROUPS: Group[] = [
       { label: "Back beach forecasting", href: "/back-beach" },
     ],
   },
-  {
-    id: "geo",
-    label: "Geography",
-    items: [{ label: "Depth detail", href: "/geo/depth" }],
-  },
 ];
 
 export default function Nav() {
@@ -96,6 +91,9 @@ export default function Nav() {
           <Dropdown key={g.id} g={g} open={openDD === g.id} onToggle={setOpenDD} active={groupActive(g)} isActive={isActive} />
         ))}
 
+        <Link className={`tab${isActive("/geo") ? " active" : ""}`} href="/geo/depth">
+          Depth map
+        </Link>
         <Link className={`tab${isActive("/store") ? " active" : ""}`} href="/store">
           Store
         </Link>
