@@ -332,6 +332,7 @@
   .tab-menu-item:nth-child(5){transition-delay:320ms}
   .tab-menu-item:nth-child(6){transition-delay:400ms}
   .tab-menu-item:nth-child(7){transition-delay:480ms}
+  .tab-menu-item:nth-child(8){transition-delay:560ms}
   .tab-menu-item:hover{background:rgba(22,19,16,.06)}
   .tab-menu-item.active{color:#fff;background:var(--ink)}
   .tab-badge{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--warm);margin-left:6px;vertical-align:middle;animation:fbpulse 1.8s ease-in-out infinite}
@@ -563,15 +564,38 @@
     .tab{white-space:normal;width:100%;text-align:left;justify-content:flex-start;
       padding:12px 16px;font-size:15px;border-radius:12px}
 
+    /* the card's rows drop in one after another — same cascade the desktop
+       dropdown uses (.tab-menu-item above), applied to the menu's own rows.
+       Delays are scoped to .nav-open so closing fades everything out at once. */
+    .tabs-inner>.tab,.tabs-inner>.tab-dd{opacity:0;transform:translateY(-4px);
+      transition:background-color .18s var(--ease),color .18s var(--ease),
+                 opacity .28s var(--ease),transform .28s var(--ease)}
+    .tabs.nav-open .tabs-inner>.tab,.tabs.nav-open .tabs-inner>.tab-dd{opacity:1;transform:translateY(0)}
+    .tabs.nav-open .tabs-inner>:nth-child(1){transition-delay:0ms}
+    .tabs.nav-open .tabs-inner>:nth-child(2){transition-delay:45ms}
+    .tabs.nav-open .tabs-inner>:nth-child(3){transition-delay:90ms}
+    .tabs.nav-open .tabs-inner>:nth-child(4){transition-delay:135ms}
+    .tabs.nav-open .tabs-inner>:nth-child(5){transition-delay:180ms}
+    .tabs.nav-open .tabs-inner>:nth-child(6){transition-delay:225ms}
+    .tabs.nav-open .tabs-inner>:nth-child(7){transition-delay:270ms}
+    .tabs.nav-open .tabs-inner>:nth-child(8){transition-delay:315ms}
+    .tabs.nav-open .tabs-inner>:nth-child(9){transition-delay:360ms}
+
     /* dropdown groups -> inline accordions (reuse the .open toggle) */
     .tab-dd{position:static;display:flex;flex-direction:column;width:100%}
     .tab-dd>.tab{width:100%}
     .tab-caret{margin-left:auto}
+    /* Collapse by max-height rather than display:none — the accordion has to stay
+       rendered or the items' cascade transitions can't run when it opens. */
     .tab-menu{position:static;transform:none;box-shadow:none;border:0;background:transparent;
-      min-width:0;width:auto;padding:2px 0 4px 12px;display:none}
+      min-width:0;width:auto;padding:0 0 0 12px;display:flex;flex-direction:column;gap:2px;
+      opacity:1;visibility:visible;pointer-events:none;
+      max-height:0;overflow:hidden;
+      transition:max-height .3s var(--ease),padding .3s var(--ease)}
     .tab-menu::before{display:none}
-    .tab-dd.open .tab-menu{display:flex;flex-direction:column;gap:2px;transform:none;
-      opacity:1;visibility:visible;pointer-events:auto}
+    /* transform:none must be repeated here — the desktop .tab-dd.open .tab-menu rule
+       (translateX(-50%), for the centred popover) outranks the mobile base above */
+    .tab-dd.open .tab-menu{transform:none;max-height:420px;padding:2px 0 4px 12px;pointer-events:auto}
     .tab-menu-item{width:100%;padding:11px 14px;border-radius:10px}
 
     #map{height:272px}
