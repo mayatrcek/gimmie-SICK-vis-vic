@@ -455,11 +455,11 @@
   /* corner mascot button — same absolute-badge convention as .f2badge/.sstscale-float */
   .snaggle-info-btn,.snaggle-info-btn:hover,.snaggle-info-btn:active{position:absolute;top:10px;right:10px;
     border:0;background:none;padding:0;cursor:pointer;line-height:0;box-shadow:none;transform:none;overflow:hidden}
-  /* gif canvas has ~33% dead space above the art and ~13% below (440x304, ink rows
-     100-263) — crop both so the button box hugs the visible shark (% margins are
-     relative to width: -20% top ≈ 30% of height, -9% bottom ≈ 13% of height) */
+  /* gif canvas has dead space on three sides of the art (440x304, ink rows 100-263,
+     ink cols 56-363) — crop top/bottom/right so the button box hugs the visible shark
+     (% margins are relative to width: -20% top ≈ 30% of height, -9% bottom ≈ 13%) */
   .snaggle-info-btn img{display:block;width:clamp(150px,36vw,240px);height:auto;
-    margin-top:-20%;margin-bottom:-9%;image-rendering:pixelated;mix-blend-mode:multiply}
+    margin-top:-20%;margin-bottom:-9%;margin-right:-17%;image-rendering:pixelated;mix-blend-mode:multiply}
   .snaggle-info-btn:hover img{transform:scale(1.05)}
   /* desktop: the absolute shark must never poke past the header into the panel body —
      reserve enough header height for the cropped art (10px offset + ~96px at 240px wide) */
@@ -469,8 +469,6 @@
   @media(max-width:560px){
     .snaggle-info-btn,.snaggle-info-btn:hover,.snaggle-info-btn:active{position:static;order:3;
       margin-left:auto;margin-top:-30px;margin-right:-14px}
-    /* gif also has ~17% dead space on its right — crop it so the art hugs the edge */
-    .snaggle-info-btn img{margin-right:-17%}
   }
   /* the shark's popup note — OVERWORLD card that expands in from the shark's corner */
   .snaggle-note{margin:0 0 14px;padding:14px 18px;background:var(--paper);border:2px solid var(--ink);
