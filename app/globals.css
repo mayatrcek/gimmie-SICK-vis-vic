@@ -7,20 +7,22 @@
 /* Tailwind v4 WITHOUT preflight — matches the old `corePlugins.preflight:false`
    so the OVERWORLD design system (overworld.css) and Leaflet aren't reset.
    Preflight is the `base` layer; we import theme + utilities only. */
-@layer theme, base, components, utilities;
+@layer theme, base, overworld, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
 
-/* Leaflet's stylesheet must load in the SAME layer as (and before) overworld.css.
-   Imported unlayered (as the map components used to), it would beat every layered
-   OVERWORLD rule — popups/zoom bars stayed leaflet-default no matter what
-   overworld.css said. Components must NOT import leaflet/dist/leaflet.css. */
+/* Leaflet's stylesheet must load before overworld.css so OVERWORLD's rules win
+   the cascade (popups/zoom bars stayed leaflet-default when this was unlayered).
+   Components must NOT import leaflet/dist/leaflet.css. */
 @import "leaflet/dist/leaflet.css" layer(base);
 /* Shared OVERWORLD design system (pixel reskin of the old Cirrus styles.css).
-   Must live in the `base` layer: it has a global `*{margin:0;padding:0}` reset,
-   and unlayered CSS would beat every Tailwind margin/padding utility. The old
-   site loaded styles.css BEFORE the CDN Tailwind styles for the same reason. */
-@import "./overworld.css" layer(base);
+   Has a global `*{margin:0;padding:0}` reset, so it must beat every Tailwind
+   margin/padding utility — hence its own layer, ordered right after `base`.
+   NOTE: this must be a DIFFERENT layer name than leaflet's `layer(base)` above.
+   Turbopack (Next 16.2.9) silently drops the second local @import when two
+   local stylesheets are imported into the same layer name — reusing `base`
+   here made this whole file vanish from the bundle with no build error. */
+@import "./overworld.css" layer(overworld);
 /* Pixel-homepage helper styles (scoped to .home). */
 @import "./home.css";
 
