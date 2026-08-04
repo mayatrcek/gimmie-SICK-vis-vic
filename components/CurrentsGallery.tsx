@@ -5,6 +5,7 @@ import { useRef, useState, useEffect } from "react";
 import { fmtDataDate } from "@/lib/api/erddap";
 import { CMEMS_PRODUCT_URL, curSpeedURL, curThumbURL, latestCurDay } from "@/lib/api/cmems";
 import { THUMB_LAND } from "@/components/geo/gibs";
+import SnaggleInfo from "@/components/SnaggleInfo";
 
 const CurrentsMap = dynamic(() => import("./geo/CurrentsMap"), {
   ssr: false,
@@ -88,16 +89,9 @@ export default function CurrentsGallery() {
       <div className="panel">
         <div className="panel-hd">
           <span className="panel-ttl">Surface current scans</span>
+          <SnaggleInfo text="Open-ocean surface currents from Copernicus Marine’s global forecast model (~9 km) for the last 12 days. Arrows point where the water’s going — longer means faster. This shows the big movers (East Australian Current, Tasman eddies, Bass Strait through-flow), not local tidal streams: for those check the tide graph on the forecast page. Tap a card to explore that day." />
         </div>
         <div className="panel-bd flush">
-          <div className="desc" style={{ padding: "14px 16px 8px" }}>
-            Open-ocean surface currents from Copernicus Marine&apos;s global forecast model
-            (~9&nbsp;km) for the last 12 days. Arrows point where the water&apos;s going — longer
-            means faster.
-            This shows the big movers (East Australian Current, Tasman eddies, Bass Strait
-            through-flow), not local tidal streams: for those check the tide graph on the
-            forecast page. Tap a card to explore that day.
-          </div>
           <div style={{ padding: "8px 16px 16px" }}>
             <div className="fishgrid chlgrid">
               {days.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map((day) => (

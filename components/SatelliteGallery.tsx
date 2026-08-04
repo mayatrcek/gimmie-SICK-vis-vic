@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { fmtDataDate } from "@/lib/api/erddap";
 import { SATELLITE_LAND_BACKDROP } from "@/lib/api/sentinel";
+import SnaggleInfo from "@/components/SnaggleInfo";
 
 const SatelliteMap = dynamic(() => import("./geo/SatelliteMap"), {
   ssr: false,
@@ -88,16 +89,9 @@ export default function SatelliteGallery() {
       <div className="panel">
         <div className="panel-hd">
           <span className="panel-ttl">Satellite imagery</span>
+          <SnaggleInfo text="True-colour scans of the Victorian coast from Copernicus Sentinel-2 (~10 m resolution) over the last 30 days, including cloudy passes — cloud cover is shown on each card. Sentinel-2 only passes over every 3–5 days, so expect fewer cards than the chlorophyll or sea temperature galleries. Tap a card to explore that day’s scan at full resolution." />
         </div>
         <div className="panel-bd flush">
-          <div className="desc" style={{ padding: "14px 16px 8px" }}>
-            True-colour scans of the Victorian coast from Copernicus Sentinel-2
-            (~10&nbsp;m resolution) over the last 30 days, including cloudy passes —
-            cloud cover is shown on each card. Sentinel-2 only passes over every
-            3&ndash;5 days, so expect fewer cards than the chlorophyll or sea
-            temperature galleries. Tap a card to explore that day&apos;s scan at full
-            resolution.
-          </div>
           <div style={{ padding: "8px 16px 16px" }}>
             {scenes.length === 0 ? (
               <p className="desc">No scans in the last 30 days — check back soon.</p>

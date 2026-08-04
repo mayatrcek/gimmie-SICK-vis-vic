@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { fmtDataDate, graphLink, SST_DS, sstThumbURL } from "@/lib/api/erddap";
 import { THUMB_LAND } from "@/components/geo/gibs";
 import SstScale from "@/components/SstScale";
+import SnaggleInfo from "@/components/SnaggleInfo";
 
 const SstMap = dynamic(() => import("./geo/SstMap"), {
   ssr: false,
@@ -119,14 +120,9 @@ export default function SstGallery() {
       <div className="panel">
         <div className="panel-hd">
           <span className="panel-ttl">Sea temperature scans</span>
+          <SnaggleInfo text="Sea temperature straight off the satellite (NOAA ACSPO, ~2 km) for the last 12 days. It’s actual readings, not a smoothed model, so the temperature fronts stay sharp — blank patches were under cloud. Tap a card to explore that day’s scan; the white dots are detected thermal fronts." />
         </div>
         <div className="panel-bd flush">
-          <div className="desc" style={{ padding: "14px 16px 8px" }}>
-            Sea temperature straight off the satellite (NOAA ACSPO, ~2&nbsp;km) for the last
-            12 days. It&apos;s actual readings, not a smoothed model, so the temperature fronts
-            stay sharp — blank patches were under cloud. Tap a card to explore that day&apos;s
-            scan; the white dots are detected thermal fronts.
-          </div>
           <div style={{ padding: "8px 16px 16px" }}>
             <div className="fishgrid chlgrid">
               {days.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map((day) => (

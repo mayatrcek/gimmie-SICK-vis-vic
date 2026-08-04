@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { BBOX, GIBS, SATS, type Sat } from "./gibs";
+import SnaggleInfo from "@/components/SnaggleInfo";
 
 const ChlorophyllMap = dynamic(() => import("./ChlorophyllMap"), {
   ssr: false,
@@ -98,14 +99,9 @@ export default function ChlorophyllGallery({
     <div className="panel">
       <div className="panel-hd">
         <span className="panel-ttl">Chlorophyll scans</span>
+        <SnaggleInfo text="Daily chlorophyll scans from three satellites — NOAA-20, NOAA-21 and Suomi NPP (VIIRS via NASA GIBS, ~4 km). Greener means more plankton. Blank patches are just cloud, and each satellite misses different bits — flick between them if your day’s empty. Tap a card to explore that day’s scan." />
       </div>
       <div className="panel-bd flush">
-        <div className="desc" style={{ padding: "14px 16px 8px" }}>
-            Daily chlorophyll scans from three satellites — NOAA-20, NOAA-21 and Suomi NPP (VIIRS
-            via NASA GIBS, ~4&nbsp;km). Greener means more plankton. Blank patches are just cloud,
-            and each satellite misses different bits — flick between them if your day&apos;s empty.
-            Tap a card to explore that day&apos;s scan.
-          </div>
           {/* one-time satellite legend — sticker badge + main difference, from SATS */}
           <div className="chllegend">
             {SATS.map((s, i) => (
