@@ -455,11 +455,30 @@
   /* corner mascot button — same absolute-badge convention as .f2badge/.sstscale-float */
   .snaggle-info-btn,.snaggle-info-btn:hover,.snaggle-info-btn:active{position:absolute;top:10px;right:10px;
     border:0;background:none;padding:0;cursor:pointer;line-height:0;box-shadow:none;transform:none;overflow:hidden}
-  /* gif canvas has ~33% dead space above the artwork — crop it so the shark rides high
-     (-20% of width ≈ 30% of the 440x304 gif's height) */
-  .snaggle-info-btn img{display:block;width:clamp(150px,36vw,240px);height:auto;margin-top:-20%;
-    image-rendering:pixelated;mix-blend-mode:multiply}
+  /* gif canvas has ~33% dead space above the art and ~13% below (440x304, ink rows
+     100-263) — crop both so the button box hugs the visible shark (% margins are
+     relative to width: -20% top ≈ 30% of height, -9% bottom ≈ 13% of height) */
+  .snaggle-info-btn img{display:block;width:clamp(150px,36vw,240px);height:auto;
+    margin-top:-20%;margin-bottom:-9%;image-rendering:pixelated;mix-blend-mode:multiply}
   .snaggle-info-btn:hover img{transform:scale(1.05)}
+  /* desktop: the absolute shark must never poke past the header into the panel body —
+     reserve enough header height for the cropped art (10px offset + ~96px at 240px wide) */
+  .panel-hd:has(.snaggle-info-btn){min-height:112px}
+  /* phones: the wrapped title runs under the absolute shark, so drop the sprite into
+     the flex flow instead — own row under the meta line, right-aligned, no overlap */
+  @media(max-width:560px){
+    .snaggle-info-btn,.snaggle-info-btn:hover,.snaggle-info-btn:active{position:static;order:3;
+      margin-left:auto;margin-top:-30px;margin-right:-14px}
+    /* gif also has ~17% dead space on its right — crop it so the art hugs the edge */
+    .snaggle-info-btn img{margin-right:-17%}
+  }
+  /* the shark's popup note — OVERWORLD card that expands in from the shark's corner */
+  .snaggle-note{margin:0 0 14px;padding:14px 18px;background:var(--paper);border:2px solid var(--ink);
+    box-shadow:4px 4px 0 0 var(--ink);font-size:14px;line-height:1.55;color:var(--muted);
+    transform-origin:top right;animation:snaggle-pop .18s var(--ease)}
+  .snaggle-note a{color:var(--accent);font-weight:600;text-decoration:none}
+  .snaggle-note a:hover{text-decoration:underline}
+  @keyframes snaggle-pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
   .panel-bd{padding:18px 20px}
   .panel-bd.flush{padding:0}
   /* maps/iframes inside a panel shed their own chrome to avoid a box-in-a-box */
