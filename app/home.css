@@ -55,7 +55,7 @@ body {
 .dive-flag { display: inline-block; vertical-align: middle; margin: 0 24px; image-rendering: pixelated; }
 
 /* Fluid mobile clamps for the big pixel display type + full-bleed padding. */
-.home .px-bleed { padding-left: clamp(16px, 8vw, 96px); padding-right: clamp(16px, 8vw, 96px); }
+.home .px-bleed { padding-left: clamp(12px, 4vw, 96px); padding-right: clamp(12px, 4vw, 96px); }
 .home .p-xxl { padding: clamp(20px, 5vw, 48px); }
 .home .home-display { font-size: clamp(2.5rem, 14vw, 128px); }
 .home .home-h1 { font-size: clamp(1.9rem, 9.5vw, 96px); }

@@ -446,12 +446,20 @@
   /* ===== Dashboard panels — Cirrus cards ===== */
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden;
     box-shadow:var(--shadow-1);margin:0 0 16px}
-  .panel-hd{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:16px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+  .panel-hd{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:16px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
   /* heading scale matches the home-page SUMMARY h2 (home-h2/text-headline-lg) */
   .panel-ttl{font-family:var(--font-display);font-size:clamp(1.6rem,6.5vw,44px);line-height:1.02;
     font-weight:700;letter-spacing:-.015em;text-transform:uppercase;color:var(--ink)}
   /* meta stacks under the title on its own line (no split heading/description header) */
   .panel-meta{flex-basis:100%;font-size:13px;color:var(--muted)}
+  /* corner mascot button — same absolute-badge convention as .f2badge/.sstscale-float */
+  .snaggle-info-btn,.snaggle-info-btn:hover,.snaggle-info-btn:active{position:absolute;top:10px;right:10px;
+    border:0;background:none;padding:0;cursor:pointer;line-height:0;box-shadow:none;transform:none;overflow:hidden}
+  /* gif canvas has ~33% dead space above the artwork — crop it so the shark rides high
+     (-20% of width ≈ 30% of the 440x304 gif's height) */
+  .snaggle-info-btn img{display:block;width:clamp(150px,36vw,240px);height:auto;margin-top:-20%;
+    image-rendering:pixelated;mix-blend-mode:multiply}
+  .snaggle-info-btn:hover img{transform:scale(1.05)}
   .panel-bd{padding:18px 20px}
   .panel-bd.flush{padding:0}
   /* maps/iframes inside a panel shed their own chrome to avoid a box-in-a-box */
@@ -497,8 +505,8 @@
      showed on phones. Keep this at the end of the file.
      ============================================================= */
   @media(max-width:560px){
-    .wrap{box-sizing:border-box;padding:0 12px}
-    body{font-size:13px}
+    .wrap{box-sizing:border-box;padding:0}
+    body{font-size:13px;padding-left:12px;padding-right:12px}
     h1{font-size:26px}
     /* pager fits narrow screens: tighter gaps, smaller buttons, wraps if needed */
     .fgpager{gap:8px}
@@ -609,16 +617,17 @@
 
   /* Pixel chrome on phones: brand left, square hamburger right, menu drops as a notched card */
   @media(max-width:560px){
-    .tabs{top:0;left:0;right:0;height:56px;justify-content:space-between;align-items:center;padding:0 14px;
+    .tabs{top:0;left:0;right:0;height:56px;justify-content:space-between;align-items:center;padding:0 12px;
       background:#F2EAD6;border-bottom:2px solid #161310;box-shadow:0 4px 0 0 #161310}
     .nav-brand{padding:0;font-size:22px}
     .nav-toggle{order:2;width:42px;height:42px;border-radius:0;border:2px solid #161310;
       background:#FFFAEF;box-shadow:2px 2px 0 0 #161310}
-    .tabs-inner{top:calc(100% + 8px);right:14px;left:auto;border-radius:0;border:2px solid #161310;
+    .tabs-inner{top:calc(100% + 8px);right:12px;left:auto;border-radius:0;border:2px solid #161310;
       background:#F2EAD6;box-shadow:4px 4px 0 0 #161310;margin-left:0;padding:8px}
     .tab,.tab-dd>.tab{width:100%;justify-content:flex-start;font-size:20px;padding:11px 14px}
     .tab.active,.tab-dd>.tab.active{box-shadow:inset 4px 0 0 0 #2E5DD6}
     .tab-menu{border:0;box-shadow:none;background:transparent;padding:0 0 4px 12px}
+    footer{padding-left:12px;padding-right:12px}
     .foot-grid{grid-template-columns:1fr;text-align:center;gap:14px}
     .foot-brand{text-align:center}
     .foot-links{flex-wrap:wrap}
