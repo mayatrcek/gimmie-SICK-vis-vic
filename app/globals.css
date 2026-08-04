@@ -62,7 +62,7 @@
 
   --font-display-font: var(--font-pixelify), sans-serif;
   --font-hud-font: var(--font-vt323), monospace;
-  --font-body-font: var(--font-sora), sans-serif;
+  --font-body-font: var(--font-ibm-plex-sans), sans-serif;
   --font-display-lg: var(--font-pixelify), sans-serif;
   --font-display-xl: var(--font-pixelify), sans-serif;
   --font-display-xxl: var(--font-pixelify), sans-serif;
@@ -70,7 +70,7 @@
   --font-headline-md: var(--font-pixelify), sans-serif;
   --font-hud-md: var(--font-vt323), monospace;
   --font-hud-sm: var(--font-vt323), monospace;
-  --font-body-md: var(--font-sora), sans-serif;
+  --font-body-md: var(--font-ibm-plex-sans), sans-serif;
 
   --text-display-xxl: 128px;
   --text-display-xxl--line-height: 0.92;

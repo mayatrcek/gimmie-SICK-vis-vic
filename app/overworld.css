@@ -22,9 +22,9 @@
     --muted:#3A332A; --accent:#2E5DD6; --warm:#E2522E; --green:#2F6E4F;
     --amazing:#2F6E4F; --good:#2E5DD6; --marg:#E2522E; --poor:#A8200D;
 
-    /* Type families — Pixelify display / Inter body / VT323 HUD */
+    /* Type families — Pixelify display / IBM Plex Sans body / VT323 HUD */
     --font-display:var(--font-pixelify),ui-monospace,monospace;
-    --font-sans:var(--font-inter),system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --font-sans:var(--font-ibm-plex-sans),system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     --font-serif:var(--font-instrument),"Iowan Old Style",Georgia,serif;
     --font-hud:var(--font-vt323),ui-monospace,monospace;
 
@@ -378,7 +378,7 @@
   .chlcard{cursor:pointer}
   .chlcard .f2sci{font-family:var(--font-hud);font-style:normal;font-size:15px}
   /* satellite legend — OVERWORLD sticker badges (VT323 label, accent fill,
-     2px ink border, tap shadow, ±2° rotation) + Inter descriptor */
+     2px ink border, tap shadow, ±2° rotation) + body-font descriptor */
   .chllegend{display:flex;flex-wrap:wrap;gap:12px 26px;padding:4px 16px 12px;
     font-size:13.5px;color:var(--muted)}
   .chlleg{display:inline-flex;align-items:center;gap:9px}
@@ -591,7 +591,7 @@
   /* Footer: full-bleed dark bar with brand / mock links / copyright, data note below */
   footer{width:100vw;margin-left:calc(50% - 50vw);margin-top:24px;
     background:#3A332A;border:0;border-top:2px solid #2E5DD6;border-radius:0;box-shadow:none;
-    color:#F2EAD6;text-align:left;padding:32px 24px;font-family:var(--font-sora),sans-serif}
+    color:#F2EAD6;text-align:left;padding:32px 24px;font-family:var(--font-sans)}
   .foot-grid{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:1fr auto 1fr;
     align-items:center;gap:24px}
   .foot-brand{border:none;background:none;cursor:pointer;padding:0;text-align:left;

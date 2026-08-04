@@ -3,7 +3,7 @@
    Tokens + reusable component classes. Light theme. CSS mode.
    ========================================================================= */
 
-@import url("https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=VT323&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=VT323&display=swap");
 
 /* -------------------------------------------------------------------------
    Tokens
@@ -38,7 +38,7 @@
 
   /* Typography */
   --font-display: "Pixelify Sans", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --font-body: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-hud: "VT323", ui-monospace, Menlo, monospace;
 
   --fs-display-xxl: clamp(56px, 11vw, 128px);

@@ -26,7 +26,7 @@ colors:
   success: "#2F6E4F"
 typography:
   display-font: "Pixelify Sans, ui-monospace, monospace"
-  body-font: "Inter, ui-sans-serif, system-ui, sans-serif"
+  body-font: "IBM Plex Sans, ui-sans-serif, system-ui, sans-serif"
   hud-font: "VT323, ui-monospace, Menlo, monospace"
   display-xxl:
     fontFamily: "{typography.display-font}"
@@ -275,16 +275,16 @@ Contrast rules:
 Three registers, intentionally mixed, never blended.
 
 - **Display — Pixelify Sans 700** is the loud voice. Set hero headlines at 96-128px, section headlines at 44-72px, and button labels at 14-16px. Track tight (-0.01 to -0.02em) and allow the type to overlap imagery and break out of container edges in hero compositions.
-- **Body — Inter 400/500** is the humane voice. Set body at 16-18px, line-height 1.55-1.6, max measure ~64ch. Inter is the only register that handles long-form reading; reserve it for paragraphs, list items, and any text over two lines.
+- **Body — IBM Plex Sans 400/500** is the humane voice. Set body at 16-18px, line-height 1.55-1.6, max measure ~64ch. IBM Plex Sans is the only register that handles long-form reading; reserve it for paragraphs, list items, and any text over two lines.
 - **HUD — VT323** is the marginalia voice. Set at 16-22px for captions, badge chrome, terminal-style labels, timestamps, breadcrumbs, status readouts, and tiny print. VT323 is intentionally chunky on screen — never use it for a paragraph.
 
 Mix rules:
 - Every page should have all three registers visible, but never within the same sentence.
-- Captions next to a headline should always be VT323, never Inter, so the registers stay distinct.
+- Captions next to a headline should always be VT323, never IBM Plex Sans, so the registers stay distinct.
 - Buttons use Pixelify Sans labels in uppercase or small all-caps style; never VT323 on a button.
 - Lead with the headline itself. No eyebrow/kicker label above headings.
 
-Font loading: three Google Fonts (Pixelify Sans 400-700, Inter 400-700, VT323 400). Preconnect to fonts.googleapis.com and fonts.gstatic.com to keep first paint snappy on the loud display sizes.
+Font loading: three Google Fonts (Pixelify Sans 400-700, IBM Plex Sans 400-700, VT323 400). Preconnect to fonts.googleapis.com and fonts.gstatic.com to keep first paint snappy on the loud display sizes.
 
 ## Layout
 
@@ -298,7 +298,7 @@ Page rhythm:
 Hero pattern (centered):
 - One full-width centered display headline (Pixelify Sans, 96-128px).
 - A short VT323 HUD strip directly under the headline (status badge + coordinates + version, separated by `//`).
-- A single supporting Inter paragraph at ~520px, centered.
+- A single supporting IBM Plex Sans paragraph at ~520px, centered.
 - A primary + secondary button pair, centered, side by side.
 - A full-bleed pixel-art image directly under the hero, breaking out past the container edges by 64-96px on either side.
 - The Quest Star ornament sits behind or near the headline at very low opacity (~12%).
@@ -384,7 +384,7 @@ Avoid all curves on chrome. The only curves in the system come from the photogra
 
 Accessibility:
 - All interactive elements have a visible focus state — focused buttons/links gain a 3px sky-cobalt offset outline; focused inputs swap to the cobalt shadow.
-- Body type is Inter at 16-18px — never use VT323 for paragraph copy.
+- Body type is IBM Plex Sans at 16-18px — never use VT323 for paragraph copy.
 - Contrast: ink on parchment ≈ 13.4:1; ink on bone ≈ 15:1; bone on sky-cobalt ≈ 6.2:1.
 - Decorative scanlines and the Quest Star ornament are marked `aria-hidden="true"` so screen readers skip them.
 - Respect `prefers-reduced-motion`: the press translation collapses to a 1px translate with no shadow shift.
@@ -399,9 +399,9 @@ Framework adaptation:
 Do:
 - Lead sections with the headline itself.
 - Use one centered hero per page with a full-bleed pixel-art image that breaks past the container edges.
-- Mix all three type registers (Pixelify Sans / Inter / VT323) on every page so the system reads as authored.
+- Mix all three type registers (Pixelify Sans / IBM Plex Sans / VT323) on every page so the system reads as authored.
 - Use the press-into-shadow metaphor consistently across buttons.
-- Use Phosphor Bold icons paired with VT323 labels, never with Inter.
+- Use Phosphor Bold icons paired with VT323 labels, never with IBM Plex Sans.
 - Let pixel-art images render pixelated and carry the scanline overlay.
 - Stagger card rows with intentional staircase offsets above 1024px.
 - Apply rotated stickers sparingly — at most one per card, at most three across a hero.
