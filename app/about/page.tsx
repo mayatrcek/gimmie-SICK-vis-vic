@@ -113,12 +113,8 @@ export default function About() {
           <a href="https://open-meteo.com" target="_blank" rel="noopener">
             Open-Meteo
           </a>
-          , sea-surface temperature from NOAA ACSPO, chlorophyll from NOAA CoastWatch, seabed
-          habitat from{" "}
-          <a href="https://seamapaustralia.org" target="_blank" rel="noopener">
-            Seamap Australia
-          </a>
-          , and high-resolution bathymetry and depth contours from{" "}
+          , sea-surface temperature from NOAA ACSPO, chlorophyll from NOAA CoastWatch, and
+          high-resolution bathymetry and depth contours from{" "}
           <a href="https://www.marineandcoasts.vic.gov.au/" target="_blank" rel="noopener">
             DEECA CoastKit (Victoria)
           </a>

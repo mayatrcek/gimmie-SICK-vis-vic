@@ -8,7 +8,7 @@ import { pixelDotIcon } from "@/lib/leaflet/icons";
 
 // Click anywhere on the map → pin + OVERWORLD popup with the coordinate and
 // a copy button. Drop into maps that don't already have their own click
-// handler (SstMap/DepthMap/HabitatMap build the coord+copy row into their
+// handler (SstMap/DepthMap build the coord+copy row into their
 // existing click popups/readouts instead).
 export default function CoordCopy() {
   const map = useMap();

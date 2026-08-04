@@ -10,7 +10,7 @@ const CHANNELS: Channel[] = [
   { title: "Forecast", href: "/forecast", cls: "bg-primary text-bone" },
   { title: "Live Data", href: "/live/chlorophyll", cls: "bg-bone text-ink-soft" },
   { title: "Learn", href: "/fish", cls: "bg-secondary text-bone" },
-  { title: "Geography", href: "/geo/habitat", cls: "bg-tertiary text-bone" },
+  { title: "Geography", href: "/geo/depth", cls: "bg-tertiary text-bone" },
 ];
 
 export default function Home() {

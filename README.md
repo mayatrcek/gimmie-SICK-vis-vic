@@ -1,7 +1,7 @@
 # GIMMIE SICK VIS
 
 A daily dive- and fishing-conditions dashboard for the Victorian coast: swell, wind,
-sea-surface temperature, chlorophyll, seabed habitat and bathymetry, from free public
+sea-surface temperature, chlorophyll and bathymetry, from free public
 marine/satellite feeds.
 
 **Live:** https://gimmie-sick-vis-vic.vercel.app (Vercel, auto-deploys from `main`)
@@ -30,13 +30,13 @@ python test_cmems_currents.py  # currents rasterizer self-check (no CMEMS creds 
   - `/live/*` — SST (12-day daily-scan gallery), chlorophyll (daily-scan
     gallery), currents (12-day vector-arrow gallery), altimetry, salinity,
     Nepean cam
-  - `/geo/*` — seabed habitat, depth/bathymetry
+  - `/geo/*` — depth/bathymetry
   - `/fish` — species guide (OVERWORLD sprite cards)
 - `app/api/*` — server route handlers proxying the gov feeds that used to be
   called via JSONP: ERDDAP `timestamp`, `sst-stretch` (regional percentiles that
   drive the SST colour stretch), `sst-fronts` (detected thermal-front cells for
   the SST map overlay), `sst-point` (click-probe temperature readout),
-  Nominatim `geocode`, Seamap `habitat`, DEECA `depth`,
+  Nominatim `geocode`, DEECA `depth`,
   and `depth-tile` (Terrarium elevation PNGs for the dive-map water shading).
 - `components/` — UI + map/chart components. `MapRecall` persists each map's
   last-viewed center/zoom to localStorage (`gsv:mapview:<name>`).
@@ -55,8 +55,7 @@ python test_cmems_currents.py  # currents rasterizer self-check (no CMEMS creds 
 Open-Meteo (marine + weather), NOAA ACSPO L3S 2 km SST + thermal fronts via NOAA
 CoastWatch ERDDAP, Copernicus Marine global ocean forecast surface currents
 (0.083°, `uo`/`vo`) via the `copernicusmarine` Python client, NASA GIBS VIIRS
-chlorophyll (NOAA-20, NOAA-21, Suomi NPP), Seamap Australia benthic habitat,
-DEECA CoastKit bathymetry/contours,
+chlorophyll (NOAA-20, NOAA-21, Suomi NPP), DEECA CoastKit bathymetry/contours,
 Esri basemaps, CARTO basemap + AWS Terrarium bathymetry (dive-sites pixel map).
 All free/public; a planning aid, not for navigation or safety-of-life use.
 

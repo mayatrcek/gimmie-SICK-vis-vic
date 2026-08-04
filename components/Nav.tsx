@@ -34,10 +34,7 @@ const GROUPS: Group[] = [
   {
     id: "geo",
     label: "Geography",
-    items: [
-      { label: "Seabed habitat", href: "/geo/habitat" },
-      { label: "Depth detail", href: "/geo/depth" },
-    ],
+    items: [{ label: "Depth detail", href: "/geo/depth" }],
   },
 ];
 
