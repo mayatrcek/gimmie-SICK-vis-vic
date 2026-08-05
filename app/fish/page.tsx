@@ -1,6 +1,10 @@
 import FishCards from "@/components/FishCards";
 
-export const metadata = { title: "Fish guide — GIMMIE SICK VIS" };
+export const metadata = {
+  title: "Fish guide — GIMMIE SICK VIS",
+  description:
+    "Identify the fish you'll meet on Victorian dives and fishing trips — habitat, depth range and season for each species.",
+};
 
 export default function Fish() {
   return (

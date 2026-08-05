@@ -13,9 +13,24 @@ const CHANNELS: Channel[] = [
   { title: "Geography", href: "/geo/depth", cls: "bg-tertiary text-bone" },
 ];
 
+// Google reads this off the homepage to decide the site name shown above the
+// result — without it the domain gets used (which is why results said "Vercel").
+// https://developers.google.com/search/docs/appearance/site-names
+const SITE_LD = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "GIMMIE SICK VIS",
+  alternateName: ["Gimme Sick Vis", "Gimmie Sick Vis"],
+  url: "https://gimmiesickvis.com",
+};
+
 export default function Home() {
   return (
     <div className="home">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(SITE_LD) }}
+      />
       <QuickScroll to="summary" />
       {/* Quest Star Backdrop */}
       <div className="fixed inset-0 pointer-events-none opacity-10 flex items-center justify-center">

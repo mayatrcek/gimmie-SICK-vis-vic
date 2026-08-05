@@ -1,4 +1,7 @@
-export const metadata = { title: "Store — GIMMIE SICK VIS" };
+export const metadata = {
+  title: "Store — GIMMIE SICK VIS",
+  description: "GIMMIE SICK VIS gear and merch.",
+};
 
 export default function Store() {
   return (

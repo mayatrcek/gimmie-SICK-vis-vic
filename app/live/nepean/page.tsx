@@ -1,7 +1,11 @@
 import LiveFrame from "@/components/LiveFrame";
 import SnaggleInfo from "@/components/SnaggleInfo";
 
-export const metadata = { title: "Point Nepean wave buoy — GIMMIE SICK VIS" };
+export const metadata = {
+  title: "Point Nepean wave buoy — GIMMIE SICK VIS",
+  description:
+    "Live wave height, period and direction from the Point Nepean buoy at the entrance to Port Phillip Bay.",
+};
 
 const DASH =
   "https://portweather-public.omcinternational.com/d/f28ef6a7-b2b9-4906-82b2-d48264b69f35/point-nepean";

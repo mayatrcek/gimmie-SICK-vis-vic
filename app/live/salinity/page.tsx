@@ -1,6 +1,9 @@
 import SnaggleInfo from "@/components/SnaggleInfo";
 
-export const metadata = { title: "Salinity — GIMMIE SICK VIS" };
+export const metadata = {
+  title: "Salinity — GIMMIE SICK VIS",
+  description: "Sea-surface salinity across the Victorian coast — a marker for freshwater runoff after rain.",
+};
 
 export default function Salinity() {
   return (

@@ -17,10 +17,20 @@ const vt323 = VT323({ subsets: ["latin"], weight: "400", variable: "--font-vt323
 const fontVars = [ibmPlexSans, interTight, instrument, sora, pixelify, vt323].map((f) => f.variable).join(" ");
 
 export const metadata: Metadata = {
+  // Canonical host. Without this every page self-reports as gimmie-sick-vis-vic.vercel.app,
+  // which is what Google had indexed. "./" resolves per-route, so each page canonicals itself.
+  metadataBase: new URL("https://gimmiesickvis.com"),
+  alternates: { canonical: "./" },
   title: "GIMMIE SICK VIS",
   description:
     "Daily dive- and fishing-conditions dashboard for the Victorian coast: swell, wind, sea-surface temperature, chlorophyll and seabed data.",
   icons: { icon: "/assets/brand/alpha-dive-flag-32.png" },
+  openGraph: {
+    siteName: "GIMMIE SICK VIS",
+    type: "website",
+    locale: "en_AU",
+    images: ["/assets/home-banner.jpg"],
+  },
 };
 
 export default function RootLayout({

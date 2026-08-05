@@ -1,6 +1,10 @@
 import Image from "next/image";
 
-export const metadata = { title: "About — GIMMIE SICK VIS" };
+export const metadata = {
+  title: "About — GIMMIE SICK VIS",
+  description:
+    "Why this site exists, where the satellite and buoy data comes from, and how to read it before you get in the water.",
+};
 
 // framed-photo look shared by every image on this page — same 2px ink
 // border + hard shadow as the site's map frames

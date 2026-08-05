@@ -4,7 +4,10 @@ A daily dive- and fishing-conditions dashboard for the Victorian coast: swell, w
 sea-surface temperature, chlorophyll and bathymetry, from free public
 marine/satellite feeds.
 
-**Live:** https://gimmie-sick-vis-vic.vercel.app (Vercel, auto-deploys from `main`)
+**Live:** https://gimmiesickvis.com (Vercel, auto-deploys from `main`; the
+`gimmie-sick-vis-vic.vercel.app` host should 301 here). The canonical host is
+hardcoded in `app/layout.tsx` (`metadataBase`), `app/sitemap.ts` and
+`app/robots.ts` — change all three together if the domain ever moves.
 
 Built with **Next.js (App Router) + React + TypeScript + Tailwind v4** and
 react-leaflet. (Ported from the original single-file static site.)

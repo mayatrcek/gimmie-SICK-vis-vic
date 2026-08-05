@@ -1,6 +1,9 @@
 import ContactForm from "./ContactForm";
 
-export const metadata = { title: "Contact — GIMMIE SICK VIS" };
+export const metadata = {
+  title: "Contact — GIMMIE SICK VIS",
+  description: "Get in touch about the site, a dive spot, or a data source worth adding.",
+};
 
 export default function Contact() {
   return (

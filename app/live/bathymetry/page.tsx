@@ -1,6 +1,9 @@
 import SnaggleInfo from "@/components/SnaggleInfo";
 
-export const metadata = { title: "Bathymetry — GIMMIE SICK VIS" };
+export const metadata = {
+  title: "Bathymetry — GIMMIE SICK VIS",
+  description: "Seabed shape and depth contours around the Victorian coast and Port Phillip Bay.",
+};
 
 export default function Bathymetry() {
   return (

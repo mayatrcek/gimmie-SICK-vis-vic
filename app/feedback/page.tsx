@@ -1,7 +1,10 @@
 const FORM =
   "https://docs.google.com/forms/d/e/1FAIpQLSeVaBIkCZPh9SYDHJeJlpWE2n3tH8go57vCOg1Ppq5Wc9-tpQ/viewform";
 
-export const metadata = { title: "Feedback — GIMMIE SICK VIS" };
+export const metadata = {
+  title: "Feedback — GIMMIE SICK VIS",
+  description: "Tell us what's wrong, what's missing, or what you'd like added to the dashboard.",
+};
 
 export default function Feedback() {
   return (

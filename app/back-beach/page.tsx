@@ -1,4 +1,8 @@
-export const metadata = { title: "Back Beach Forecasting — GIMMIE SICK VIS" };
+export const metadata = {
+  title: "Back Beach Forecasting — GIMMIE SICK VIS",
+  description:
+    "How to read swell, wind and tide together to pick a diveable day on Victoria's back beaches.",
+};
 
 export default function BackBeach() {
   return (

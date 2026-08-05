@@ -1,6 +1,9 @@
 import SnaggleInfo from "@/components/SnaggleInfo";
 
-export const metadata = { title: "Sea surface altimetry — GIMMIE SICK VIS" };
+export const metadata = {
+  title: "Sea surface altimetry — GIMMIE SICK VIS",
+  description: "Satellite sea-surface height for Victorian waters, showing eddies and current structure.",
+};
 
 export default function Altimetry() {
   return (
