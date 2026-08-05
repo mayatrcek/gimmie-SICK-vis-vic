@@ -39,13 +39,23 @@
   }
   *{margin:0;padding:0;box-sizing:border-box}
 
-  /* Page is warm parchment, flat — no gradients on OVERWORLD chrome */
+  /* Page is warm parchment, flat — no gradients on OVERWORLD chrome.
+     No bottom padding: the footer is full-bleed and dark, so any padding under
+     it just shows as a parchment strip along the bottom of every page. */
   body{font-family:var(--font-sans);font-size:15px;line-height:1.55;color:var(--ink);
-       padding:calc(var(--tabh) + 18px) 24px 24px;min-height:100vh;
+       padding:calc(var(--tabh) + 18px) 24px 0;min-height:100vh;
        background:var(--paper);
        -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
        font-variant-numeric:tabular-nums;font-feature-settings:"ss01","cv11"}
-  .wrap{max-width:1240px;margin:0 auto}
+  /* Sticky footer: short pages (the "coming soon" stubs) otherwise left a big
+     parchment gap under the footer. body/.wrap are flex columns and the spacer
+     before the footer grows to eat the slack, pinning the footer to the bottom.
+     A growing spacer rather than margin-top:auto on the footer, because auto
+     collapses to 0 on tall pages and the dark sections would meet the dark
+     footer with no break — the 24px basis keeps that gap. */
+  body{display:flex;flex-direction:column}
+  .wrap{max-width:1240px;margin:0 auto;flex:1 0 auto;display:flex;flex-direction:column}
+  .wrap-spacer{flex:1 0 24px}
   header{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;justify-content:space-between;margin-bottom:6px}
   h1{font-family:var(--font-display);font-size:clamp(28px,4vw,44px);font-weight:700;line-height:1.04;letter-spacing:-.025em}
   .region{color:var(--accent);font-weight:600}
@@ -686,7 +696,8 @@
 
 
   /* Footer: full-bleed dark bar with brand / mock links / copyright, data note below */
-  footer{width:100vw;margin-left:calc(50% - 50vw);margin-top:24px;
+  /* .wrap-spacer above it handles both the gap and the push to the bottom */
+  footer{width:100vw;margin-left:calc(50% - 50vw);margin-top:0;
     background:#3A332A;border:0;border-top:2px solid #2E5DD6;border-radius:0;box-shadow:none;
     color:#F2EAD6;text-align:left;padding:32px 24px;font-family:var(--font-sans)}
   .foot-grid{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:1fr auto 1fr;
@@ -706,7 +717,11 @@
 
   /* Pixel chrome on phones: brand left, square hamburger right, menu drops as a notched card */
   @media(max-width:560px){
-    .tabs{top:0;left:0;right:0;height:56px;justify-content:space-between;align-items:center;padding:0 12px;
+    /* the phone bar is 56px, so --tabh has to say so — body's top padding and
+       .home's -18px pull are both derived from it, and the old 60px left a 4px
+       parchment strip showing under the bar */
+    :root{--tabh:56px}
+    .tabs{top:0;left:0;right:0;height:var(--tabh);justify-content:space-between;align-items:center;padding:0 12px;
       background:#F2EAD6;border-bottom:2px solid #161310;box-shadow:0 4px 0 0 #161310}
     .nav-brand{padding:0;font-size:22px}
     .nav-toggle{order:2;width:42px;height:42px;border-radius:0;border:2px solid #161310;

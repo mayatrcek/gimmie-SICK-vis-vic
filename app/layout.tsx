@@ -39,6 +39,9 @@ export default function RootLayout({
         <div className="wrap">
           <Nav />
           {children}
+          {/* keeps a gap above the footer and swallows the leftover height on
+              short pages so it still sits on the bottom — see .wrap-spacer */}
+          <div className="wrap-spacer" aria-hidden="true" />
           <Footer />
         </div>
         <TestingNotice />

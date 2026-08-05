@@ -54,6 +54,13 @@ body {
 .animate-marquee { display: flex; width: max-content; animation: marquee 30s linear infinite; }
 .dive-flag { display: inline-block; vertical-align: middle; margin: 0 24px; image-rendering: pixelated; }
 
+/* The hero was min-h-[85vh], an arbitrary fraction, so nav + hero + marquee never
+   summed to a screen and the parchment section below showed as a pale strip along
+   the bottom on load. The fold is now exactly the viewport minus the nav, with the
+   hero taking whatever the marquee doesn't. dvh so mobile browser chrome counts. */
+.home .home-fold { min-height: calc(100dvh - var(--tabh)); display: flex; flex-direction: column; }
+.home .home-fold > section:first-child { flex: 1; }
+
 /* Fluid mobile clamps for the big pixel display type + full-bleed padding. */
 .home .px-bleed { padding-left: clamp(12px, 4vw, 96px); padding-right: clamp(12px, 4vw, 96px); }
 .home .p-xxl { padding: clamp(20px, 5vw, 48px); }
@@ -63,4 +70,8 @@ body {
 @media (max-width: 560px) {
   .home .home-tagline { padding: 10px 14px; }
   .home .home-tagline span { font-size: 16px; }
+  /* Nav channel cards: 16/9 makes each ~215px tall once they stack, so four of
+     them is most of a screen. Drop the aspect ratio and let them be short bars —
+     still full-width tap targets, a third of the scroll. */
+  .home .channel-card-animate .aspect-video { aspect-ratio: auto; min-height: 92px; }
 }

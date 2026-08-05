@@ -22,8 +22,10 @@ export default function Home() {
         <div className="w-[800px] h-[800px] quest-star" />
       </div>
 
-      {/* Hero */}
-      <section className="relative min-h-[85vh] flex flex-col items-center justify-center text-center overflow-hidden">
+      {/* Hero + marquee together fill exactly one screen (see .home-fold), so the
+          next section never peeks in as a pale strip along the bottom. */}
+      <div className="home-fold">
+      <section className="relative flex flex-col items-center justify-center text-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <div
             className="home-hero-bg w-full h-full bg-cover bg-center"
@@ -82,6 +84,7 @@ export default function Home() {
           </div>
         </section>
       </div>
+      </div>
 
       {/* Summary */}
       <section id="summary" className="bg-parchment py-xxxl px-bleed" style={{ scrollMarginTop: "var(--tabh)" }}>
@@ -120,38 +123,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Find your drop */}
-      <section className="py-xxxl px-bleed max-w-page-max mx-auto text-center">
-        <div className="max-w-2xl mx-auto bg-bone p-xxl border-2 border-ink-soft shadow-[12px_12px_0px_0px_#2e5dd6]">
-          <h3 className="home-h2 font-display-lg text-headline-lg text-ink-soft mb-md uppercase">
-            Find your drop
-          </h3>
-          <div className="relative mb-xl">
-            <input
-              className="w-full bg-parchment border-2 border-ink-soft p-md font-hud-md text-hud-md focus:ring-0 focus:outline-none focus:shadow-[4px_4px_0px_0px_#2e5dd6] transition-all"
-              placeholder="Search a site or drop in coordinates…"
-              type="text"
-            />
-            <span className="material-symbols-outlined absolute right-md top-1/2 -translate-y-1/2 text-ink-soft text-3xl">
-              search
-            </span>
-          </div>
-          <div className="flex flex-wrap justify-center gap-sm">
-            <button
-              type="button"
-              className="bg-primary text-on-primary px-xl py-md font-hud-md text-hud-md border-2 border-ink-soft shadow-[4px_4px_0px_0px_#3A332A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none active:translate-x-[4px] active:translate-y-[4px] transition-all uppercase"
-            >
-              SEARCH
-            </button>
-            <button
-              type="button"
-              className="bg-bone text-ink-soft px-xl py-md font-hud-md text-hud-md border-2 border-ink-soft shadow-[4px_4px_0px_0px_#3A332A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none active:translate-x-[4px] active:translate-y-[4px] transition-all uppercase"
-            >
-              SURPRISE ME
-            </button>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
