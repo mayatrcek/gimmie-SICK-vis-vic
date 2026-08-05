@@ -1,15 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-// OVERWORLD modal: the site is in testing. Shows on every full page load /
-// refresh (state survives client-side route changes, so in-app navigation
-// doesn't re-trigger it).
+// bump the version suffix to show the notice again to everyone who dismissed it
+const KEY = "gsv:testing-notice:v1";
+
+// OVERWORLD modal: the site is in testing. Shows once — dismissing it is
+// remembered in localStorage, so it never comes back on later loads.
 export default function TestingNotice() {
-  const [open, setOpen] = useState(true);
+  // starts closed and opens after mount: localStorage doesn't exist during SSR,
+  // and this way a returning visitor never sees the modal flash up before the
+  // stored dismissal is read.
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem(KEY)) setOpen(true);
+    } catch {
+      setOpen(true); // storage blocked (private mode) → fall back to showing it
+    }
+  }, []);
 
   function dismiss() {
     setOpen(false);
+    try {
+      localStorage.setItem(KEY, "1");
+    } catch {} // dismissal just won't persist
   }
 
   if (!open) return null;
