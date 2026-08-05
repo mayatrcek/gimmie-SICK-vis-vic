@@ -24,7 +24,12 @@ export const metadata: Metadata = {
   title: "GIMMIE SICK VIS",
   description:
     "Daily dive- and fishing-conditions dashboard for the Victorian coast: swell, wind, sea-surface temperature, chlorophyll and seabed data.",
-  icons: { icon: "/assets/brand/alpha-dive-flag-32.png" },
+  // 96x96 (2x48): Google wants a square favicon that's a multiple of 48px and
+  // ignores anything smaller, which the old 32px file was. Generated as an exact
+  // 3x nearest-neighbour upscale of the 32px flag so the pixel art stays crisp.
+  icons: {
+    icon: [{ url: "/assets/brand/alpha-dive-flag-96.png", sizes: "96x96", type: "image/png" }],
+  },
   openGraph: {
     siteName: "GIMMIE SICK VIS",
     type: "website",
