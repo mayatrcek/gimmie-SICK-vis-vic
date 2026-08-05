@@ -89,7 +89,10 @@
   /* Floating UI chrome: stop the browser zooming (pinch + double-tap) when a
      touch lands on a control instead of the map. `none` blocks all gestures;
      the scrollable forecast panel keeps pan so its table still scrolls. */
-  .tabs-inner,.tab-menu,.geoinfo{touch-action:none}
+  .geoinfo{touch-action:none}
+  /* The phone nav menu scrolls (it can outgrow the screen with a group open),
+     so it needs pan-y — `none` here made the lower items unreachable. */
+  .tabs-inner,.tab-menu{touch-action:pan-y}
 
 
   .surfbox{margin:14px 0 4px}
@@ -595,7 +598,9 @@
     .tab-menu::before{display:none}
     /* transform:none must be repeated here — the desktop .tab-dd.open .tab-menu rule
        (translateX(-50%), for the centred popover) outranks the mobile base above */
-    .tab-dd.open .tab-menu{transform:none;max-height:420px;padding:2px 0 4px 12px;pointer-events:auto}
+    /* cap is a ceiling, not a height — needs headroom for labels that wrap to two
+       lines on narrow phones (8 items need ~390px flat, ~430px wrapped) */
+    .tab-dd.open .tab-menu{transform:none;max-height:520px;padding:2px 0 4px 12px;pointer-events:auto}
     .tab-menu-item{width:100%;padding:11px 14px;border-radius:10px}
 
     #map{height:272px}
