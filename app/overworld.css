@@ -54,7 +54,13 @@
      collapses to 0 on tall pages and the dark sections would meet the dark
      footer with no break — the 24px basis keeps that gap. */
   body{display:flex;flex-direction:column}
-  .wrap{max-width:1240px;margin:0 auto;flex:1 0 auto;display:flex;flex-direction:column}
+  /* width:100% is load-bearing — do not drop it. body is a column flex container,
+     so .wrap is a flex item and `margin:0 auto` is a cross-axis auto margin, which
+     suppresses align-items:stretch. Without an explicit width the item shrink-to-fits
+     its content and inflates to the 1240px cap on phones the moment anything wide
+     appears inside (e.g. an expanded forecast card's 2700px week table), pushing the
+     page off-screen where overflow-x:hidden clips it out of reach. */
+  .wrap{width:100%;max-width:1240px;margin:0 auto;flex:1 0 auto;display:flex;flex-direction:column}
   .wrap-spacer{flex:1 0 24px}
   header{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;justify-content:space-between;margin-bottom:6px}
   h1{font-family:var(--font-display);font-size:clamp(28px,4vw,44px);font-weight:700;line-height:1.04;letter-spacing:-.025em}
