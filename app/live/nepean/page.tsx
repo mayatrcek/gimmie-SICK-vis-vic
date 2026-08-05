@@ -27,7 +27,7 @@ export default function Nepean() {
           </a>
         </SnaggleInfo>
       </div>
-      <div className="panel-bd">
+      <div className="panel-bd flush">
         <LiveFrame
           src={`${DASH}?kiosk&theme=light`}
           loading="lazy"

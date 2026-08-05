@@ -209,14 +209,22 @@
   .livewrap{display:flex;gap:16px;align-items:flex-start}
   @media(max-width:860px){.livewrap{flex-direction:column}}
   .livecol{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
-  .liveframe{width:100%;height:820px;border:1px solid var(--line);border-radius:var(--radius-tile);overflow:hidden;background:#FFFAEF;box-shadow:var(--shadow-1)}
-  .liveframe iframe{width:100%;height:1500px;border:0;display:block}
+  /* no chrome of its own — it sits flush inside the panel, which supplies the border.
+     --crop trims Grafana's "Waves" row header off the top; the frame's overflow
+     hides it. Cross-origin, so it has to be cropped rather than hidden. */
+  .liveframe{--crop:40px;width:100%;height:calc(820px - var(--crop));
+    border:0;border-radius:0;overflow:hidden;background:#FFFAEF;box-shadow:none}
+  .liveframe iframe{width:100%;height:1500px;border:0;display:block;margin-top:calc(-1 * var(--crop))}
   /* Phones: draw the embed at 2.5x width so Grafana keeps its desktop grid
      (stays above its ~768px stacking breakpoint on 360px screens), then scale
-     to fit. Box height = 820 * .4 so the same sea-temp crop applies. */
+     to fit. Height is the desktop box scaled by the same .4, so the bottom lands
+     on the same cut and the sea-temp row below it stays clipped off. */
   @media(max-width:560px){
-    .liveframe{height:328px}
-    .liveframe iframe{width:250%;transform:scale(.4);transform-origin:0 0}
+    .liveframe{height:calc((820px - var(--crop)) * .4)}
+    /* margin is laid out before the scale, so the crop has to be pre-multiplied
+       by the same .4 to remove the same slice of Grafana's own pixels */
+    .liveframe iframe{width:250%;transform:scale(.4);transform-origin:0 0;
+      margin-top:calc(-.4 * var(--crop))}
   }
 
   .legend{display:flex;flex-wrap:wrap;gap:18px;margin:14px 2px 0;text-transform:uppercase;
@@ -722,7 +730,7 @@
      ============================================================= */
   /* chunky 2px ink frames on outer chrome (inner dividers stay border-tan) */
   #map,#geomap,#bathymap,#sstmap,.scard,.site,.card,.env,.panel,
-  .geolegendbox,.geoinfo,.liveframe,.surfframe{border:2px solid var(--ink)}
+  .geolegendbox,.geoinfo,.surfframe{border:2px solid var(--ink)}
   /* kill leftover hardcoded curves — zero border-radius on chrome */
   .geoinfo,.chip,.wbar,.mbar span,.dot,.livedot,
   .tab-badge,.rm,
