@@ -74,3 +74,6 @@ OPeNDAP/ERDDAP/WMS in 2024 and only ships a Python client.
   (≤560px) is hardcoded to 56px, not `--tabh`, so there's a 4px mismatch — harmless
   now, but a bug waiting if either height changes. Any future full-screen overlay
   needs the same offset.
+
+## Extra notes
+- Ask Maya is she is happy to commit and push to testing after every siginifant change

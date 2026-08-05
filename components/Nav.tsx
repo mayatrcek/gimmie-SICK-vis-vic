@@ -51,6 +51,14 @@ export default function Nav() {
     document.addEventListener("click", onDoc);
     return () => document.removeEventListener("click", onDoc);
   }, []);
+  // The phone menu is a full-screen sheet, so freeze the page under it (this also
+  // takes the page scrollbar away). CSS scopes the lock to ≤560px, so resizing to
+  // desktop while it's open can't leave the page stuck.
+  useEffect(() => {
+    if (!navOpen) return;
+    document.body.classList.add("nav-locked");
+    return () => document.body.classList.remove("nav-locked");
+  }, [navOpen]);
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);

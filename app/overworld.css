@@ -556,14 +556,29 @@
     .tabs.nav-open .nav-burger::before{transform:translateY(6px) rotate(45deg)}
     .tabs.nav-open .nav-burger::after{transform:translateY(-6px) rotate(-45deg)}
 
-    /* the round button expands into a vertical menu card anchored under it, top-left */
-    .tabs-inner{position:absolute;top:calc(100% + 8px);left:12px;
-      display:flex;flex-direction:column;align-items:stretch;gap:2px;
-      width:min(300px,calc(100vw - 24px));max-width:none;padding:8px;border-radius:20px;
-      max-height:calc(100vh - 84px);max-height:calc(100dvh - 84px);overflow-y:auto;
-      transform-origin:top left;transform:scale(.9);opacity:0;visibility:hidden;pointer-events:none;
+    /* the toggle opens a full-screen sheet under the bar (fixed, so it fills the
+       viewport rather than the 56px bar it lives in; 60px clears the bar's 4px
+       bottom shadow). Scrolls if the rows outgrow the screen. */
+    .tabs-inner{position:fixed;top:60px;left:0;right:0;bottom:0;
+      display:flex;flex-direction:column;align-items:center;gap:2px;
+      width:auto;max-width:none;padding:12px;border-radius:0;
+      /* contain stops a scroll that runs off the end of the sheet from chaining
+         into the page behind it */
+      max-height:none;overflow-y:auto;overscroll-behavior:contain;
+      /* `safe` keeps the rows scrollable when they outgrow the sheet — plain
+         `center` would push the top ones past the scroll origin, out of reach */
+      justify-content:safe center;
+      transform-origin:top center;transform:translateY(-8px);opacity:0;visibility:hidden;pointer-events:none;
       transition:opacity .16s var(--ease),transform .16s var(--ease),visibility .16s}
-    .tabs.nav-open .tabs-inner{transform:scale(1);opacity:1;visibility:visible;pointer-events:auto}
+    .tabs.nav-open .tabs-inner{transform:translateY(0);opacity:1;visibility:visible;pointer-events:auto}
+    /* Nav.tsx adds .nav-locked while the sheet is open: freezes the page under it
+       and drops its scrollbar. Scoped to the phone breakpoint on purpose. */
+    body.nav-locked{overflow:hidden}
+    /* The rows share one width and the container centres them, so together they
+       form an invisible centred column that every label hangs off the left of.
+       Beats centring the text: the current-page bar stays beside its label
+       instead of stranded at the screen edge. */
+    .tabs-inner>.tab,.tabs-inner>.tab-dd{width:min(320px,100%)}
     .tab{white-space:normal;width:100%;text-align:left;justify-content:flex-start;
       padding:12px 16px;font-size:15px;border-radius:12px}
 
@@ -676,10 +691,22 @@
     .nav-brand{padding:0;font-size:22px}
     .nav-toggle{order:2;width:42px;height:42px;border-radius:0;border:2px solid #161310;
       background:#FFFAEF;box-shadow:2px 2px 0 0 #161310}
-    .tabs-inner{top:calc(100% + 8px);right:12px;left:auto;border-radius:0;border:2px solid #161310;
-      background:#F2EAD6;box-shadow:4px 4px 0 0 #161310;margin-left:0;padding:8px}
+    /* full-screen sheet: no card chrome, just the bar's ink edge along the top.
+       align-items must be re-stated here — the desktop .tabs-inner rule sits
+       below the first phone block and puts `stretch` back. */
+    .tabs-inner{border-radius:0;border:0;border-top:2px solid #161310;
+      background:#F2EAD6;box-shadow:none;margin-left:0;padding:14px 12px;align-items:center}
     .tab,.tab-dd>.tab{width:100%;justify-content:flex-start;font-size:20px;padding:11px 14px}
-    .tab.active,.tab-dd>.tab.active{box-shadow:inset 4px 0 0 0 #2E5DD6}
+    /* Current-page bar is a border, not an inset shadow. These rows carry a
+       transform for the open cascade, which puts them on their own compositing
+       layer, and an inset shadow bleeds a hairline along that layer's horizontal
+       edges at fractional DPRs — a thin blue line under the active row on some
+       phones. Border-left is crisp; padding drops 14px->10px so text stays put. */
+    .tab.active,.tab-dd>.tab.active{box-shadow:none;border-left:4px solid #2E5DD6;padding-left:10px}
+    /* nested items mark the current page the same way as a top-level tab —
+       bar + blue label, not the desktop menu's filled block */
+    .tab-menu-item.active{background:none;color:#2E5DD6;
+      border-left:4px solid #2E5DD6;padding-left:10px}
     .tab-menu{border:0;box-shadow:none;background:transparent;padding:0 0 4px 12px}
     footer{padding-left:12px;padding-right:12px}
     .foot-grid{grid-template-columns:1fr;text-align:center;gap:14px}
