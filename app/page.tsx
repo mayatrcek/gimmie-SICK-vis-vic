@@ -49,12 +49,12 @@ export default function Home() {
           <div className="absolute inset-0 bg-ink-soft/40 mix-blend-overlay" />
         </div>
         <div className="absolute left-0 w-full top-1/4 -translate-y-1/2 z-10 px-md">
-          <h1 className="home-display font-display-xxl text-display-xl md:text-display-xxl text-bone drop-shadow-[8px_8px_0px_rgba(25,19,16,1)] mb-xxs hero-title-entrance">
+          <h1 className="home-display font-display-xxl text-display-xl md:text-display-xxl text-bone drop-shadow-[8px_8px_0px_rgba(25,19,16,1)] mb-md hero-title-entrance">
             GIMME SICK VIS
           </h1>
           <div className="home-tagline inline-flex flex-col md:flex-row items-center gap-md bg-ink-soft text-parchment py-sm px-xl border-2 border-primary shadow-[6px_6px_0px_0px_#2e5dd6]">
             <span className="font-hud-md text-hud-md tracking-[0.2em] uppercase">
-              Daily Ocean &amp; Dive Update
+              Daily Scans and Forecasts
             </span>
             <span className="hidden md:block w-px h-6 bg-parchment/30" />
             <span className="font-hud-md text-hud-md italic opacity-90">
@@ -66,7 +66,7 @@ export default function Home() {
 
       {/* Feature marquee */}
       <div className="w-full overflow-hidden">
-        <section className="bg-ink-soft border-y-2 border-primary py-sm relative overflow-hidden">
+        <section className="bg-ink-soft py-sm relative overflow-hidden">
           <div className="animate-marquee">
             {[0, 1].map((n) => (
               <div
