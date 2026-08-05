@@ -62,26 +62,19 @@ export default function About() {
             Science, I&rsquo;ve been able to apply some of my skills into building this site
             along with the help of various AI models. Mainly Claude Code in this case.
           </p>
-          <div style={{ textAlign: "right" }}>
-            <a
-              href="https://github.com/mayatrcek/gimmie-SICK-vis-vic"
-              target="_blank"
-              rel="noopener"
-              className="btn"
-            >
-              View the GitHub repo
-            </a>
-          </div>
         </div>
 
         <div className="grid2" style={{ marginTop: 64, alignItems: "center" }}>
-          <Image
-            src="/assets/about/fishing-licence-artwork.jpg"
-            alt="Maya's illustration of Victorian fish and sea life, chosen as the new Victorian Recreational Fishing Licence design"
-            width={1080}
-            height={745}
-            style={{ ...framed, width: "100%", height: "auto" }}
-          />
+          {/* sizing/centring lives in .fbembed — the plugin is a fixed 500x715 */}
+          <div className="fbembed">
+            <iframe
+              src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Fmayatrcek%2Fposts%2Fpfbid035JbKxviFbciyJqETru5CQLpa86XB1QJaDtktyo7wMbjerN9bNW7rNWMhywdywEQhl&show_text=true&width=500"
+              title="Maya's fishing licence artwork post on Facebook"
+              scrolling="no"
+              allowFullScreen
+              allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+            />
+          </div>
           <div>
             <p style={pStyle}>
               I&rsquo;m also an artist as well?! Every now and then I do something. You might
