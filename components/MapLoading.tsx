@@ -29,8 +29,10 @@ export default function MapLoading() {
       }
     };
     const onAdd = (e: L.LayerEvent) => arm(e.layer);
-    // ponytail: hide anyway after 15s so a dead tile server can't wedge the gif
-    const safety = setTimeout(done, 15000);
+    // ponytail: hide anyway after 30s so a dead tile server can't wedge the gif.
+    // Was 15s, which fired mid-load on the Sentinel detail map (~20s cold) and
+    // left a bare map for the last stretch — keep it clear of the slowest source.
+    const safety = setTimeout(done, 30000);
     map.eachLayer(arm);
     map.on("layeradd", onAdd);
     return done;

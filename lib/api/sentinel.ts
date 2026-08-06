@@ -39,9 +39,15 @@ export function landBackdropMercatorURL(bboxMeters: string, width = 1024, height
   return `${GIBS}?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=OSM_Land_Mask&CRS=EPSG:3857&BBOX=${bboxMeters}&WIDTH=${width}&HEIGHT=${height}&FORMAT=image/png&TRANSPARENT=true`;
 }
 
-// Short-lived (~10 min) — fetch fresh per server-side call, never cache or
-// send to the client.
+// Short-lived (~10 min). Cached in module scope for its stated lifetime, minus
+// a 60s safety margin: without this, every tile request paid a full OAuth round
+// trip before its Process call, so one detail map (8 tiles at z7, 21 at z8) meant
+// 8-21 extra sequential round trips to Copernicus. Server-only — never sent to
+// the client. Cache is per serverless instance, which is all we need.
+let cached: { token: string; expires: number } | null = null;
+
 export async function getToken(): Promise<string> {
+  if (cached && Date.now() < cached.expires) return cached.token;
   const res = await fetch(
     "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token",
     {
@@ -56,7 +62,11 @@ export async function getToken(): Promise<string> {
   );
   if (!res.ok) throw new Error(`CDSE auth failed: ${res.status}`);
   const data = await res.json();
-  return data.access_token;
+  cached = {
+    token: data.access_token,
+    expires: Date.now() + Math.max(0, (data.expires_in ?? 600) - 60) * 1000,
+  };
+  return cached.token;
 }
 
 // Shared Process API call — thumbnail and tile routes only differ in bbox

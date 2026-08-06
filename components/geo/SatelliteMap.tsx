@@ -8,27 +8,41 @@ import MapRecall from "@/components/MapRecall";
 import CoordCopy from "@/components/geo/CoordCopy";
 import { VIC_COAST_BOUNDS, landBackdropMercatorURL } from "@/lib/api/sentinel";
 
-// Simple land/sea silhouette under the satellite tiles, showing through
-// swath gaps instead of solid black (tiles now carry real alpha there — see
-// TRUE_COLOR_EVALSCRIPT's dataMask band). Projected to Web Mercator meters
-// via the map's own CRS so it lines up with Leaflet's tile grid.
-function LandBackdrop() {
+// Two layers under the satellite tiles:
+//
+//  - the land/sea silhouette, showing through swath gaps instead of solid black
+//    (tiles carry real alpha there — see TRUE_COLOR_EVALSCRIPT's dataMask band).
+//    Projected to Web Mercator meters via the map's own CRS so it lines up with
+//    Leaflet's tile grid.
+//  - the gallery card's own thumbnail, stretched over the identical bbox. It is
+//    already in the browser cache (the card just showed it), so it paints
+//    immediately and gives a blurry preview of the real scan while the tiles
+//    render, instead of a blank map. Same evalscript, so its no-data alpha lines
+//    up with the tiles' and the land mask still shows through the gaps.
+function Backdrop({ date }: { date: string }) {
   const map = useMap();
   useEffect(() => {
     const sw = map.options.crs!.project(L.latLng(VIC_COAST_BOUNDS[0][0], VIC_COAST_BOUNDS[0][1]));
     const ne = map.options.crs!.project(L.latLng(VIC_COAST_BOUNDS[1][0], VIC_COAST_BOUNDS[1][1]));
-    const url = landBackdropMercatorURL(`${sw.x},${sw.y},${ne.x},${ne.y}`);
-    const layer = L.imageOverlay(url, VIC_COAST_BOUNDS, {
+    const land = L.imageOverlay(landBackdropMercatorURL(`${sw.x},${sw.y},${ne.x},${ne.y}`), VIC_COAST_BOUNDS, {
       pane: "tilePane",
       className: "compmask",
       interactive: false,
       attribution: "",
     }).addTo(map);
-    layer.setZIndex(50);
+    land.setZIndex(50);
+    const preview = L.imageOverlay(`/api/satellite/thumbnail?date=${date}`, VIC_COAST_BOUNDS, {
+      pane: "tilePane",
+      className: "satpreview",
+      interactive: false,
+      attribution: "",
+    }).addTo(map);
+    preview.setZIndex(100);
     return () => {
-      map.removeLayer(layer);
+      map.removeLayer(land);
+      map.removeLayer(preview);
     };
-  }, [map]);
+  }, [map, date]);
   return null;
 }
 
@@ -47,7 +61,7 @@ export default function SatelliteMap({ date }: { date: string }) {
     >
       <MapLoading />
       <MapRecall name="satellite" />
-      <LandBackdrop />
+      <Backdrop date={date} />
       <TileLayer
         url={`/api/satellite/tile/${date}/{z}/{x}/{y}`}
         attribution="Imagery: Copernicus Sentinel-2 (ESA)"

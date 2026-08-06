@@ -4,9 +4,34 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { SST_DS } from "@/lib/api/erddap";
 
 type Item = { label: string; href: string };
 type Group = { id: string; label: string; items: Item[] };
+
+// The fetches that gate a live page's first paint (SatelliteGallery /
+// SstGallery both render a loader until these land). Warmed into the browser
+// HTTP cache the first time the Live data menu opens, so by the time a link is
+// clicked the page renders from cache instead of spinning.
+//
+// ponytail: menu-open, not page-load. These are cheap catalogue/metadata
+// queries, but firing them for every visitor on every page view still burns
+// ERDDAP/CDSE quota for people who never open Live data. Opening the menu is
+// the earliest honest signal of intent. Move to page-load only if the quota
+// headroom is there. The remaining live pages can't be warmed this way:
+// chlorophyll is server-rendered, currents/nepean are cross-origin iframes.
+const LIVE_WARM = [
+  "/api/satellite/scenes",
+  "/api/sst-stretch",
+  "/api/sst-times",
+  `/api/timestamp?ds=${SST_DS}`,
+];
+let warmed = false;
+function warmLive() {
+  if (warmed) return;
+  warmed = true;
+  for (const url of LIVE_WARM) fetch(url).catch(() => {});
+}
 
 const GROUPS: Group[] = [
   {
@@ -132,12 +157,16 @@ function Dropdown({
   active: boolean;
   isActive: (href: string) => boolean;
 }) {
+  // hover fires ahead of the click on pointer devices; the click covers touch
+  const warm = g.id === "live" ? warmLive : undefined;
   return (
-    <div className={`tab-dd${open ? " open" : ""}`}>
+    <div className={`tab-dd${open ? " open" : ""}`} onMouseEnter={warm}>
       <button
         className={`tab${active ? " active" : ""}`}
+        onFocus={warm}
         onClick={(e) => {
           e.stopPropagation();
+          warm?.();
           onToggle(open ? null : g.id);
         }}
         aria-haspopup="true"

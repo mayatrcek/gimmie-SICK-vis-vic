@@ -68,7 +68,7 @@ export default function SatelliteGallery() {
     };
   }, [selected]);
 
-  if (!scenes) return null;
+  if (!scenes) return <div className="pad loadgif loadgif-lg" />;
 
   if (selected) {
     return (

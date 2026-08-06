@@ -280,7 +280,20 @@
   .loadgif{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:180px;text-align:center}
   .loadgif::before{content:"";width:120px;height:120px;flex:none;background:url("/assets/brand/loading-anims/Snaggletooth Bite.gif") center/contain no-repeat}
   .maploader{position:absolute;inset:0;z-index:1000;background:#FFFAEF}
-  .maploader::before{content:"";width:92%;height:92%;background:url("/assets/brand/loading-anims/BlackBG Snaggletooth Bite.gif") center/contain no-repeat}
+  /* Capped at the gif's own 480x264: uncapped, 92% of a full-viewport overlay
+     (.chlfull/.sstfull/.satfull) blew the black-backed gif up into a wall of
+     black that read as a broken page rather than a loader. */
+  .maploader::before{content:"";width:min(92%,480px);height:min(92%,264px);
+    background:url("/assets/brand/loading-anims/BlackBG Snaggletooth Bite.gif") center/contain no-repeat}
+  /* Satellite detail map only: the cached thumbnail under the tiles already
+     shows the scan, so drop the opaque sheet and use the transparent-BG gif —
+     loading motion over real imagery instead of covering it up. */
+  .satfull .maploader{background:none;pointer-events:none}
+  .satfull .maploader::before{width:120px;height:120px;
+    background-image:url("/assets/brand/loading-anims/Snaggletooth Bite.gif")}
+  /* Low-res preview stretched ~10x under the real tiles — blur so it reads as
+     a placeholder, not a bad render. */
+  .satpreview{filter:blur(3px)}
   .loadgif-sm{display:inline-flex;align-items:center;gap:6px}
   .loadgif-sm::before{content:"";width:18px;height:18px;flex:none;background:url("/assets/brand/loading-anims/Snaggletooth Bite.gif") center/contain no-repeat}
 

@@ -92,7 +92,7 @@ export default function SstGallery() {
     };
   }, [selected]);
 
-  if (!stretch || !days) return null;
+  if (!stretch || !days) return <div className="pad loadgif loadgif-lg" />;
 
   if (selected) {
     return (
