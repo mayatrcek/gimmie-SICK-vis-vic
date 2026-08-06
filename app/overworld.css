@@ -100,7 +100,6 @@
   #bathymap{height:520px;border-radius:var(--radius-tile);border:1px solid var(--line);box-shadow:var(--shadow-1);z-index:0;margin-top:4px}
   #sstmap{height:min(72vh,560px);border-radius:var(--radius-tile);border:1px solid var(--line);box-shadow:var(--shadow-1);z-index:0}
   .compmask{filter:brightness(0) invert(0.92) sepia(0.35);}
-  .gmpin{background:none;border:none}
 
   /* Floating UI chrome: stop the browser zooming (pinch + double-tap) when a
      touch lands on a control instead of the map. `none` blocks all gestures;
@@ -540,8 +539,11 @@
   @keyframes snaggle-pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
   .panel-bd{padding:18px 20px}
   .panel-bd.flush{padding:0}
-  /* maps/iframes inside a panel shed their own chrome to avoid a box-in-a-box */
-  .panel-bd #map{margin:0;border:0;border-radius:0;box-shadow:none}
+  /* maps/iframes inside a panel shed their own chrome to avoid a box-in-a-box
+     (selected by id, because the border rule further down is id-specificity too) */
+  .panel-bd #map,.panel-bd.flush #bathymap{
+    margin:0;border:0;border-radius:0;box-shadow:none}
+  /* separator above a flush map/embed is the panel header's own 1px tan rule */
 
   /* ===== Long-form article content (back-beach guide, etc.) — headings and
      spacing do the separating, no bordered card per section */
@@ -810,32 +812,40 @@
   #map .leaflet-tile,#map .leaflet-image-layer{image-rendering:pixelated}
   #map::after{content:"";position:absolute;inset:0;z-index:450;pointer-events:none;
     background:repeating-linear-gradient(0deg,rgba(22,19,16,.06) 0 2px,transparent 2px 4px)}
+
+  /* ---- shared map chrome: same controls, caption and popups on every
+     interactive map (#map, #sstmap, #bathymap, #satmap, #compmap) ---- */
+  /* controls sit 10px off the map edge like the caption — leaflet's own corner
+     margins are wiped by the `*{margin:0}` reset at the top of this file */
+  .leaflet-control{margin:10px}
   /* zoom control: bone cells, ink borders, block shadow, press-into-shadow */
-  #map .leaflet-bar{border:2px solid var(--ink);box-shadow:2px 2px 0 0 var(--ink)}
-  #map .leaflet-bar a{background:var(--panel);color:var(--ink);border-bottom:2px solid var(--ink);
+  .leaflet-bar{border:2px solid var(--ink);box-shadow:2px 2px 0 0 var(--ink)}
+  .leaflet-bar a{background:var(--panel);color:var(--ink);border-bottom:2px solid var(--ink);
     font-family:var(--font-display);font-weight:700;width:32px;height:32px;line-height:30px}
-  #map .leaflet-bar a:last-child{border-bottom:0}
-  #map .leaflet-bar a:hover{background:var(--paper)}
-  #map .leaflet-bar a:active{transform:translate(1px,1px)}
-  /* popups: bone card with ink frame + block shadow; square tip is hidden.
+  .leaflet-bar a:last-child{border-bottom:0}
+  .leaflet-bar a:hover{background:var(--paper)}
+  .leaflet-bar a:active{transform:translate(1px,1px)}
+  /* attribution caption — same card as .chldate, the caption on the SST /
+     chlorophyll maps (leaflet zeroes the control's margin, so put it back) */
+  .leaflet-container .leaflet-control-attribution{margin:0 10px 10px 0;
+    font-family:var(--font-hud);font-size:17px;line-height:1;
+    background:var(--panel);color:var(--ink);
+    border:2px solid var(--ink);padding:5px 9px;box-shadow:2px 2px 0 0 var(--ink)}
+  .leaflet-control-attribution a{color:var(--ink);text-decoration:none}
+  /* popups: bone card with ink frame + block shadow; the square tip is hidden.
      NB leaflet's class is -content-wrapPER — "-content-wrap" matches nothing. */
-  #map .leaflet-popup-content-wrapper,#sstmap .leaflet-popup-content-wrapper{
+  .leaflet-popup{margin-bottom:32px} /* sits higher above the pin than leaflet's 20px */
+  .leaflet-popup-content-wrapper{
     background:var(--panel);color:var(--ink);border-radius:0;
     border:2px solid var(--ink);box-shadow:4px 4px 0 0 var(--ink)}
-  #map .leaflet-popup-content,#sstmap .leaflet-popup-content{
-    font-family:var(--font-hud);font-size:20px;line-height:1.35;margin:12px 16px}
-  #map .leaflet-popup-tip-container,#sstmap .leaflet-popup-tip-container{display:none}
-  /* SST click-probe popup: all-caps HUD temp, centred, no close button
-     (clicking elsewhere moves the probe) */
-  #sstmap .leaflet-popup-content{text-transform:uppercase;text-align:center;margin:12px 18px}
+  .leaflet-popup-content{
+    font-family:var(--font-hud);font-size:20px;line-height:1.35;
+    margin:12px 18px;text-align:center}
+  .leaflet-popup-tip-container{display:none}
+  /* SST click-probe reads as an all-caps HUD value ("NO DATA"/"RETRY") */
+  #sstmap .leaflet-popup-content{text-transform:uppercase}
 
-  /* Coordinate-copy popup/row — dropped into every geo map's click popup or
-     readout box (CoordCopy.tsx / CopyCoordButton.tsx). Not id-scoped like
-     the rules above so it works on #compmap/#satmap too. */
-  .coord-popup .leaflet-popup-content-wrapper{background:var(--panel);color:var(--ink);
-    border-radius:0;border:2px solid var(--ink);box-shadow:4px 4px 0 0 var(--ink)}
-  .coord-popup .leaflet-popup-content{margin:10px 12px}
-  .coord-popup .leaflet-popup-tip-container{display:none}
+  /* Coordinate-copy row inside every geo map's click popup (lib/coords.ts). */
   .coord-popup-body{display:flex;align-items:center;justify-content:center;gap:10px;
     font-family:var(--font-hud);font-size:16px}
   .coord-copy-btn{padding:4px 6px;min-width:26px;box-shadow:2px 2px 0 0 var(--ink);

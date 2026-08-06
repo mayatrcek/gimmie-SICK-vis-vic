@@ -39,7 +39,7 @@ python test_cmems_currents.py  # currents rasterizer self-check (no CMEMS creds 
   called via JSONP: ERDDAP `timestamp`, `sst-stretch` (regional percentiles that
   drive the SST colour stretch), `sst-fronts` (detected thermal-front cells for
   the SST map overlay), `sst-point` (click-probe temperature readout),
-  Nominatim `geocode`, DEECA `depth`,
+  Nominatim `geocode`,
   and `depth-tile` (Terrarium elevation PNGs for the dive-map water shading).
 - `components/` — UI + map/chart components. `MapRecall` persists each map's
   last-viewed center/zoom to localStorage (`gsv:mapview:<name>`).
