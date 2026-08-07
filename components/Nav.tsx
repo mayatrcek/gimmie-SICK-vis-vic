@@ -5,7 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { SST_DS } from "@/lib/api/erddap";
-import { LIVE_ITEMS, type NavItem as Item } from "@/lib/nav";
+import { LEARN_ITEMS, LIVE_ITEMS, type NavItem as Item } from "@/lib/nav";
 
 type Group = { id: string; label: string; items: Item[] };
 
@@ -35,14 +35,7 @@ function warmLive() {
 
 const GROUPS: Group[] = [
   { id: "live", label: "Live data", items: LIVE_ITEMS },
-  {
-    id: "learn",
-    label: "Learn",
-    items: [
-      { label: "Fish guide", href: "/fish" },
-      { label: "Back beach forecasting", href: "/back-beach" },
-    ],
-  },
+  { id: "learn", label: "Learn", items: LEARN_ITEMS },
 ];
 
 export default function Nav() {
