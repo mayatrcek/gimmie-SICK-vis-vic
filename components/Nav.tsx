@@ -5,8 +5,8 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { SST_DS } from "@/lib/api/erddap";
+import { LIVE_ITEMS, type NavItem as Item } from "@/lib/nav";
 
-type Item = { label: string; href: string };
 type Group = { id: string; label: string; items: Item[] };
 
 // The fetches that gate a live page's first paint (SatelliteGallery /
@@ -34,20 +34,7 @@ function warmLive() {
 }
 
 const GROUPS: Group[] = [
-  {
-    id: "live",
-    label: "Live data",
-    items: [
-      { label: "Point Nepean wave buoy", href: "/live/nepean" },
-      { label: "Chlorophyll", href: "/live/chlorophyll" },
-      { label: "Sea temperature", href: "/live/sst" },
-      { label: "Currents", href: "/live/currents" },
-      { label: "Altimetry", href: "/live/altimetry" },
-      { label: "Salinity", href: "/live/salinity" },
-      { label: "Bathymetry", href: "/live/bathymetry" },
-      { label: "Satellite imagery", href: "/live/satellite" },
-    ],
-  },
+  { id: "live", label: "Live data", items: LIVE_ITEMS },
   {
     id: "learn",
     label: "Learn",

@@ -1,14 +1,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import QuickScroll from "@/components/QuickScroll";
+import { LIVE_ITEMS } from "@/lib/nav";
 
 const HERO_BG =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuCm38URIzWfOZJxYBaurCzTAuRp-mUcHAdINfFsc-6rSNw0ZNDUp5yTPhEUP8Nv7vrnDKZHsK3AJmBjntthJsssDefwoxii7eNiqfDvDFsvMEYbfUflTlJjUc0ucxk4d7f3TyD5NLuJE84ASbZxkXYeXVVUadQ9tCQm6JcJB3BSMEzh4KCIeA0Ig3Ss0HIv3VNTcZgBq_kxbESBGCEKBZ62shqCXbTMr18HXIgPJIsHJJtGNa2saqM0c1knGSHIBDw0lZXjTEF-Cr8";
 
-type Channel = { title: string; href: string; cls: string };
+type Channel = { title: string; href: string; cls: string; shelf?: boolean };
 const CHANNELS: Channel[] = [
   { title: "Forecast", href: "/forecast", cls: "bg-primary text-bone" },
-  { title: "Live Data", href: "/live/chlorophyll", cls: "bg-bone text-ink-soft" },
+  { title: "Live Data", href: "/live/chlorophyll", cls: "bg-bone text-ink-soft", shelf: true },
   { title: "Learn", href: "/fish", cls: "bg-secondary text-bone" },
   { title: "Geography", href: "/geo/depth", cls: "bg-tertiary text-bone" },
 ];
@@ -121,21 +122,38 @@ export default function Home() {
         <div className="mb-xxl">
           <h2 className="home-h1 font-display-xl text-display-xl uppercase text-bone">NAV CHANNELS</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-xl">
-          {CHANNELS.map((c) => (
-            <Link
-              key={c.title}
-              href={c.href}
-              className={`channel-card-animate block relative border-2 border-ink-soft group overflow-hidden shadow-[6px_6px_0px_0px_#2e5dd6] cursor-pointer ${c.cls}`}
-            >
+        {/* The card with sub-pages toggles a shelf under the whole row rather
+            than jumping to one of them. Checkbox + label so the shelf can live
+            outside the card's grid cell — no client component on a static page. */}
+        <input type="checkbox" id="live-shelf" className="sr-only" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-xl items-start">
+          {CHANNELS.map((c) => {
+            const card = `channel-card-animate block relative border-2 border-ink-soft group overflow-hidden shadow-[6px_6px_0px_0px_#2e5dd6] cursor-pointer ${c.cls}`;
+            const head = (
               <div className="aspect-video flex items-center justify-center py-md">
                 <h3 className="font-headline-md text-headline-md uppercase text-center px-md">
                   {c.title}
                 </h3>
               </div>
+            );
+            return c.shelf ? (
+              <label key={c.title} htmlFor="live-shelf" className={`channel-card-dd ${card}`}>
+                {head}
+              </label>
+            ) : (
+              <Link key={c.title} href={c.href} className={card}>
+                {head}
+              </Link>
+            );
+          })}
+        </div>
+        <nav className="live-shelf" aria-label="Live data pages">
+          {LIVE_ITEMS.map((i) => (
+            <Link key={i.href} href={i.href} className="book">
+              {i.label}
             </Link>
           ))}
-        </div>
+        </nav>
       </section>
 
     </div>
