@@ -50,13 +50,14 @@ body {
 .channel-card-animate:active { animation: none; transform: translate(4px, 4px); box-shadow: none; }
 /* Channel card that opens a shelf of its sub-pages under the row. */
 .channel-card-dd h3::after { content: " \25BE"; display: inline-block; transition: transform 0.1s steps(2); }
+/* ShelfToggle scrolls to the card when its shelf opens — clear of the fixed nav. */
+.channel-card-dd { scroll-margin-top: calc(var(--tabh) + 16px); }
 /* Per-shelf wiring: a card knows its toggle through the `for`/`id` pair it
    already has, and the shelf through the matching data-shelf. */
 .home:has(#live-shelf:checked) [for="live-shelf"] h3::after,
 .home:has(#learn-shelf:checked) [for="learn-shelf"] h3::after { transform: rotate(180deg); }
-/* Keyboard: the input is sr-only, so show focus on the card it drives. */
-#live-shelf:focus-visible ~ * [for="live-shelf"],
-#learn-shelf:focus-visible ~ * [for="learn-shelf"] { outline: 4px solid var(--color-primary); outline-offset: 4px; }
+/* Keyboard: the checkbox is sr-only, so show focus on the card holding it. */
+.channel-card-dd:has(:focus-visible) { outline: 4px solid var(--color-primary); outline-offset: 4px; }
 
 /* The shelf: sub-pages as book spines standing on a plank. */
 /* The top padding is headroom for the hover lift — overflow-x clips the y axis. */
@@ -66,19 +67,27 @@ body {
    box grows instead of being revealed top-down.
    ponytail: fixed max-height ceiling (tallest spine plus the chrome); raise it if
    a longer label outgrows it, interpolate-size/height:auto is the upgrade. */
-.shelf { display: flex; align-items: flex-end; gap: 4px;
+.shelf { display: flex; align-items: flex-end; gap: 4px; grid-column: 1 / -1;
+  /* One knob for the whole shelf: spine type size, and every other measurement
+     below is a multiple of it, so shrinking it on a phone shrinks the books,
+     their heights, the ghost runs and the open height together. */
+  --spine: 26px;
   max-height: 0; margin-top: 0; padding: 0 16px; border-bottom: 0 solid var(--color-border-tan);
   opacity: 0; visibility: hidden; overflow-x: auto; overflow-y: hidden;
-  /* ShelfToggle scrolls here as the shelf drops. 40px of this cancels the
-     margin-top that hasn't animated in yet when the scroll is aimed; the rest
-     is clearance under the nav. */
-  scroll-margin-top: 110px;
+  /* A classic scrollbar lands between the spines and the plank; the half-cut
+     book at the edge is affordance enough that the row scrolls. */
+  scrollbar-width: none;
   transition: max-height 0.3s ease, margin-top 0.3s ease, padding-top 0.3s ease,
     border-bottom-width 0.3s ease, opacity 0.2s ease, visibility 0.3s; }
-#live-shelf:checked ~ [data-shelf="live-shelf"],
-#learn-shelf:checked ~ [data-shelf="learn-shelf"] { max-height: 380px; margin-top: 40px; padding-top: 16px;
-  border-bottom-width: 12px; opacity: 1; visibility: visible;
+/* :has() rather than a sibling combinator: the toggle sits outside the grid the
+   shelves are items of. */
+.home:has(#live-shelf:checked) [data-shelf="live-shelf"],
+.home:has(#learn-shelf:checked) [data-shelf="learn-shelf"] { max-height: calc(var(--spine) * 14.6); margin-top: 24px;
+  padding-top: 16px; border-bottom-width: 12px; opacity: 1; visibility: visible;
   box-shadow: 0 12px 0 0 rgba(0, 0, 0, 0.35); }
+/* Once the cards sit side by side, a shelf under its own card would split the
+   row, so send it below all of them again. */
+@media (min-width: 768px) { .shelf { order: 1; } }
 @media (prefers-reduced-motion: reduce) { .shelf { transition: none; } }
 /* Ghost spines — one at the left end, a run filling whatever's left at the
    right. Barely lifted off the section colour so the shelf reads as full
@@ -86,23 +95,25 @@ body {
 /* Both ends flex, so the real books sit centred between two ghost runs. Two
    gradient layers, both standing on the plank, so a run has tall and short
    spines instead of reading as one flat fence. */
+/* Sized in em, i.e. off --spine, so a ghost spine stays the width of a real one
+   at any size. */
 .shelf::before, .shelf::after { content: ""; --ghost: rgb(255 250 239 / 0.07);
-  flex: 1; min-width: 72px; height: 190px;
-  background-repeat: no-repeat; background-position: 0 100%; background-size: 100% 190px, 100% 152px;
-  background-image: repeating-linear-gradient(90deg, var(--ghost) 0 40px, transparent 40px 84px),
-    repeating-linear-gradient(90deg, transparent 0 46px, var(--ghost) 46px 78px, transparent 78px 84px); }
+  font-size: var(--spine); flex: 1; min-width: 2.8em; height: 7.3em;
+  background-repeat: no-repeat; background-position: 0 100%; background-size: 100% 7.3em, 100% 5.85em;
+  background-image: repeating-linear-gradient(90deg, var(--ghost) 0 1.54em, transparent 1.54em 3.23em),
+    repeating-linear-gradient(90deg, transparent 0 1.77em, var(--ghost) 1.77em 3em, transparent 3em 3.23em); }
 /* The left run is painted right-to-left, so it always ends on a spine flush
    against the books rather than wherever the repeat happens to land. */
 .shelf::before {
-  background-image: repeating-linear-gradient(270deg, var(--ghost) 0 40px, transparent 40px 84px),
-    repeating-linear-gradient(270deg, transparent 0 46px, var(--ghost) 46px 78px, transparent 78px 84px); }
+  background-image: repeating-linear-gradient(270deg, var(--ghost) 0 1.54em, transparent 1.54em 3.23em),
+    repeating-linear-gradient(270deg, transparent 0 1.77em, var(--ghost) 1.77em 3em, transparent 3em 3.23em); }
 /* Spines read bottom-to-top; vertical-rl first so anything without
    sideways-lr still gets vertical text (top-down) rather than horizontal. */
 .book { flex: none; writing-mode: vertical-rl; writing-mode: sideways-lr;
-  min-height: 200px; padding: 20px 22px;
+  min-height: calc(var(--spine) * 7.7); padding: 0.77em 0.85em;
   display: flex; align-items: center; justify-content: center;
   border: 2px solid var(--color-ink-soft); border-bottom: 0;
-  font-family: var(--font-hud-font); font-size: 26px; line-height: 1.9;
+  font-family: var(--font-hud-font); font-size: var(--spine); line-height: 1.9;
   text-transform: uppercase; letter-spacing: 0.06em;
   /* The shelf's max-height caps the space a spine can lay its text along, and a
      vertical line box wraps into a second column when it runs out. */
@@ -111,9 +122,19 @@ body {
 .book:hover, .book:focus-visible { transform: translateY(-10px); }
 /* Spines: cycle the palette and stagger the heights so it reads as a shelf. */
 .book:nth-child(4n + 1) { background: var(--color-bone); color: var(--color-ink-soft); }
-.book:nth-child(4n + 2) { background: var(--color-primary); color: var(--color-bone); min-height: 225px; }
-.book:nth-child(4n + 3) { background: var(--color-secondary); color: var(--color-bone); min-height: 190px; }
-.book:nth-child(4n + 4) { background: var(--color-tertiary); color: var(--color-bone); min-height: 240px; }
+.book:nth-child(4n + 2) { background: var(--color-primary); color: var(--color-bone); min-height: calc(var(--spine) * 8.65); }
+.book:nth-child(4n + 3) { background: var(--color-secondary); color: var(--color-bone); min-height: calc(var(--spine) * 7.3); }
+.book:nth-child(4n + 4) { background: var(--color-tertiary); color: var(--color-bone); min-height: calc(var(--spine) * 9.2); }
+/* Stacked cards are only as wide as the phone, so shrink the spines until all
+   eight fit on screen rather than letting the shelf scroll sideways. A book is
+   2.4 spines wide plus its border, and the row also spends 28px on gaps, 32px on
+   the shelf's own padding and 8vw on the section's bleed — hence the slope. */
+@media (max-width: 767px) {
+  .shelf { --spine: clamp(9px, calc(4.79vw - 5.4px), 26px); }
+  .book { padding: 0.77em 0.25em; }
+  /* The ghost runs give back whatever width the real books need. */
+  .shelf::before, .shelf::after { min-width: 0; }
+}
 
 /* Marquee (was an inline <style> in the home markup). */
 @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }

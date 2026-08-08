@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import QuickScroll from "@/components/QuickScroll";
@@ -28,7 +29,6 @@ const CHANNELS: Channel[] = [
   },
   { title: "Geography", href: "/geo/depth", cls: "bg-tertiary text-bone" },
 ];
-const SHELVES = CHANNELS.filter((c) => c.shelf);
 
 // Google reads this off the homepage to decide the site name shown above the
 // result — without it the domain gets used (which is why results said "Vercel").
@@ -138,14 +138,14 @@ export default function Home() {
         <div className="mb-xxl">
           <h2 className="home-h1 font-display-xl text-display-xl uppercase text-bone">NAV CHANNELS</h2>
         </div>
-        {/* Each shelf's checkbox sits ahead of the grid so the shelf itself can
-            be a later sibling, i.e. live outside the card's grid cell. */}
-        {SHELVES.map((c) => (
-          <ShelfToggle key={c.shelf} id={c.shelf!} />
-        ))}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-xl items-start">
+        {/* A shelf follows its own card in the grid: stacked on phones that puts
+            it directly under the card it belongs to, and .shelf's `order` sends
+            it below the whole row again once the cards sit side by side. */}
+        {/* Row spacing lives on the cards, not in a row-gap: a collapsed shelf is
+            still a grid item, and a gap either side of it would leave a hole. */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-xl gap-y-0 items-start">
           {CHANNELS.map((c) => {
-            const card = `channel-card-animate block relative border-2 border-ink-soft group overflow-hidden shadow-[6px_6px_0px_0px_#2e5dd6] cursor-pointer ${c.cls}`;
+            const card = `channel-card-animate mt-xl block relative border-2 border-ink-soft group overflow-hidden shadow-[6px_6px_0px_0px_#2e5dd6] cursor-pointer ${c.cls}`;
             const head = (
               <div className="aspect-video flex items-center justify-center py-md">
                 <h3 className="font-headline-md text-headline-md uppercase text-center px-md">
@@ -153,26 +153,34 @@ export default function Home() {
                 </h3>
               </div>
             );
-            return c.shelf ? (
-              <label key={c.title} htmlFor={c.shelf} className={`channel-card-dd ${card}`}>
-                {head}
-              </label>
-            ) : (
-              <Link key={c.title} href={c.href} className={card}>
-                {head}
-              </Link>
+            if (!c.shelf) {
+              return (
+                <Link key={c.title} href={c.href} className={card}>
+                  {head}
+                </Link>
+              );
+            }
+            return (
+              <Fragment key={c.title}>
+                {/* The toggle lives inside the card it belongs to. Tapping a
+                    label focuses its checkbox, and the browser scrolls a focused
+                    off-screen control into view — parked anywhere else on the
+                    page, that yanks the view there before our own scroll runs. */}
+                <label htmlFor={c.shelf} className={`channel-card-dd ${card}`}>
+                  <ShelfToggle id={c.shelf} />
+                  {head}
+                </label>
+                <nav className="shelf" data-shelf={c.shelf} aria-label={`${c.title} pages`}>
+                  {c.items!.map((i) => (
+                    <Link key={i.href} href={i.href} className="book">
+                      {i.label}
+                    </Link>
+                  ))}
+                </nav>
+              </Fragment>
             );
           })}
         </div>
-        {SHELVES.map((c) => (
-          <nav key={c.shelf} className="shelf" data-shelf={c.shelf} aria-label={`${c.title} pages`}>
-            {c.items!.map((i) => (
-              <Link key={i.href} href={i.href} className="book">
-                {i.label}
-              </Link>
-            ))}
-          </nav>
-        ))}
       </section>
 
     </div>
