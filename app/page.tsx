@@ -1,7 +1,6 @@
 import { Fragment } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import QuickScroll from "@/components/QuickScroll";
 import ShelfToggle from "@/components/ShelfToggle";
 import { LEARN_ITEMS, LIVE_ITEMS, type NavItem } from "@/lib/nav";
 
@@ -48,7 +47,6 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(SITE_LD) }}
       />
-      <QuickScroll to="summary" />
       {/* Quest Star Backdrop */}
       <div className="fixed inset-0 pointer-events-none opacity-10 flex items-center justify-center">
         <div className="w-[800px] h-[800px] quest-star" />
