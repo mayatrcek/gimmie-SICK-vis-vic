@@ -9,7 +9,10 @@ const SLOT_HOURS = new Set([1, 4, 7, 10, 13, 16, 19, 22]);
 
 // Fixed column widths so the tide graph's x-axis lines up with the day columns.
 const SLOTW = 46;
-const LABW = 110;
+// The label rail's width lives in CSS (--labw) so it can shrink on phones,
+// where it's sticky and eating the screen. Only the slot columns need to be
+// known here — the tide graph maps hours onto those, never onto the rail.
+const LABW = "var(--labw)";
 
 const fmt = (n: number | null, d = 1) => (n == null || isNaN(n) ? "—" : Number(n).toFixed(d));
 
@@ -143,7 +146,7 @@ export default function ForecastTable({ s, hourly, rows }: { s: Spot; hourly: Ho
 
   return (
     <div className="fcwrap">
-      <table className="fctable" style={{ width: LABW + slots.length * SLOTW }}>
+      <table className="fctable" style={{ width: `calc(${LABW} + ${slots.length * SLOTW}px)` }}>
         <colgroup>
           <col style={{ width: LABW }} />
           {slots.map((sl) => (
@@ -168,13 +171,13 @@ export default function ForecastTable({ s, hourly, rows }: { s: Spot; hourly: Ho
         </thead>
         <tbody>
           <tr>
-            <th className="fclab">Rating (10 max)</th>
+            <th className="fclab">Rating</th>
             {slots.map((sl) =>
               td(sl, <span className="fcscore" style={{ background: scoreCol(sl.score) }}>{sl.score ?? "—"}</span>),
             )}
           </tr>
           <tr>
-            <th className="fclab">Height (m)</th>
+            <th className="fclab">Height <i>(m)</i></th>
             {slots.map((sl) => td(sl, s.sheltered ? "—" : fmt(sl.h, 1)))}
           </tr>
           <tr>
@@ -192,18 +195,18 @@ export default function ForecastTable({ s, hourly, rows }: { s: Spot; hourly: Ho
             )}
           </tr>
           <tr>
-            <th className="fclab">Period (s)</th>
+            <th className="fclab">Period <i>(s)</i></th>
             {slots.map((sl) => td(sl, s.sheltered ? "—" : fmt(sl.p, 0)))}
           </tr>
           <tr>
-            <th className="fclab">Energy (kJ)</th>
+            <th className="fclab">Energy <i>(kJ)</i></th>
             {/* ponytail: h²·p·28 pseudo-kJ, scaled to read like surf-forecast's column */}
             {slots.map((sl) =>
               td(sl, s.sheltered || sl.h == null || sl.p == null ? "—" : Math.round(28 * sl.h * sl.h * sl.p)),
             )}
           </tr>
           <tr>
-            <th className="fclab">Wind (km/h)</th>
+            <th className="fclab">Wind <i>(km/h)</i></th>
             {slots.map((sl) =>
               td(
                 sl,
@@ -215,7 +218,7 @@ export default function ForecastTable({ s, hourly, rows }: { s: Spot; hourly: Ho
             )}
           </tr>
           <tr>
-            <th className="fclab">Tide (m)</th>
+            <th className="fclab">Tide <i>(m)</i></th>
             <td colSpan={slots.length} className="fcgraph fcd0">
               <TideGraph hourly={hourly} days={days} />
             </td>

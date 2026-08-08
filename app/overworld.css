@@ -202,13 +202,26 @@
   /* Forecast table — 3-hourly week grid inside an expanded spot card.
      VT323 numerals (HUD register), sticky label rail, ink day dividers. */
   .fcwrap{overflow-x:auto;background:var(--panel)}
-  .fctable{border-collapse:collapse;table-layout:fixed;font-family:var(--font-hud);font-size:16px;
+  /* --labw: widest label ("Energy (kJ)") is 65px at 16px VT323, + 20 padding
+     + the 2px rule = 87. */
+  .fctable{--labw:88px;border-collapse:collapse;table-layout:fixed;font-family:var(--font-hud);font-size:16px;
     line-height:1.15;text-align:center;white-space:nowrap;color:var(--ink)}
   .fctable th,.fctable td{border-top:1px solid var(--line);padding:4px 7px;font-weight:400}
   .fctable .fcd0{border-left:2px solid var(--ink)}
+  /* VT323 only ships a 400 — asking for 600 here gets a synthetic bold that
+     smears the pixel edges, so the rail leans on ink colour for weight instead. */
   .fctable .fclab{position:sticky;left:0;z-index:1;background:var(--panel);text-align:left;
-    font-family:var(--font-sans);font-size:11.5px;font-weight:600;color:var(--muted);
+    font-family:var(--font-hud);font-size:16px;font-weight:400;color:var(--ink);
     padding:4px 10px;border-right:2px solid var(--ink)}
+  /* Units ride along at 3/4 size and muted — they're reference, not the label,
+     and at full size they were what set the rail's width. */
+  .fctable .fclab i{font-style:normal;font-size:.75em;color:var(--muted)}
+  /* The rail is sticky, so on a phone every pixel it takes is a pixel of
+     forecast you can't see: 14px VT323 needs 57 + 12 padding + 2 rule = 71. */
+  @media(max-width:560px){
+    .fctable{--labw:72px}
+    .fctable .fclab{font-size:14px;padding:4px 6px}
+  }
   .fctable .fcday{font-family:var(--font-display);font-size:14px;font-weight:700;
     letter-spacing:-.01em;border-top:none;padding:7px 8px 2px}
   .fctable .fctime{color:var(--muted);font-size:14px;border-top:none;padding-bottom:5px}
