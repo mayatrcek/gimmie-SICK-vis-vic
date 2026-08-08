@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-// ponytail: hand-listed. 17 static routes, no dynamic segments — globbing the app
+// ponytail: hand-listed. 19 static routes, no dynamic segments — globbing the app
 // dir would be more code than the list. Add a route here when you add a page.
 const ROUTES: Array<[path: string, priority: number]> = [
   ["/", 1],
@@ -20,6 +20,8 @@ const ROUTES: Array<[path: string, priority: number]> = [
   ["/contact", 0.4],
   ["/store", 0.4],
   ["/feedback", 0.3],
+  ["/privacy", 0.2],
+  ["/terms", 0.2],
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

@@ -12,6 +12,8 @@ export default function Footer() {
           <Link href="/contact">Contact</Link>
           <Link href="/about">About</Link>
           <Link href="/feedback">Feedback</Link>
+          <Link href="/privacy">Privacy</Link>
+          <Link href="/terms">Terms</Link>
         </div>
         <div className="foot-meta">&copy; 2026 Built by Maya</div>
       </div>
