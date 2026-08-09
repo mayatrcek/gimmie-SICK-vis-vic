@@ -250,7 +250,26 @@ export default function DiveSites() {
   // The card rolling shut — kept mounted until its transition ends, or there'd
   // be nothing left to animate.
   const [closing, setClosing] = useState("");
+  // The picker starts folded behind the heading's Add site button.
+  const [pickerOpen, setPickerOpen] = useState(false);
+  // Set once the roll-open has finished, which is when the wrapper can stop
+  // clipping — otherwise overflow:hidden (needed for the roll) eats the field
+  // menus, which hang below the strip.
+  const [pickerSettled, setPickerSettled] = useState(false);
+  const settleTimer = useRef<number | undefined>(undefined);
   const didInit = useRef(false);
+
+  function closePicker() {
+    clearTimeout(settleTimer.current); // a pending settle would un-clip mid-fold
+    setPickerSettled(false);
+    setPickerOpen(false);
+  }
+
+  function togglePicker() {
+    if (pickerOpen) return closePicker();
+    setPickerOpen(true);
+    settleTimer.current = window.setTimeout(() => setPickerSettled(true), SLIDE_MS);
+  }
 
   const openNow = (m: SelMap) => Object.keys(m).find((k) => m[k].expanded) ?? "";
 
@@ -357,8 +376,23 @@ export default function DiveSites() {
     <div id="sub-divesites">
       <h2 className="sec">
         Dive sites
+        <button
+          className={`pk-toggle${pickerOpen ? " open" : ""}`}
+          aria-expanded={pickerOpen}
+          aria-controls="site-picker"
+          onClick={togglePicker}
+        >
+          Add site{" "}
+          <span className="plus" aria-hidden>
+            +
+          </span>
+        </button>
       </h2>
-      <div className="picker">
+      <div
+        id="site-picker"
+        className={`pk-collapse${pickerOpen ? " open" : ""}${pickerSettled ? " settled" : ""}`}
+      >
+        <div className="picker">
         <PickerMenu
           id="stateSelect"
           label="State"
@@ -399,15 +433,17 @@ export default function DiveSites() {
           onPick={setPick}
         />
 
-        <button
-          disabled={!pick || !!selected[pick]}
-          onClick={() => {
-            addSpot(pick, true);
-            setPick("");
-          }}
-        >
-          + Add
-        </button>
+          <button
+            disabled={!pick || !!selected[pick]}
+            onClick={() => {
+              addSpot(pick, true);
+              setPick("");
+              closePicker(); // the strip has done its job; fold it away
+            }}
+          >
+            + Add
+          </button>
+        </div>
       </div>
 
       <div className="panel">
@@ -481,7 +517,7 @@ export default function DiveSites() {
       <div className="sidepanel">
         {ids.length === 0 ? (
           <div className="empty">
-            Pick a Victorian spot from the menu above to add it below. Each card shows today at a
+            Hit <b>Add site</b> up in the heading to pick a spot. Each card shows today at a
             glance — click to expand wind, swell &amp; tide graphs and the week ahead.
           </div>
         ) : (

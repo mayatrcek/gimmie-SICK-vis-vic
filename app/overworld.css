@@ -130,6 +130,30 @@
      it MUST come after the base .tabs/.tab/.tab-menu rules so its overrides win
      the cascade (equal specificity => later source position wins). */
 
+  /* Add site — rides the right-hand end of the DIVE SITES heading and folds the
+     picker out beneath it. The + tips into an x when open. */
+  .pk-toggle{margin-left:auto;height:34px;padding:0 14px;font-size:13px;
+    box-shadow:2px 2px 0 0 var(--ink)}
+  .pk-toggle .plus{display:inline-block;font-size:15px;line-height:1;
+    transition:transform .2s var(--ease)}
+  .pk-toggle.open .plus{transform:rotate(45deg)}
+  /* Same roll as the card bodies. overflow has to be hidden for the track to
+     clip anything, but the field menus hang below the strip — so it goes back to
+     visible once the roll has finished (.settled, set on a timer in the JSX). */
+  .pk-collapse{display:grid;grid-template-rows:0fr;overflow:hidden;
+    transition:grid-template-rows .3s var(--ease)}
+  .pk-collapse.open{grid-template-rows:1fr}
+  .pk-collapse.settled{overflow:visible}
+  .pk-collapse > .picker{min-height:0;min-width:0}
+  @media(prefers-reduced-motion:reduce){.pk-collapse{transition:none}}
+  /* Phones: shrink the button, and let it drop onto its own line rather than
+     squeeze the title. Scoped to this heading so other .sec headings are
+     untouched. */
+  @media(max-width:560px){
+    #sub-divesites h2.sec{flex-wrap:wrap}
+    .pk-toggle{height:32px;padding:0 11px;font-size:12px}
+  }
+
   /* Site picker — one ink-framed console strip. The three selects narrow the
      choice left to right (state › region › site), so they read as one control
      rather than three loose boxes; ADD sits at the far end in accent. */
