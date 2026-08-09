@@ -1,5 +1,7 @@
 "use client";
 
+import { reducedMotion, scrollToEl } from "@/lib/smoothScroll";
+
 // The checkbox that drives a bookshelf card (see .shelf in home.css). A client
 // island purely so opening one can scroll its shelf into view — the rest of the
 // homepage stays a server component.
@@ -47,19 +49,20 @@ export default function ShelfToggle({ id }: { id: string }) {
         // doesn't move at all, and the only motion left is the one we animate.
         const jumped = card.getBoundingClientRect().top - wasAt;
         if (jumped) window.scrollBy({ top: jumped, behavior: "instant" });
-        const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-          ? "auto"
-          : "smooth";
+        // scrollToEl rather than behavior:"smooth" — native smooth is a silent
+        // no-op in Chrome with smooth scrolling switched off, which left this
+        // scroll doing nothing at all on those machines.
+        const animating = !reducedMotion();
         // Aim at the card, not the shelf: the shelf drops in underneath it, so
         // this keeps the card the reader just tapped on screen above its books.
-        const aim = () => card.scrollIntoView({ block: "start", behavior });
+        const aim = () => scrollToEl(card);
         // A shelf is the last thing on the page, so until it has grown there
         // isn't enough page below the card to scroll it to the top — the scroll
         // would clamp short and need a second leg. Stand in for the shelf with a
         // spacer that is its full height from the start and shrinks on the same
         // curve as the shelf grows: the page is its final height throughout, so
         // one scroll reaches its mark, and nothing snaps when the spacer goes.
-        if (behavior === "smooth") {
+        if (animating) {
           // Books are laid out even while the shelf is collapsed, so its open
           // height is known: tallest spine + plank and padding + open margin.
           const spines = [...shelf.querySelectorAll(".book")].map(

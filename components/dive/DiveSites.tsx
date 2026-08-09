@@ -10,6 +10,7 @@ import { todayRating, todayRow, visNotes } from "@/lib/logic/rating";
 import type { Hourly, Row, Spot } from "@/lib/types";
 import { dotIcon } from "@/lib/leaflet/icons";
 import { pixelBasemap, pixelBaseOverlay } from "@/lib/leaflet/pixelTiles";
+import { scrollToEl } from "@/lib/smoothScroll";
 import ForecastTable from "./ForecastTable";
 
 type St = { rows: Row[] | null; hourly: Hourly | null; loading: boolean; expanded: boolean; sst?: number | null };
@@ -215,15 +216,14 @@ export default function DiveSites() {
 
   // Whichever card is open gets scrolled to — covers both clicking one open and
   // adding one from the picker. Nothing is open on load, so this stays quiet.
-  // Not `behavior:"smooth"`: it's a silent no-op in Chrome with smooth scrolling
-  // switched off, which reads as "the scroll is broken" rather than "no animation".
   // Runs again when the card stops loading: a just-added card is last in the
   // list, so at insert time there's nothing below it to scroll against and it
   // lands mid-screen. Once its table fills in, the page can finish the job.
   const openLoading = openId ? selected[openId].loading : false;
   useEffect(() => {
     if (!openId) return;
-    document.getElementById(`spot-${openId}`)?.scrollIntoView({ block: "start" });
+    const el = document.getElementById(`spot-${openId}`);
+    if (el) scrollToEl(el);
   }, [openId, openLoading]);
 
   const positions: LatLngExpression[] = ids.map((id) => [SPOTS[id].lat, SPOTS[id].lon]);
