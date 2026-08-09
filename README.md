@@ -51,6 +51,9 @@ python test_cmems_currents.py  # currents rasterizer self-check (no CMEMS creds 
     `sources/docs/gimmie_sick_vis_rating_examples.xlsx`. `lib/logic/rating.test.ts`
     replays all 22, so a threshold change that drifts off Maya's calls fails
     `npm test`. Retune here, not in `rating.ts`.
+  - `lib/data/regions.ts` — every region carries a `state`, and the dive-site
+    picker cascades state › region › site off `REGIONS`/`STATES`, so adding a
+    state or region is a data-only change.
   - Spots can carry `murky: "river" | "bay"` (regularly dirty water — the score
     stops docking them for rain and they get a standing warning instead) and
     `tidal` (slack-water-only). Sheltered spots north of −38.15 are auto-flagged

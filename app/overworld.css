@@ -130,11 +130,34 @@
      it MUST come after the base .tabs/.tab/.tab-menu rules so its overrides win
      the cascade (equal specificity => later source position wins). */
 
-  .picker{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;
+  /* Site picker — one ink-framed console strip. The three selects narrow the
+     choice left to right (state › region › site), so they read as one control
+     rather than three loose boxes; ADD sits at the far end in accent. */
+  .picker{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;
+    margin-bottom:8px;padding:12px 14px;background:var(--panel);
+    border:2px solid var(--ink);box-shadow:var(--shadow-1);
     font-family:var(--font-hud);font-size:16px}
-  .picker label{color:var(--muted)}
-  .picker select{font:inherit;height:40px;padding:0 16px;border:2px solid var(--ink);border-radius:0;background:var(--panel);min-width:240px;color:var(--ink);cursor:pointer;box-shadow:2px 2px 0 0 var(--ink);transition:border-color .18s var(--ease),box-shadow .18s var(--ease)}
-  .picker select:focus{outline:none;border-color:var(--accent);box-shadow:4px 4px 0 0 var(--accent)}
+  .pk-field{display:flex;flex-direction:column;gap:5px;flex:0 1 240px;min-width:0}
+  .pk-field label{color:var(--muted);text-transform:uppercase;letter-spacing:.1em;
+    font-size:14px;line-height:1}
+  .picker select{font:inherit;width:100%;height:38px;padding:0 12px;border:2px solid var(--ink);
+    border-radius:0;background:var(--paper);color:var(--ink);cursor:pointer;
+    transition:border-color .18s var(--ease),box-shadow .18s var(--ease)}
+  .picker select:hover{background:var(--panel)}
+  .picker select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+  /* cascade markers between the fields */
+  .pk-arrow{color:var(--line);font-size:15px;line-height:38px;user-select:none}
+  .picker button{height:38px;padding:0 22px;margin-left:auto;box-shadow:none;
+    background:var(--accent);color:#FFFAEF}
+  .picker button:hover{background:#1F47B0;color:#FFFAEF}
+  .picker button:active{transform:translate(2px,2px)}
+  .picker button:disabled{background:var(--line);color:var(--muted);pointer-events:none}
+  .picker-hint{color:var(--muted);margin-bottom:12px;display:block}
+  @media(max-width:560px){
+    .pk-field{flex:1 1 100%}
+    .pk-arrow{display:none}
+    .picker button{width:100%;margin-left:0}
+  }
 
   /* Scrollbars — square ink thumb on sunken parchment, zero radius */
   html{scrollbar-color:var(--ink) var(--surface-sunken)}

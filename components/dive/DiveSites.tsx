@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
-import { REGIONS, SPOTS, DEFAULTS } from "@/lib/data/regions";
+import { REGIONS, SPOTS, DEFAULTS, STATES } from "@/lib/data/regions";
 import MapLoading from "@/components/MapLoading";
 import { fetchSite } from "@/lib/api/openMeteo";
 import { todayRating, todayRow, visNotes } from "@/lib/logic/rating";
@@ -143,6 +143,9 @@ function SpotCard({
 
 export default function DiveSites() {
   const [selected, setSelected] = useState<SelMap>({});
+  const [state, setState] = useState(STATES[0]);
+  const [region, setRegion] = useState(REGIONS[0].region);
+  const [pick, setPick] = useState("");
   const didInit = useRef(false);
 
   function addSpot(id: string) {
@@ -194,36 +197,83 @@ export default function DiveSites() {
   const ids = Object.keys(selected);
   const positions: LatLngExpression[] = ids.map((id) => [SPOTS[id].lat, SPOTS[id].lon]);
 
+  const inState = REGIONS.filter((r) => r.state === state);
+  const spots = inState.find((r) => r.region === region)?.spots ?? [];
+
   return (
     <div id="sub-divesites">
       <h2 className="sec">
         Dive sites
       </h2>
       <div className="picker">
-        <label htmlFor="spotSelect">Add a location</label>
-        <select
-          id="spotSelect"
-          value=""
-          onChange={(e) => {
-            const id = e.target.value;
-            if (id) addSpot(id);
+        <div className="pk-field">
+          <label htmlFor="stateSelect">State</label>
+          <select
+            id="stateSelect"
+            value={state}
+            onChange={(e) => {
+              setState(e.target.value);
+              setRegion(REGIONS.find((r) => r.state === e.target.value)!.region);
+              setPick("");
+            }}
+          >
+            {STATES.map((st) => (
+              <option key={st} value={st}>
+                {st}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <span className="pk-arrow" aria-hidden>
+          ▶
+        </span>
+
+        <div className="pk-field">
+          <label htmlFor="regionSelect">Region</label>
+          <select
+            id="regionSelect"
+            value={region}
+            onChange={(e) => {
+              setRegion(e.target.value);
+              setPick("");
+            }}
+          >
+            {inState.map((rg) => (
+              <option key={rg.region} value={rg.region}>
+                {rg.region}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <span className="pk-arrow" aria-hidden>
+          ▶
+        </span>
+
+        <div className="pk-field">
+          <label htmlFor="spotSelect">Dive site</label>
+          <select id="spotSelect" value={pick} onChange={(e) => setPick(e.target.value)}>
+            <option value="">Choose a spot…</option>
+            {spots.map((sp) => (
+              <option key={sp.id} value={sp.id}>
+                {sp.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <button
+          disabled={!pick || !!selected[pick]}
+          onClick={() => {
+            addSpot(pick);
+            setPick("");
           }}
         >
-          <option value="">Choose a Victorian spot…</option>
-          {REGIONS.map((rg) => (
-            <optgroup key={rg.region} label={rg.region}>
-              {rg.spots.map((sp) => (
-                <option key={sp.id} value={sp.id}>
-                  {sp.name}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
-        <span style={{ color: "var(--muted)" }}>
-          Grouped by region (Surf-Forecast VIC). Click a card to expand its 7-day outlook.
-        </span>
+          + Add
+        </button>
       </div>
+      <span className="picker-hint">Click a card to expand its 7-day outlook.</span>
 
       <div className="panel">
         <div className="panel-bd flush">

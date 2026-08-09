@@ -12,10 +12,11 @@ type RawSpot = {
   murky?: "river" | "bay";
   tidal?: boolean;
 };
-type Region = { region: string; onshore: number; spots: RawSpot[] };
+type Region = { state: string; region: string; onshore: number; spots: RawSpot[] };
 
 export const REGIONS: Region[] = [
   {
+    state: "Victoria",
     region: "Surf Coast",
     onshore: 200,
     spots: [
@@ -30,6 +31,7 @@ export const REGIONS: Region[] = [
     ],
   },
   {
+    state: "Victoria",
     region: "Bellarine",
     onshore: 200,
     spots: [
@@ -40,6 +42,7 @@ export const REGIONS: Region[] = [
     ],
   },
   {
+    state: "Victoria",
     region: "Mornington Peninsula",
     onshore: 185,
     spots: [
@@ -55,6 +58,7 @@ export const REGIONS: Region[] = [
     ],
   },
   {
+    state: "Victoria",
     region: "Phillip Island",
     onshore: 185,
     spots: [
@@ -68,6 +72,7 @@ export const REGIONS: Region[] = [
     ],
   },
   {
+    state: "Victoria",
     region: "East Coast / Gippsland",
     onshore: 200,
     spots: [
@@ -80,6 +85,7 @@ export const REGIONS: Region[] = [
     ],
   },
   {
+    state: "Victoria",
     region: "Far West / Shipwreck Coast",
     onshore: 200,
     spots: [
@@ -91,11 +97,42 @@ export const REGIONS: Region[] = [
     ],
   },
   {
-    region: "Port Phillip (sheltered)",
+    state: "Victoria",
+    region: "Port Phillip",
     onshore: 0,
     spots: [
       { id: "fort", name: "South Channel Fort", lat: -38.296, lon: 144.717, sheltered: true, tidal: true },
       { id: "blairgowrie", name: "Blairgowrie (bay)", lat: -38.357, lon: 144.776, sheltered: true },
+      { id: "ryepier", name: "Rye Pier", lat: -38.3745, lon: 144.8225, sheltered: true },
+      { id: "sorrentopier", name: "Sorrento Pier", lat: -38.3385, lon: 144.743, sheltered: true },
+      { id: "portseapier", name: "Portsea Pier", lat: -38.3235, lon: 144.712, sheltered: true },
+      // Entrance sites — all slack-water dives, the Rip runs through them
+      { id: "portseahole", name: "Portsea Hole", lat: -38.312, lon: 144.716, sheltered: true, tidal: true },
+      { id: "popeseye", name: "Popes Eye", lat: -38.2772, lon: 144.6983, sheltered: true, tidal: true },
+      { id: "chinamans", name: "Chinaman's Hat", lat: -38.29, lon: 144.722, sheltered: true, tidal: true },
+      { id: "lonsdalewall", name: "Lonsdale Wall", lat: -38.2925, lon: 144.612, sheltered: true, tidal: true },
+      { id: "queenscliffpier", name: "Queenscliff Pier", lat: -38.268, lon: 144.661, sheltered: true },
+      { id: "stleonards", name: "St Leonards Pier", lat: -38.169, lon: 144.72, sheltered: true },
+      { id: "portarlington", name: "Portarlington Pier", lat: -38.11, lon: 144.654, sheltered: true },
+      { id: "morningtonpier", name: "Mornington Pier", lat: -38.223, lon: 145.039, sheltered: true },
+      { id: "ricketts", name: "Ricketts Point", lat: -37.986, lon: 145.03, sheltered: true },
+      { id: "cerberus", name: "HMVS Cerberus (Black Rock)", lat: -37.975, lon: 145.013, sheltered: true },
+      { id: "williamstown", name: "Williamstown (The Dell)", lat: -37.868, lon: 144.894, sheltered: true },
+    ],
+  },
+  {
+    state: "Victoria",
+    region: "Western Port",
+    onshore: 0,
+    spots: [
+      { id: "flinderspier", name: "Flinders Pier", lat: -38.477, lon: 145.025, sheltered: true },
+      { id: "cowes", name: "Cowes Jetty", lat: -38.447, lon: 145.239, sheltered: true },
+      { id: "stonypoint", name: "Stony Point Pier", lat: -38.3755, lon: 145.2245, sheltered: true, tidal: true },
+      { id: "crawfish", name: "Crawfish Rock", lat: -38.359, lon: 145.317, sheltered: true, tidal: true },
+      { id: "rhyll", name: "Rhyll Jetty", lat: -38.464, lon: 145.299, sheltered: true, tidal: true },
+      { id: "newhaven", name: "Newhaven Pier (San Remo)", lat: -38.516, lon: 145.356, sheltered: true, tidal: true },
+      { id: "tortoise", name: "Tortoise Head (French Is.)", lat: -38.423, lon: 145.313, sheltered: true, tidal: true },
+      { id: "corinella", name: "Corinella Pier", lat: -38.406, lon: 145.423, sheltered: true, tidal: true },
     ],
   },
 ];
@@ -116,6 +153,9 @@ for (const rg of REGIONS) {
     };
   }
 }
+
+// ponytail: only VIC today — the picker reads this, so adding a state is a data-only change
+export const STATES = [...new Set(REGIONS.map((r) => r.state))];
 
 export const DEFAULTS = ["sorrento", "bells", "woolamai", "schanck"];
 
