@@ -216,15 +216,14 @@ export default function DiveSites() {
 
   // Whichever card is open gets scrolled to — covers both clicking one open and
   // adding one from the picker. Nothing is open on load, so this stays quiet.
-  // Runs again when the card stops loading: a just-added card is last in the
-  // list, so at insert time there's nothing below it to scroll against and it
-  // lands mid-screen. Once its table fills in, the page can finish the job.
-  const openLoading = openId ? selected[openId].loading : false;
+  // Once per opened card, and only once: the loading body reserves a loaded
+  // card's height (see .sbody .loadgif), so the page is already its final size
+  // when this runs and the forecast landing doesn't move anything.
   useEffect(() => {
     if (!openId) return;
     const el = document.getElementById(`spot-${openId}`);
     if (el) scrollToEl(el);
-  }, [openId, openLoading]);
+  }, [openId]);
 
   const positions: LatLngExpression[] = ids.map((id) => [SPOTS[id].lat, SPOTS[id].lon]);
 

@@ -205,6 +205,10 @@
   .rm:hover{color:var(--poor);background:none}
   .sbody{border-top:1px solid var(--line);padding:12px 14px}
   .sbody .pad{padding:14px;color:var(--muted);font-size:13px}
+  /* Hold a loaded card's height (notes + table + tide graph ≈ 467px) while the
+     forecast is in flight. Without it the card grows ~400px on arrival, which
+     moves everything under it and needs a second scroll to chase — the flick. */
+  .sbody .loadgif{min-height:460px}
   /* Vis advisories (runoff, standing dirty water, tidal race) above the table */
   .visnotes{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:6px}
   .visnotes li{background:var(--surface-sunken);border-left:3px solid var(--warm);
