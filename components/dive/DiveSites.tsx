@@ -183,8 +183,16 @@ export default function DiveSites() {
     });
   }
 
+  // Accordion: opening a card closes the others, so an expanded 7-day table
+  // never buries the rest of the list.
   function toggleExpand(id: string) {
-    setSelected((prev) => (prev[id] ? { ...prev, [id]: { ...prev[id], expanded: !prev[id].expanded } } : prev));
+    setSelected((prev) => {
+      if (!prev[id]) return prev;
+      const open = !prev[id].expanded;
+      return Object.fromEntries(
+        Object.entries(prev).map(([k, st]) => [k, { ...st, expanded: k === id && open }]),
+      ) as SelMap;
+    });
   }
 
   useEffect(() => {
