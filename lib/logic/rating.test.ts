@@ -105,12 +105,15 @@ assert.match(visNotes(spot(), 8)[0], /bit of rain/);
 assert.match(visNotes(spot(), 0)[0], /Barely any rain/);
 assert.match(visNotes(spot({ murky: "river" }), 0)[1], /tannic/);
 assert.match(visNotes(spot({ murky: "bay" }), 0)[1], /Top of the bay/);
+assert.match(visNotes(spot({ murky: "silt" }), 0)[1], /Silty by nature/);
 assert.match(visNotes(spot({ sheltered: true, tidal: true }), 0)[1], /slack water/);
 
 // windRel: onshore vs offshore vs cross.
 assert.equal(windRel(200, 200).kind, "on");
 assert.equal(windRel(20, 200).kind, "off");
 assert.equal(windRel(110, 200).kind, "cross");
+// Shoreless sites (mid-bay pinnacles, walls) have no on/off answer.
+assert.equal(windRel(200, null).kind, "");
 
 // compass buckets.
 assert.equal(compass(0), "N");

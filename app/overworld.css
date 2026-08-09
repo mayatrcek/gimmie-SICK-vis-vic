@@ -255,6 +255,10 @@
   .fcscore{display:inline-block;min-width:26px;padding:2px 4px;border:1px solid var(--ink);
     color:#fff;font-weight:700}
   .fcarrow{display:inline-block;font-size:15px;line-height:1}
+  /* wind vs land — offshore reads as the good one at a glance */
+  .fctable .fcrel-off{color:var(--green)}
+  .fctable .fcrel-on{color:var(--marg)}
+  .fctable .fcrel-cross{color:var(--muted)}
   .fctable .fcgraph{padding:0}
   .fctidesvg{display:block}
   .fcline{fill:none;stroke:var(--accent);stroke-width:2}

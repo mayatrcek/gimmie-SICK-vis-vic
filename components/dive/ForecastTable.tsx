@@ -1,7 +1,7 @@
 "use client";
 
 import type { Hourly, Row, Spot } from "@/lib/types";
-import { compass, dname, score10, scoreCol, tideExtremes } from "@/lib/logic/rating";
+import { compass, dname, score10, scoreCol, tideExtremes, windRel } from "@/lib/logic/rating";
 import type { TideMark } from "@/lib/logic/rating";
 
 // 3-hourly slots matching the classic surf-forecast layout (1am–10pm).
@@ -218,13 +218,13 @@ export default function ForecastTable({ s, hourly, rows }: { s: Spot; hourly: Ho
             )}
           </tr>
           <tr>
-            <th className="fclab">Runoff <i>(mm)</i></th>
-            {/* per-day, not per-slot: the decayed week of rain behind that day */}
-            {days.map((d) => (
-              <td key={d.date} colSpan={d.n} className="fcd0">
-                {Math.round(runoffByDate[d.date] ?? 0)}
-              </td>
-            ))}
+            <th className="fclab">Vs land</th>
+            {/* on/off/cross relative to the bearing the site's water lies in;
+                shoreless sites (mid-bay pinnacles, walls) have no answer */}
+            {slots.map((sl) => {
+              const kind = windRel(sl.wdir, s.onshore).kind;
+              return td(sl, kind || "—", kind ? `fcrel-${kind}` : "");
+            })}
           </tr>
           <tr>
             <th className="fclab">Tide <i>(m)</i></th>

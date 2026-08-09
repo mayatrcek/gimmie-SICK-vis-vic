@@ -115,6 +115,10 @@ export function visNotes(s: Spot, runoff: number | null): string[] {
     out.push(
       "Top of the bay: silty, regularly dirty water. The Yarra and Werribee outflows keep this end murky rain or not, so treat any vis you get as a bonus.",
     );
+  } else if (s.murky === "silt") {
+    out.push(
+      "Silty by nature: a big tidal exchange over mudflats and mangroves keeps this water milky most of the time. A few metres is a good day here — go on the tail of a neap tide and at slack, and expect it to thicken after rain or a blow.",
+    );
   }
   if (s.tidal) out.push("Strong tidal current through here — dive it on slack water or not at all.");
   return out;

@@ -54,10 +54,14 @@ python test_cmems_currents.py  # currents rasterizer self-check (no CMEMS creds 
   - `lib/data/regions.ts` — every region carries a `state`, and the dive-site
     picker cascades state › region › site off `REGIONS`/`STATES`, so adding a
     state or region is a data-only change.
-  - Spots can carry `murky: "river" | "bay"` (regularly dirty water — the score
-    stops docking them for rain and they get a standing warning instead) and
-    `tidal` (slack-water-only). Sheltered spots north of −38.15 are auto-flagged
+  - Spots can carry `murky: "river" | "bay" | "silt"` (regularly dirty water —
+    the score stops docking them for rain and they get a standing warning
+    instead; `"silt"` is Western Port's tide-stirred mudflat water) and `tidal`
+    (slack-water-only). Sheltered spots north of −38.15 are auto-flagged
     `"bay"` for the silty top half of Port Phillip.
+  - `onshore` is the bearing the site's open water lies in; `null` means
+    shoreless (mid-bay pinnacles, wrecks, channel walls), and the expanded
+    card's "Vs land" row shows `—` rather than guessing on/off/cross.
   - `sheltered` spots score on wind alone — nothing else may deduct from them.
     Runoff and tidal race are warnings, not points. `SHELTER_KMH` is the one
     ladder in km/h rather than knots (15 km/h is a 7, 20 km/h a 4, 46 km/h a 1 —

@@ -6,12 +6,15 @@ export type Spot = {
   lat: number;
   lon: number;
   region: string;
-  onshore: number;
+  // null where there's no shore to be relative to (mid-bay pinnacles, wrecks,
+  // channel walls) — wind is then neither on- nor offshore.
+  onshore: number | null;
   sheltered: boolean;
   // Water that's dirty as a rule, not just after rain: "river" = river mouth /
-  // estuary / inlet (tannic, tea-coloured), "bay" = top of Port Phillip (silty).
+  // estuary / inlet (tannic, tea-coloured), "bay" = top of Port Phillip (silty),
+  // "silt" = tide-stirred mudflat water (Western Port).
   // These spots keep their wind-based score and get a standing vis warning.
-  murky?: "river" | "bay";
+  murky?: "river" | "bay" | "silt";
   // Tidal race — only diveable at slack water.
   tidal?: boolean;
   // Optional offshore sampling point for the marine API (rarely set).
