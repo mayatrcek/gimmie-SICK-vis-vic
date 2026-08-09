@@ -147,6 +147,26 @@
   .picker select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
   /* cascade markers between the fields */
   .pk-arrow{color:var(--line);font-size:15px;line-height:38px;user-select:none}
+  /* Narrowing the choice runs left to right: each field downstream of the one
+     you touched lights up and settles, the later ones on a delay. `both` holds
+     the lit state through that delay, so the stagger is the whole effect. */
+  @keyframes pk-cascade{
+    0%{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent);transform:translateY(-3px)}
+    100%{border-color:var(--ink);box-shadow:0 0 0 0 transparent;transform:none}
+  }
+  @keyframes pk-cascade-arrow{
+    0%{color:var(--accent);transform:translateX(-5px)}
+    100%{color:var(--line);transform:none}
+  }
+  /* --pk-delay is set on the field wrapper; animation-delay doesn't inherit but
+     custom properties do, so this is how the stagger reaches the select. */
+  .pk-cascade select{animation:pk-cascade .38s var(--ease) both;
+    animation-delay:var(--pk-delay,0ms)}
+  .pk-arrow.pk-cascade{animation:pk-cascade-arrow .38s var(--ease) both;
+    animation-delay:var(--pk-delay,0ms)}
+  @media(prefers-reduced-motion:reduce){
+    .pk-cascade select,.pk-arrow.pk-cascade{animation:none}
+  }
   .picker button{height:38px;padding:0 22px;margin-left:auto;box-shadow:none;
     background:var(--accent);color:#FFFAEF}
   .picker button:hover{background:#1F47B0;color:#FFFAEF}

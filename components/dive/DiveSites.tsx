@@ -158,6 +158,10 @@ export default function DiveSites() {
   // The card rolling shut — kept mounted until its transition ends, or there'd
   // be nothing left to animate.
   const [closing, setClosing] = useState("");
+  // Picker cascade: `n` bumps on every narrowing so the animation retriggers
+  // (a remount is the reliable way to replay a CSS animation); `deep` says the
+  // state changed, so the region field is downstream too, not just the site.
+  const [cascade, setCascade] = useState({ n: 0, deep: false });
   const didInit = useRef(false);
 
   const openNow = (m: SelMap) => Object.keys(m).find((k) => m[k].expanded) ?? "";
@@ -261,6 +265,13 @@ export default function DiveSites() {
   const inState = REGIONS.filter((r) => r.state === state);
   const spots = inState.find((r) => r.region === region)?.spots ?? [];
 
+  // Nothing animates on first paint (n === 0). The region field only joins in
+  // when the state changed above it; the site field always does, and waits its
+  // turn when there's a field lighting up ahead of it.
+  const lit = cascade.n > 0;
+  const rgLit = lit && cascade.deep;
+  const spDelay = cascade.deep ? "110ms" : "0ms";
+
   return (
     <div id="sub-divesites">
       <h2 className="sec">
@@ -276,6 +287,7 @@ export default function DiveSites() {
               setState(e.target.value);
               setRegion(REGIONS.find((r) => r.state === e.target.value)!.region);
               setPick("");
+              setCascade((c) => ({ n: c.n + 1, deep: true }));
             }}
           >
             {STATES.map((st) => (
@@ -286,11 +298,18 @@ export default function DiveSites() {
           </select>
         </div>
 
-        <span className="pk-arrow" aria-hidden>
+        <span
+          key={`ar1-${rgLit ? cascade.n : "s"}`}
+          className={`pk-arrow${rgLit ? " pk-cascade" : ""}`}
+          aria-hidden
+        >
           ▶
         </span>
 
-        <div className="pk-field">
+        <div
+          key={`rg-${rgLit ? cascade.n : "s"}`}
+          className={`pk-field${rgLit ? " pk-cascade" : ""}`}
+        >
           <label htmlFor="regionSelect">Region</label>
           <select
             id="regionSelect"
@@ -298,6 +317,7 @@ export default function DiveSites() {
             onChange={(e) => {
               setRegion(e.target.value);
               setPick("");
+              setCascade((c) => ({ n: c.n + 1, deep: false }));
             }}
           >
             {inState.map((rg) => (
@@ -308,11 +328,20 @@ export default function DiveSites() {
           </select>
         </div>
 
-        <span className="pk-arrow" aria-hidden>
+        <span
+          key={`ar2-${lit ? cascade.n : "s"}`}
+          className={`pk-arrow${lit ? " pk-cascade" : ""}`}
+          style={{ "--pk-delay": spDelay } as React.CSSProperties}
+          aria-hidden
+        >
           ▶
         </span>
 
-        <div className="pk-field">
+        <div
+          key={`sp-${lit ? cascade.n : "s"}`}
+          className={`pk-field${lit ? " pk-cascade" : ""}`}
+          style={{ "--pk-delay": spDelay } as React.CSSProperties}
+        >
           <label htmlFor="spotSelect">Dive site</label>
           <select id="spotSelect" value={pick} onChange={(e) => setPick(e.target.value)}>
             <option value="">Choose a spot…</option>
