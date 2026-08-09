@@ -169,9 +169,9 @@
   /* Opens on hover on pointer devices, like the nav's tab menu; touch still has
      the click, and hover:none never matches this block. */
   @media(hover:hover){
-    .pk-dd:hover .pk-menu{opacity:1;visibility:visible;pointer-events:auto;transform:none}
-    .pk-dd:hover .pk-caret{transform:rotate(180deg)}
-    .pk-dd:hover .pk-menu-item{opacity:1;transform:none;transition-delay:var(--i,0ms)}
+    .pk-dd:hover:not(.nohover) .pk-menu{opacity:1;visibility:visible;pointer-events:auto;transform:none}
+    .pk-dd:hover:not(.nohover) .pk-caret{transform:rotate(180deg)}
+    .pk-dd:hover:not(.nohover) .pk-menu-item{opacity:1;transform:none;transition-delay:var(--i,0ms)}
   }
   .pk-menu-item{font-family:var(--font-hud);font-size:16px;font-weight:400;letter-spacing:normal;
     text-transform:none;justify-content:flex-start;text-align:left;white-space:nowrap;
@@ -186,37 +186,7 @@
   .pk-menu-item.active{background:var(--ink);color:var(--panel)}
   /* cascade markers between the fields */
   .pk-arrow{color:var(--line);font-size:15px;line-height:38px;user-select:none}
-  /* Narrowing the choice runs left to right: each field downstream of the one
-     you touched lights up and settles, the later ones on a delay. `both` holds
-     the lit state through that delay, so the stagger is the whole effect. */
-  @keyframes pk-cascade{
-    0%{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent);transform:translateY(-3px)}
-    100%{border-color:var(--ink);box-shadow:0 0 0 0 transparent;transform:none}
-  }
-  @keyframes pk-cascade-arrow{
-    0%{color:var(--accent);transform:translateX(-5px)}
-    100%{color:var(--line);transform:none}
-  }
-  /* Same cascade on hover, and on tap via :focus-within (a phone gives a select
-     focus when its native picker opens). `~` is every sibling downstream of the
-     field you're on, so the strip shows you what it's about to narrow before
-     you commit to anything. Delays are by position in the strip — CSS can't
-     count "how far downstream", and left-to-right is the point either way. */
-  .pk-field:hover ~ .pk-field .pk-trigger,
-  .pk-field:focus-within ~ .pk-field .pk-trigger{
-    animation:pk-cascade .38s var(--ease) both;animation-delay:var(--pk-hover,0ms)}
-  .pk-field:hover ~ .pk-arrow,
-  .pk-field:focus-within ~ .pk-arrow{
-    animation:pk-cascade-arrow .38s var(--ease) both;animation-delay:var(--pk-hover,0ms)}
-  .picker > :nth-child(2){--pk-hover:0ms}
-  .picker > :nth-child(3){--pk-hover:60ms}
-  .picker > :nth-child(4){--pk-hover:120ms}
-  .picker > :nth-child(5){--pk-hover:180ms}
-
   @media(prefers-reduced-motion:reduce){
-    .pk-field:hover ~ .pk-field .pk-trigger,
-    .pk-field:focus-within ~ .pk-field .pk-trigger,
-    .pk-field:hover ~ .pk-arrow,.pk-field:focus-within ~ .pk-arrow{animation:none}
     .pk-menu,.pk-menu-item{transition:none}
   }
   /* child combinator: the Add button is a direct child, the field triggers are not */

@@ -84,6 +84,10 @@ function PickerMenu({
   onPick: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  // Set when a pick closes the menu while the pointer is still on the field:
+  // :hover would otherwise reopen it straight away, since CSS doesn't know
+  // anything was chosen. Cleared when the pointer leaves.
+  const [noHover, setNoHover] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -104,7 +108,10 @@ function PickerMenu({
   return (
     <div className="pk-field" ref={ref}>
       <label htmlFor={id}>{label}</label>
-      <div className={`pk-dd${open ? " open" : ""}`}>
+      <div
+        className={`pk-dd${open ? " open" : ""}${noHover ? " nohover" : ""}`}
+        onMouseLeave={() => setNoHover(false)}
+      >
         <button
           id={id}
           type="button"
@@ -137,6 +144,7 @@ function PickerMenu({
               onClick={() => {
                 onPick(o.id);
                 setOpen(false);
+                setNoHover(true);
               }}
             >
               {o.name}
