@@ -86,6 +86,31 @@ export const REGIONS: Region[] = [
     ],
   },
   {
+    // Granite, sponge gardens and the offshore island groups. Everything here
+    // is open Bass Strait — the east-coast coves face away from the prevailing
+    // swell but still read as ocean sites, not bay water.
+    state: "Victoria",
+    region: "Wilsons Promontory",
+    onshore: 225,
+    spots: [
+      { id: "tonguept", name: "Tongue Point", lat: -38.9345, lon: 146.3095, onshore: 270 },
+      { id: "whiskybay", name: "Whisky Bay", lat: -38.9955, lon: 146.2965, onshore: 260 },
+      { id: "squeaky", name: "Squeaky Beach", lat: -39.0075, lon: 146.3025, onshore: 260 },
+      { id: "normanbay", name: "Norman Bay (Tidal River)", lat: -39.0325, lon: 146.3155, onshore: 250 },
+      { id: "shellback", name: "Shellback Island", lat: -39.0475, lon: 146.3005 },
+      { id: "oberon", name: "Oberon Bay", lat: -39.0765, lon: 146.3305, onshore: 240 },
+      { id: "glennie", name: "Great Glennie Island", lat: -39.0705, lon: 146.2385 },
+      { id: "cleft", name: "Cleft Island (Skull Rock)", lat: -39.1015, lon: 146.2205 },
+      { id: "anser", name: "Anser Island", lat: -39.1385, lon: 146.2905 },
+      { id: "kanowna", name: "Kanowna Island", lat: -39.1555, lon: 146.3105 },
+      { id: "rodondo", name: "Rodondo Island", lat: -39.2335, lon: 146.3905 },
+      // East side — tucked in behind the Prom, so onshore is an easterly here
+      { id: "waterloobay", name: "Waterloo Bay", lat: -39.0825, lon: 146.3965, onshore: 100 },
+      { id: "refugecove", name: "Refuge Cove", lat: -39.0285, lon: 146.4155, onshore: 90 },
+      { id: "sealerscove", name: "Sealers Cove", lat: -38.9555, lon: 146.4375, onshore: 80 },
+    ],
+  },
+  {
     state: "Victoria",
     region: "Far West / Shipwreck Coast",
     onshore: 200,
