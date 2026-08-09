@@ -254,7 +254,11 @@
   .sbody-wrap{display:grid;grid-template-rows:0fr;overflow:hidden;
     transition:grid-template-rows .3s var(--ease)}
   .sbody-wrap.open{grid-template-rows:1fr}
-  .sbody-wrap > .sbody{min-height:0}
+  /* Both minimums matter: a grid item defaults to min-width:auto, which means
+     "never narrower than min-content" — and min-content here is the whole 2665px
+     forecast table. That pushed .sbody past the card, left .fcwrap wide enough to
+     need no scrollbar, and the wrapper's overflow:hidden ate the rest. */
+  .sbody-wrap > .sbody{min-height:0;min-width:0}
   @media(prefers-reduced-motion:reduce){.sbody-wrap{transition:none}}
   .sbody{border-top:1px solid var(--line);padding:12px 14px}
   .sbody .pad{padding:14px;color:var(--muted);font-size:13px}
