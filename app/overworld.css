@@ -254,6 +254,8 @@
   .fctable .fctime{color:var(--muted);font-size:14px;border-top:none;padding-bottom:5px}
   .fcscore{display:inline-block;min-width:26px;padding:2px 4px;border:1px solid var(--ink);
     color:#fff;font-weight:700}
+  /* scrolled-to cards stop below the sticky nav bar, not under it */
+  .scard{scroll-margin-top:calc(var(--tabh) + 12px)}
   .fcarrow{display:inline-block;font-size:15px;line-height:1}
   /* wind vs land — offshore reads as the good one at a glance */
   .fctable .fcrel-off{color:var(--green)}

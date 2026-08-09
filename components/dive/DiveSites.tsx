@@ -76,7 +76,7 @@ function SpotCard({
   const td = st.rows ? todayRow(st.rows) : null;
   const sst = st.sst ?? td?.sst ?? null; // NOAA scan first, Open-Meteo fallback
   return (
-    <div className="scard">
+    <div className="scard" id={`spot-${id}`}>
       <div className="schead" onClick={() => onToggle(id)}>
         <span className="chev">{st.expanded ? "▾" : "▸"}</span>
         <div className="smeta">
@@ -148,12 +148,18 @@ export default function DiveSites() {
   const [pick, setPick] = useState("");
   const didInit = useRef(false);
 
-  function addSpot(id: string) {
+  // `open` is only set when the user adds a spot themselves — the card opens and
+  // the page rides down to it. The startup defaults come in closed.
+  function addSpot(id: string, open = false) {
     const s = SPOTS[id];
     if (!s) return;
     setSelected((prev) => {
       if (prev[id]) return prev;
-      return { ...prev, [id]: { rows: null, hourly: null, loading: true, expanded: false } };
+      const next: SelMap = open
+        ? Object.fromEntries(Object.entries(prev).map(([k, st]) => [k, { ...st, expanded: false }]))
+        : { ...prev };
+      next[id] = { rows: null, hourly: null, loading: true, expanded: open };
+      return next;
     });
     // Water temp from the latest NOAA ACSPO scan (same source as the SST page)
     fetch(`/api/sst-point?lat=${s.lat}&lon=${s.lon}&box=1`)
@@ -198,11 +204,28 @@ export default function DiveSites() {
   useEffect(() => {
     if (didInit.current) return;
     didInit.current = true;
-    DEFAULTS.forEach(addSpot);
+    // not `forEach(addSpot)` — forEach hands the index in as `open`, which would
+    // open (and scroll to) every default after the first.
+    DEFAULTS.forEach((id) => addSpot(id));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const ids = Object.keys(selected);
+  const openId = ids.find((id) => selected[id].expanded) ?? "";
+
+  // Whichever card is open gets scrolled to — covers both clicking one open and
+  // adding one from the picker. Nothing is open on load, so this stays quiet.
+  // Not `behavior:"smooth"`: it's a silent no-op in Chrome with smooth scrolling
+  // switched off, which reads as "the scroll is broken" rather than "no animation".
+  // Runs again when the card stops loading: a just-added card is last in the
+  // list, so at insert time there's nothing below it to scroll against and it
+  // lands mid-screen. Once its table fills in, the page can finish the job.
+  const openLoading = openId ? selected[openId].loading : false;
+  useEffect(() => {
+    if (!openId) return;
+    document.getElementById(`spot-${openId}`)?.scrollIntoView({ block: "start" });
+  }, [openId, openLoading]);
+
   const positions: LatLngExpression[] = ids.map((id) => [SPOTS[id].lat, SPOTS[id].lon]);
 
   const inState = REGIONS.filter((r) => r.state === state);
@@ -274,7 +297,7 @@ export default function DiveSites() {
         <button
           disabled={!pick || !!selected[pick]}
           onClick={() => {
-            addSpot(pick);
+            addSpot(pick, true);
             setPick("");
           }}
         >
