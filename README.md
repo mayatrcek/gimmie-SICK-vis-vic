@@ -26,10 +26,11 @@ python test_cmems_currents.py  # currents rasterizer self-check (no CMEMS creds 
 
 - `app/` — routes (App Router). Home is SSG; each section is its own route.
   Maps are client components dynamically imported with `ssr:false`.
-  - `/forecast` — dive-site ratings; each expanded spot card shows a 3-hourly
-    week table (0–10 score, wave height/direction/period, energy, wind,
-    high/low tides) from Open-Meteo hourly data; card water temp comes from
-    the latest NOAA ACSPO scan via `sst-point?box=1` (Open-Meteo fallback)
+  - `/forecast` — dive-site ratings; each expanded spot card shows vis notes
+    (runoff, standing dirty-water and tidal warnings) plus a 3-hourly week table
+    (0–10 score, wave height/direction/period, energy, wind, runoff, high/low
+    tides) from Open-Meteo hourly data; card water temp comes from the latest
+    NOAA ACSPO scan via `sst-point?box=1` (Open-Meteo fallback)
   - `/live/*` — SST (12-day daily-scan gallery), chlorophyll (daily-scan
     gallery), currents (12-day vector-arrow gallery), altimetry, salinity,
     Nepean cam
@@ -45,6 +46,19 @@ python test_cmems_currents.py  # currents rasterizer self-check (no CMEMS creds 
   last-viewed center/zoom to localStorage (`gsv:mapview:<name>`).
 - `lib/` — data (`data/`), pure logic (`logic/`), API clients (`api/`),
   Leaflet helpers (`leaflet/`).
+  - `lib/data/thresholds.ts` — every rating knob, calibrated (in knots) against
+    the 22 hand-rated scenarios in
+    `sources/docs/gimmie_sick_vis_rating_examples.xlsx`. `lib/logic/rating.test.ts`
+    replays all 22, so a threshold change that drifts off Maya's calls fails
+    `npm test`. Retune here, not in `rating.ts`.
+  - Spots can carry `murky: "river" | "bay"` (regularly dirty water — the score
+    stops docking them for rain and they get a standing warning instead) and
+    `tidal` (slack-water-only). Sheltered spots north of −38.15 are auto-flagged
+    `"bay"` for the silty top half of Port Phillip.
+  - `sheltered` spots score on wind alone — nothing else may deduct from them.
+    Runoff and tidal race are warnings, not points. `SHELTER_KMH` is the one
+    ladder in km/h rather than knots (15 km/h dives well, 46 km/h is a 1); it
+    supersedes the spreadsheet's five sheltered rows.
 - `app/overworld.css` — the OVERWORLD pixel design system (see `ui_design/overworld/`);
   `app/globals.css` wires Tailwind v4 (no preflight) + the homepage `@theme` tokens.
 - `public/assets/` — brand, loading anims, pre-rendered geo basemaps.

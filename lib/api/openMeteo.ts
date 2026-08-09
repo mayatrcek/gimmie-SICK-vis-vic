@@ -1,5 +1,6 @@
 import type { Hourly, Row, SiteData, Spot } from "@/lib/types";
-import { dayRating, score10, windRel } from "@/lib/logic/rating";
+import { dayRating, runoffIndex, score10, windRel } from "@/lib/logic/rating";
+import { RAIN_DAYS } from "@/lib/data/thresholds";
 
 export const MARINE = "https://marine-api.open-meteo.com/v1/marine";
 export const WEATHER = "https://api.open-meteo.com/v1/forecast";
@@ -20,7 +21,8 @@ export async function fetchSite(s: Spot): Promise<SiteData> {
     `${WEATHER}?latitude=${s.lat}&longitude=${s.lon}` +
     "&daily=precipitation_sum,rain_sum,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant" +
     "&hourly=wind_speed_10m,wind_direction_10m" +
-    `&timezone=${TZ}&forecast_days=7&past_days=1`;
+    // past_days covers the runoff window — same one request, just more rows.
+    `&timezone=${TZ}&forecast_days=7&past_days=${RAIN_DAYS}`;
 
   const [marine, weather] = await Promise.all([
     fetch(m).then((r) => r.json()),
@@ -48,13 +50,11 @@ export async function fetchSite(s: Spot): Promise<SiteData> {
     });
   }
 
-  // Rain-runoff downgrade uses the same effective-rain figure per day, needed
-  // both per-row and per-hour below, so compute it once.
-  const rEffByDate: Record<string, number> = {};
+  // Runoff index per day (that day's rain plus the decayed week before it),
+  // needed both per-row and per-hour below, so compute it once.
+  const runoffByDate: Record<string, number> = {};
   wd.time.forEach((date: string, i: number) => {
-    const rToday = wd.precipitation_sum[i] || 0;
-    const rYest = i > 0 ? wd.precipitation_sum[i - 1] || 0 : 0;
-    rEffByDate[date] = rToday + 0.5 * rYest;
+    runoffByDate[date] = runoffIndex(wd.precipitation_sum, i);
   });
 
   // Day "rough guide" = mode of that day's hourly score10 buckets, restricted
@@ -72,11 +72,10 @@ export async function fetchSite(s: Spot): Promise<SiteData> {
       if (hour < 6 || hour > 20) return;
       const date = t.slice(0, 10);
       const h = mh.swell_wave_height ? mh.swell_wave_height[k] : null;
-      const p = mh.swell_wave_period ? mh.swell_wave_period[k] : null;
       const wi = whIdx[t];
       const wind = wi != null ? weather.hourly.wind_speed_10m[wi] : null;
       const wdir = wi != null ? weather.hourly.wind_direction_10m[wi] : null;
-      const sc = score10(h, p, wind, wdir, s.onshore, rEffByDate[date] ?? null, s.sheltered);
+      const sc = score10(s, h, wind, wdir, runoffByDate[date] ?? null);
       if (sc != null) (scoresByDate[date] ??= []).push(sc);
     });
   }
@@ -99,7 +98,6 @@ export async function fetchSite(s: Spot): Promise<SiteData> {
     const wind = wi != null ? wd.wind_speed_10m_max[wi] : null;
     const wdir = wi != null ? wd.wind_direction_10m_dominant[wi] : null;
     const rToday = wi != null ? wd.precipitation_sum[wi] || 0 : 0;
-    const rEff = rEffByDate[date] ?? 0;
     const sst = sstN[date] ? sstSum[date] / sstN[date] : null;
     rows.push({
       date,
@@ -110,7 +108,7 @@ export async function fetchSite(s: Spot): Promise<SiteData> {
       wdir,
       rel: windRel(wdir, s.onshore),
       rainToday: rToday,
-      rainEff: rEff,
+      runoff: runoffByDate[date] ?? 0,
       rating: dayRating(scoresByDate[date] ?? []),
     });
   });

@@ -6,7 +6,7 @@ import type { LatLngExpression } from "leaflet";
 import { REGIONS, SPOTS, DEFAULTS } from "@/lib/data/regions";
 import MapLoading from "@/components/MapLoading";
 import { fetchSite } from "@/lib/api/openMeteo";
-import { todayRating, todayRow } from "@/lib/logic/rating";
+import { todayRating, todayRow, visNotes } from "@/lib/logic/rating";
 import type { Hourly, Row, Spot } from "@/lib/types";
 import { dotIcon } from "@/lib/leaflet/icons";
 import { pixelBasemap, pixelBaseOverlay } from "@/lib/leaflet/pixelTiles";
@@ -121,6 +121,13 @@ function SpotCard({
       </div>
       {st.expanded && (
         <div className="sbody">
+          {td && (
+            <ul className="visnotes">
+              {visNotes(s, td.runoff).map((n) => (
+                <li key={n}>{n}</li>
+              ))}
+            </ul>
+          )}
           {st.hourly && st.rows ? (
             <ForecastTable s={s} hourly={st.hourly} rows={st.rows} />
           ) : st.loading ? (

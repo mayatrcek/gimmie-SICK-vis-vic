@@ -1,5 +1,19 @@
-import type { Rating, RatingLabel, Row, WindRel } from "@/lib/types";
-import { COL, RANK, TH } from "../data/thresholds.ts";
+import type { Rating, RatingLabel, Row, Spot, WindRel } from "@/lib/types";
+import {
+  COL,
+  KN,
+  RAIN,
+  RAIN_DAYS,
+  RAIN_DECAY,
+  RANK,
+  SHELTER_GALE,
+  SHELTER_KMH,
+  SWELL,
+  SWELL_BIG,
+  WIND,
+  WIND_FLOOR,
+  WIND_GALE,
+} from "../data/thresholds.ts";
 
 export function rate(label: RatingLabel): Rating {
   return { label, col: COL[label], rank: RANK[label] };
@@ -19,80 +33,91 @@ export function windRel(from: number | null, onshore: number | null): WindRel {
   return { kind: "cross", label: "cross" };
 }
 
-// Maya's rules:
-//   Amazing  -> swell <1m AND good period AND light wind
-//   Marginal -> swell 1-1.5m, OR (<1m AND very high period), OR strong onshore wind
-//   Poor     -> swell >1.5m
-//   Good     -> otherwise (swell <1m, not marginal, but not quite amazing)
-//   Heavy recent rain downgrades one tier (runoff = poor viz).
-export function classify(
-  h: number | null,
-  p: number | null,
-  w: number | null,
-  windFrom: number | null,
-  onshore: number | null,
-  rainEff: number | null,
-  sheltered: boolean,
-): Rating {
-  if (sheltered) {
-    // inside the bay: no ocean swell, so rate on wind chop + recent rain only
-    let lbl: RatingLabel;
-    if (w == null) lbl = "Good";
-    else if (w < TH.WIND_LIGHT) lbl = "Amazing";
-    else if (w < TH.WIND_STRONG) lbl = "Good";
-    else lbl = "Marginal";
-    if (rainEff != null && rainEff >= TH.RAIN_HEAVY) {
-      if (lbl === "Amazing") lbl = "Good";
-      else if (lbl === "Good") lbl = "Marginal";
-    }
-    return rate(lbl);
-  }
-  if (h == null) return rate("Marginal");
-  const rel = windRel(windFrom, onshore);
-  const strongOnshore = rel.kind === "on" && w != null && w >= TH.WIND_STRONG;
-  if (h > TH.SWELL_MARG) return rate("Poor");
-  const isMarginal =
-    h >= TH.SWELL_GREAT ||
-    (h < TH.SWELL_GREAT && p != null && p >= TH.PERIOD_VHIGH) ||
-    strongOnshore;
-  let label: RatingLabel;
-  if (isMarginal) {
-    label = "Marginal";
-  } else {
-    const lightWind = w != null && w < TH.WIND_LIGHT;
-    const goodPeriod = p == null ? true : p < TH.PERIOD_GOOD;
-    label = lightWind && goodPeriod ? "Amazing" : "Good";
-  }
-  if (rainEff != null && rainEff >= TH.RAIN_HEAVY) {
-    if (label === "Amazing") label = "Good";
-    else if (label === "Good") label = "Marginal";
-  }
-  return rate(label);
+// First rung whose ceiling the value fits under, else `above`.
+function ladder(x: number, rungs: readonly (readonly [number, number])[], above: number): number {
+  for (const [lim, val] of rungs) if (x <= lim) return val;
+  return above;
 }
 
-// ponytail: 0-10 per-slot score, a heuristic restatement of classify()'s tiers
-// using the same TH thresholds — tune the weights, not the structure.
-export function score10(
-  h: number | null,
-  p: number | null,
-  w: number | null,
-  windFrom: number | null,
-  onshore: number | null,
-  rainEff: number | null,
-  sheltered: boolean,
-): number | null {
-  let s: number;
-  if (sheltered) {
-    s = w == null ? 7 : w < TH.WIND_LIGHT ? 10 : w < TH.WIND_STRONG ? 7 : 4;
-  } else {
-    if (h == null) return null;
-    s = 10 - Math.min(7, Math.max(0, (h - 0.3) * 4.5));
-    if (p != null) s -= p >= TH.PERIOD_VHIGH ? 2 : p >= TH.PERIOD_GOOD ? 1 : 0;
-    if (w != null && w >= TH.WIND_STRONG) s -= windRel(windFrom, onshore).kind === "on" ? 3 : 2;
-    else if (w != null && w >= TH.WIND_LIGHT) s -= 1;
+// Decayed sum of the rain leading up to day `i` of `rain` (mm per day, oldest
+// first, past days included). Yesterday's 40mm is still in the water; last
+// week's mostly isn't — RAIN_DECAY per day older is the whole model.
+export function runoffIndex(rain: (number | null)[], i: number): number {
+  let sum = 0;
+  for (let d = 0; d <= RAIN_DAYS; d++) {
+    const v = rain[i - d];
+    if (v != null) sum += v * RAIN_DECAY ** d;
   }
-  if (rainEff != null && rainEff >= TH.RAIN_HEAVY) s -= 2;
-  return Math.max(0, Math.min(10, Math.round(s)));
+  return sum;
+}
+
+// Runoff costs vis, but never more than a couple of points — it muddies a good
+// day, it doesn't turn one into a 1.
+export const rainPenalty = (runoff: number | null): number =>
+  runoff == null ? 0 : runoff >= RAIN.HEAVY ? 2 : runoff >= RAIN.MODERATE ? 1 : 0;
+
+// 0-10 per-slot score. Ladders and their calibration live in thresholds.ts;
+// swell period is deliberately absent — Maya's examples show it neither
+// rescuing a big day nor spoiling a small one.
+export function score10(
+  s: Spot,
+  h: number | null,
+  w: number | null,
+  wdir: number | null,
+  runoff: number | null,
+): number | null {
+  // Sheltered water is wind and nothing else — no swell to read, no protected
+  // side to work, and neither the tidal race nor last week's rain is allowed to
+  // pull the number down (both come out as warnings in visNotes instead).
+  // Scored straight off km/h; the ocean ladders below convert to knots.
+  if (s.sheltered) return w == null ? 7 : ladder(w, SHELTER_KMH, SHELTER_GALE);
+
+  const kts = w == null ? null : w / KN;
+  if (h == null) return null;
+  let sc = ladder(h, SWELL, SWELL_BIG);
+  if (sc >= WIND_FLOOR && kts != null) {
+    const pen = ladder(kts, WIND, WIND_GALE);
+    sc -= windRel(wdir, s.onshore).kind === "off" ? Math.floor(pen / 2) : pen;
+  }
+  // Spots that are murky as a rule already price dirty water into their score;
+  // there, rain is a note rather than a deduction.
+  if (!s.murky) sc -= rainPenalty(runoff);
+  return Math.max(1, Math.min(10, Math.round(sc)));
+}
+
+// Plain-English vis warnings for a spot on a given day: what the past week's
+// rain is likely to have done, plus any standing dirty-water caveat.
+export function visNotes(s: Spot, runoff: number | null): string[] {
+  const out: string[] = [];
+  const mm = runoff == null ? 0 : Math.round(runoff);
+  if (runoff == null) {
+    // nothing to say
+  } else if (runoff >= RAIN.HEAVY) {
+    out.push(
+      `Heavy rain about (${mm}mm of runoff banked over the past week). Expect a brown plume out of the creeks and river mouths, a murky top few metres, and vis that stays poor for a couple of days after the sky clears.`,
+    );
+  } else if (runoff >= RAIN.MODERATE) {
+    out.push(
+      `Recent rain (${mm}mm of runoff over the past week) will have knocked the vis back — worst near outlets and in the surface layer, better once you're down and away from the shore.`,
+    );
+  } else if (runoff >= RAIN.TRACE) {
+    out.push(
+      `A bit of rain about (${mm}mm of runoff over the past week). Mostly clean, but expect some murk hanging around creek and river mouths.`,
+    );
+  } else {
+    out.push(`Barely any rain in the past week (${mm}mm of runoff) — runoff shouldn't be hurting the vis.`);
+  }
+  if (s.murky === "river") {
+    out.push(
+      "River/estuary mouth: tannic, tea-coloured water is normal here and it goes dirty fast after rain. Rate it on the wind, not on the hope of a clear-water day.",
+    );
+  } else if (s.murky === "bay") {
+    out.push(
+      "Top of the bay: silty, regularly dirty water. The Yarra and Werribee outflows keep this end murky rain or not, so treat any vis you get as a bonus.",
+    );
+  }
+  if (s.tidal) out.push("Strong tidal current through here — dive it on slack water or not at all.");
+  return out;
 }
 
 // score band -> the existing tier colour, so the page legend still applies.

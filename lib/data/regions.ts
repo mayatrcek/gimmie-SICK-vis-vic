@@ -9,6 +9,8 @@ type RawSpot = {
   lon: number;
   onshore?: number;
   sheltered?: boolean;
+  murky?: "river" | "bay";
+  tidal?: boolean;
 };
 type Region = { region: string; onshore: number; spots: RawSpot[] };
 
@@ -32,7 +34,7 @@ export const REGIONS: Region[] = [
     onshore: 200,
     spots: [
       { id: "13th", name: "13th Beach", lat: -38.276, lon: 144.47 },
-      { id: "barwon", name: "Barwon Heads", lat: -38.278, lon: 144.49 },
+      { id: "barwon", name: "Barwon Heads", lat: -38.278, lon: 144.49, murky: "river" },
       { id: "oceangrove", name: "Ocean Grove", lat: -38.272, lon: 144.53 },
       { id: "lonsdale", name: "Point Lonsdale", lat: -38.293, lon: 144.61 },
     ],
@@ -92,7 +94,7 @@ export const REGIONS: Region[] = [
     region: "Port Phillip (sheltered)",
     onshore: 0,
     spots: [
-      { id: "fort", name: "South Channel Fort", lat: -38.296, lon: 144.717, sheltered: true },
+      { id: "fort", name: "South Channel Fort", lat: -38.296, lon: 144.717, sheltered: true, tidal: true },
       { id: "blairgowrie", name: "Blairgowrie (bay)", lat: -38.357, lon: 144.776, sheltered: true },
     ],
   },
@@ -101,11 +103,16 @@ export const REGIONS: Region[] = [
 export const SPOTS: Record<string, Spot> = {};
 for (const rg of REGIONS) {
   for (const s of rg.spots) {
+    const sheltered = s.sheltered ?? false;
     SPOTS[s.id] = {
       ...s,
       region: rg.region,
       onshore: s.onshore ?? rg.onshore,
-      sheltered: s.sheltered ?? false,
+      sheltered,
+      // Anything sheltered north of Mud Islands is the silty top half of Port
+      // Phillip (Yarra/Werribee outflow) — dirty as a rule, so flag it here
+      // rather than remembering to tag each spot added up that end.
+      murky: s.murky ?? (sheltered && s.lat > -38.15 ? "bay" : undefined),
     };
   }
 }

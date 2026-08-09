@@ -104,8 +104,8 @@ type Slot = {
 export default function ForecastTable({ s, hourly, rows }: { s: Spot; hourly: Hourly; rows: Row[] }) {
   const wIdx: Record<string, number> = {};
   hourly.wtime.forEach((t, i) => (wIdx[t] = i));
-  const rainByDate: Record<string, number> = {};
-  rows.forEach((r) => (rainByDate[r.date] = r.rainEff));
+  const runoffByDate: Record<string, number> = {};
+  rows.forEach((r) => (runoffByDate[r.date] = r.runoff));
 
   const slots: Slot[] = [];
   hourly.mtime.forEach((t, i) => {
@@ -126,7 +126,7 @@ export default function ForecastTable({ s, hourly, rows }: { s: Spot; hourly: Ho
       sd: hourly.swellD[i] ?? null,
       wind,
       wdir,
-      score: score10(h, p, wind, wdir, s.onshore, rainByDate[date] ?? null, s.sheltered),
+      score: score10(s, h, wind, wdir, runoffByDate[date] ?? null),
     });
   });
   if (!slots.length) return <div className="pad">Forecast unavailable.</div>;
@@ -216,6 +216,15 @@ export default function ForecastTable({ s, hourly, rows }: { s: Spot; hourly: Ho
                 </>,
               ),
             )}
+          </tr>
+          <tr>
+            <th className="fclab">Runoff <i>(mm)</i></th>
+            {/* per-day, not per-slot: the decayed week of rain behind that day */}
+            {days.map((d) => (
+              <td key={d.date} colSpan={d.n} className="fcd0">
+                {Math.round(runoffByDate[d.date] ?? 0)}
+              </td>
+            ))}
           </tr>
           <tr>
             <th className="fclab">Tide <i>(m)</i></th>

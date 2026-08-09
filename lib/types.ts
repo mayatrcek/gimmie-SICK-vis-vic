@@ -8,6 +8,12 @@ export type Spot = {
   region: string;
   onshore: number;
   sheltered: boolean;
+  // Water that's dirty as a rule, not just after rain: "river" = river mouth /
+  // estuary / inlet (tannic, tea-coloured), "bay" = top of Port Phillip (silty).
+  // These spots keep their wind-based score and get a standing vis warning.
+  murky?: "river" | "bay";
+  // Tidal race — only diveable at slack water.
+  tidal?: boolean;
   // Optional offshore sampling point for the marine API (rarely set).
   seaLat?: number;
   seaLon?: number;
@@ -27,7 +33,8 @@ export type Row = {
   wdir: number | null;
   rel: WindRel;
   rainToday: number;
-  rainEff: number;
+  // Decayed sum of the past week's rain — see runoffIndex().
+  runoff: number;
   rating: Rating;
 };
 
