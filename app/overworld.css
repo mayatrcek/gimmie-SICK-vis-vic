@@ -203,6 +203,15 @@
   .sreg{font-size:11px;color:var(--muted)}
   .rm{border:none;background:none;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:0 4px;flex-shrink:0;border-radius:50%}
   .rm:hover{color:var(--poor);background:none}
+  /* Card body rolls open/shut. 0fr -> 1fr animates to the content's own height,
+     which max-height can't do without a magic number. The wrapper is always in
+     the DOM (a transition needs something to transition from) and clips the body
+     — including its border — while the track is closed. */
+  .sbody-wrap{display:grid;grid-template-rows:0fr;overflow:hidden;
+    transition:grid-template-rows .3s var(--ease)}
+  .sbody-wrap.open{grid-template-rows:1fr}
+  .sbody-wrap > .sbody{min-height:0}
+  @media(prefers-reduced-motion:reduce){.sbody-wrap{transition:none}}
   .sbody{border-top:1px solid var(--line);padding:12px 14px}
   .sbody .pad{padding:14px;color:var(--muted);font-size:13px}
   /* Hold a loaded card's height (notes + table + tide graph ≈ 467px) while the

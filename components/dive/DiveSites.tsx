@@ -18,6 +18,9 @@ type SelMap = Record<string, St>;
 
 const fmt = (n: number | null, d = 1) => (n == null || isNaN(n) ? "—" : Number(n).toFixed(d));
 
+// Keep in step with .sbody-wrap's transition in overworld.css.
+const SLIDE_MS = 300;
+
 // Week-box labels: "Mo" on phones, "Monday" on wider screens (CSS swaps them)
 const wd = (ds: string) => new Date(ds + "T00:00:00").toLocaleDateString("en-AU", { weekday: "short" }).slice(0, 2);
 const wdFull = (ds: string) => new Date(ds + "T00:00:00").toLocaleDateString("en-AU", { weekday: "long" });
@@ -65,12 +68,15 @@ function SpotCard({
   id,
   s,
   st,
+  closing,
   onToggle,
   onRemove,
 }: {
   id: string;
   s: Spot;
   st: St;
+  // Mid-roll-up: the body has to stay mounted for the collapse to animate.
+  closing: boolean;
   onToggle: (id: string) => void;
   onRemove: (id: string) => void;
 }) {
@@ -120,24 +126,26 @@ function SpotCard({
           ×
         </button>
       </div>
-      {st.expanded && (
-        <div className="sbody">
-          {td && (
-            <ul className="visnotes">
-              {visNotes(s, td.runoff).map((n) => (
-                <li key={n}>{n}</li>
-              ))}
-            </ul>
-          )}
-          {st.hourly && st.rows ? (
-            <ForecastTable s={s} hourly={st.hourly} rows={st.rows} />
-          ) : st.loading ? (
-            <div className="pad loadgif">Loading forecast…</div>
-          ) : (
-            <div className="pad">Forecast unavailable.</div>
-          )}
-        </div>
-      )}
+      <div className={`sbody-wrap${st.expanded ? " open" : ""}`}>
+        {(st.expanded || closing) && (
+          <div className="sbody">
+            {td && (
+              <ul className="visnotes">
+                {visNotes(s, td.runoff).map((n) => (
+                  <li key={n}>{n}</li>
+                ))}
+              </ul>
+            )}
+            {st.hourly && st.rows ? (
+              <ForecastTable s={s} hourly={st.hourly} rows={st.rows} />
+            ) : st.loading ? (
+              <div className="pad loadgif">Loading forecast…</div>
+            ) : (
+              <div className="pad">Forecast unavailable.</div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -147,13 +155,28 @@ export default function DiveSites() {
   const [state, setState] = useState(STATES[0]);
   const [region, setRegion] = useState(REGIONS[0].region);
   const [pick, setPick] = useState("");
+  // The card rolling shut — kept mounted until its transition ends, or there'd
+  // be nothing left to animate.
+  const [closing, setClosing] = useState("");
   const didInit = useRef(false);
+
+  const openNow = (m: SelMap) => Object.keys(m).find((k) => m[k].expanded) ?? "";
+
+  // Hold the outgoing card's body in the DOM for the length of the roll-up.
+  // On a timer rather than transitionend: under prefers-reduced-motion there's
+  // no transition, so no event, and the body would sit mounted forever.
+  function startClosing(id: string) {
+    if (!id) return;
+    setClosing(id);
+    setTimeout(() => setClosing((c) => (c === id ? "" : c)), SLIDE_MS + 50);
+  }
 
   // `open` is only set when the user adds a spot themselves — the card opens and
   // the page rides down to it. The startup defaults come in closed.
   function addSpot(id: string, open = false) {
     const s = SPOTS[id];
     if (!s) return;
+    if (open) startClosing(openNow(selected)); // sibling rolls up as the new one rolls down
     setSelected((prev) => {
       if (prev[id]) return prev;
       const next: SelMap = open
@@ -193,6 +216,7 @@ export default function DiveSites() {
   // Accordion: opening a card closes the others, so an expanded 7-day table
   // never buries the rest of the list.
   function toggleExpand(id: string) {
+    startClosing(openNow(selected)); // whichever was open is the one rolling up
     setSelected((prev) => {
       if (!prev[id]) return prev;
       const open = !prev[id].expanded;
@@ -219,10 +243,17 @@ export default function DiveSites() {
   // Once per opened card, and only once: the loading body reserves a loaded
   // card's height (see .sbody .loadgif), so the page is already its final size
   // when this runs and the forecast landing doesn't move anything.
+  //
+  // Waits out the roll-open first (SLIDE_MS matches .sbody-wrap's transition).
+  // Scrolling during it would aim at a target still on the move — the sibling
+  // above is shrinking at the same time — and overshoot by its height.
   useEffect(() => {
     if (!openId) return;
-    const el = document.getElementById(`spot-${openId}`);
-    if (el) scrollToEl(el);
+    const t = setTimeout(() => {
+      const el = document.getElementById(`spot-${openId}`);
+      if (el) scrollToEl(el);
+    }, SLIDE_MS);
+    return () => clearTimeout(t);
   }, [openId]);
 
   const positions: LatLngExpression[] = ids.map((id) => [SPOTS[id].lat, SPOTS[id].lon]);
@@ -380,7 +411,15 @@ export default function DiveSites() {
           </div>
         ) : (
           ids.map((id) => (
-            <SpotCard key={id} id={id} s={SPOTS[id]} st={selected[id]} onToggle={toggleExpand} onRemove={removeSpot} />
+            <SpotCard
+              key={id}
+              id={id}
+              s={SPOTS[id]}
+              st={selected[id]}
+              closing={closing === id}
+              onToggle={toggleExpand}
+              onRemove={removeSpot}
+            />
           ))
         )}
       </div>
