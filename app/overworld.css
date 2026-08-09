@@ -164,8 +164,26 @@
     animation-delay:var(--pk-delay,0ms)}
   .pk-arrow.pk-cascade{animation:pk-cascade-arrow .38s var(--ease) both;
     animation-delay:var(--pk-delay,0ms)}
+  /* Same cascade on hover, and on tap via :focus-within (a phone gives a select
+     focus when its native picker opens). `~` is every sibling downstream of the
+     field you're on, so the strip shows you what it's about to narrow before
+     you commit to anything. Delays are by position in the strip — CSS can't
+     count "how far downstream", and left-to-right is the point either way. */
+  .pk-field:hover ~ .pk-field select,
+  .pk-field:focus-within ~ .pk-field select{
+    animation:pk-cascade .38s var(--ease) both;animation-delay:var(--pk-hover,0ms)}
+  .pk-field:hover ~ .pk-arrow,
+  .pk-field:focus-within ~ .pk-arrow{
+    animation:pk-cascade-arrow .38s var(--ease) both;animation-delay:var(--pk-hover,0ms)}
+  .picker > :nth-child(2){--pk-hover:0ms}
+  .picker > :nth-child(3){--pk-hover:60ms}
+  .picker > :nth-child(4){--pk-hover:120ms}
+  .picker > :nth-child(5){--pk-hover:180ms}
+
   @media(prefers-reduced-motion:reduce){
-    .pk-cascade select,.pk-arrow.pk-cascade{animation:none}
+    .pk-cascade select,.pk-arrow.pk-cascade,
+    .pk-field:hover ~ .pk-field select,.pk-field:focus-within ~ .pk-field select,
+    .pk-field:hover ~ .pk-arrow,.pk-field:focus-within ~ .pk-arrow{animation:none}
   }
   .picker button{height:38px;padding:0 22px;margin-left:auto;box-shadow:none;
     background:var(--accent);color:#FFFAEF}
