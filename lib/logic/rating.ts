@@ -124,6 +124,25 @@ export function visNotes(s: Spot, runoff: number | null): string[] {
   return out;
 }
 
+// Colour a forecast number by what that number alone does to the score, off the
+// same ladders score10 uses rather than a second scale of its own. Pass the
+// rounded value the cell displays. Empty string = no data, no colour.
+export function swellCol(h: number | null): string {
+  if (h == null || isNaN(h)) return "";
+  return scoreCol(ladder(h, SWELL, SWELL_BIG));
+}
+
+// Wind is a penalty rather than a score on open coast, so its cells take the
+// tier of the WIND rung they land on (≤9kn / ≤20kn / ≤25kn / above). Sheltered
+// water scores straight off SHELTER_KMH, so that ladder answers directly.
+const WIND_BAND: RatingLabel[] = ["Amazing", "Good", "Marginal", "Poor"];
+export function windCol(s: Spot, w: number | null): string {
+  if (w == null || isNaN(w)) return "";
+  if (s.sheltered) return scoreCol(ladder(w, SHELTER_KMH, SHELTER_GALE));
+  const i = WIND.findIndex(([lim]) => w / KN <= lim);
+  return COL[WIND_BAND[i === -1 ? WIND.length : i]];
+}
+
 // score band -> the existing tier colour, so the page legend still applies.
 export function scoreCol(n: number | null): string {
   if (n == null) return "#d7d4c8";

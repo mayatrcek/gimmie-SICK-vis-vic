@@ -9,11 +9,13 @@ import {
   runoffIndex,
   score10,
   scoreCol,
+  swellCol,
   tideExtremes,
   visNotes,
+  windCol,
   windRel,
 } from "./rating.ts";
-import { KN } from "../data/thresholds.ts";
+import { COL, KN } from "../data/thresholds.ts";
 
 const spot = (o: Partial<Spot> = {}): Spot => ({
   id: "t",
@@ -123,6 +125,31 @@ assert.equal(compass(null), "");
 // Band colours match tiers at the edges.
 assert.equal(scoreCol(10), "#2f6e4f");
 assert.equal(scoreCol(1), "#a8200d");
+
+// Cell colours ride the same ladders as the score — a green number can never
+// sit under a red rating.
+assert.equal(swellCol(0.5), COL.Amazing);
+assert.equal(swellCol(1.25), COL.Marginal);
+assert.equal(swellCol(2.5), COL.Poor);
+assert.equal(swellCol(null), "");
+assert.equal(windCol(spot(), 5 * KN), COL.Amazing); // 5 kn
+assert.equal(windCol(spot(), 22 * KN), COL.Marginal); // 22 kn — third rung
+assert.equal(windCol(spot(), 32 * KN), COL.Poor); // above the ladder
+assert.equal(windCol(spot({ sheltered: true }), 10), COL.Amazing); // 10 km/h on a pile
+assert.equal(windCol(spot({ sheltered: true }), 25), COL.Marginal); // a 3 on SHELTER_KMH
+assert.equal(windCol(spot({ sheltered: true }), 30), COL.Poor);
+assert.equal(windCol(spot(), null), "");
+
+// Two cells showing the same number must show it in the same colour — colour
+// off the rounded value the cell displays, never the raw one.
+const byShown: Record<string, Set<string>> = {};
+for (let raw = 0.4; raw < 2.1; raw += 0.01) {
+  const shown = raw.toFixed(1);
+  (byShown[shown] ??= new Set()).add(swellCol(+shown));
+}
+for (const [shown, cols] of Object.entries(byShown)) {
+  assert.equal(cols.size, 1, `height ${shown} rendered in ${cols.size} colours`);
+}
 
 // tideExtremes finds the hump and the dip.
 const mt = ["2026-07-16T00:00", "2026-07-16T01:00", "2026-07-16T02:00", "2026-07-16T03:00", "2026-07-16T04:00"];

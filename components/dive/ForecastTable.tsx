@@ -1,7 +1,7 @@
 "use client";
 
 import type { Hourly, Row, Spot } from "@/lib/types";
-import { compass, dname, score10, scoreCol, tideExtremes, windRel } from "@/lib/logic/rating";
+import { compass, dname, score10, scoreCol, swellCol, tideExtremes, windCol, windRel } from "@/lib/logic/rating";
 import type { TideMark } from "@/lib/logic/rating";
 
 // 3-hourly slots matching the classic surf-forecast layout (1am–10pm).
@@ -15,6 +15,9 @@ const SLOTW = 46;
 const LABW = "var(--labw)";
 
 const fmt = (n: number | null, d = 1) => (n == null || isNaN(n) ? "—" : Number(n).toFixed(d));
+// Cells are coloured off the rounded number the cell actually shows — colouring
+// the raw value put two "1.0"s in a row in different colours.
+const round = (n: number | null, d: number) => (n == null || isNaN(n) ? null : +Number(n).toFixed(d));
 
 const hlabel = (hour: number) => `${((hour + 11) % 12) + 1}${hour < 12 ? "am" : "pm"}`;
 
@@ -138,8 +141,8 @@ export default function ForecastTable({ s, hourly, rows }: { s: Spot; hourly: Ho
     else days.push({ date: sl.date, n: 1 });
   });
 
-  const td = (sl: Slot, body: React.ReactNode, cls = "") => (
-    <td key={sl.date + sl.hour} className={`${cls}${sl.first ? " fcd0" : ""}`}>
+  const td = (sl: Slot, body: React.ReactNode, cls = "", col = "") => (
+    <td key={sl.date + sl.hour} className={`${cls}${sl.first ? " fcd0" : ""}`} style={col ? { color: col } : undefined}>
       {body}
     </td>
   );
@@ -178,7 +181,7 @@ export default function ForecastTable({ s, hourly, rows }: { s: Spot; hourly: Ho
           </tr>
           <tr>
             <th className="fclab">Height <i>(m)</i></th>
-            {slots.map((sl) => td(sl, s.sheltered ? "—" : fmt(sl.h, 1)))}
+            {slots.map((sl) => td(sl, s.sheltered ? "—" : fmt(sl.h, 1), "", s.sheltered ? "" : swellCol(round(sl.h, 1))))}
           </tr>
           <tr>
             <th className="fclab">Direction</th>
@@ -214,6 +217,8 @@ export default function ForecastTable({ s, hourly, rows }: { s: Spot; hourly: Ho
                   <Arrow from={sl.wdir} /> {fmt(sl.wind, 0)}
                   <div>{compass(sl.wdir)}</div>
                 </>,
+                "",
+                windCol(s, round(sl.wind, 0)),
               ),
             )}
           </tr>
