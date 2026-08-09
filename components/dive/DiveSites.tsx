@@ -64,6 +64,88 @@ function FitBounds({ positions }: { positions: LatLngExpression[] }) {
   return null;
 }
 
+// One picker field. A native <select> renders its options in an OS popup we
+// can't touch, so this is a plain disclosure button over a list of buttons —
+// no faked listbox roles, keyboard works through Tab/Enter/Escape, and the
+// items can cascade in the way the nav's tab-menu does.
+function PickerMenu({
+  id,
+  label,
+  value,
+  options,
+  placeholder,
+  onPick,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  options: { id: string; name: string }[];
+  placeholder?: string;
+  onPick: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("click", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("click", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const cur = options.find((o) => o.id === value);
+  return (
+    <div className="pk-field" ref={ref}>
+      <label htmlFor={id}>{label}</label>
+      <div className={`pk-dd${open ? " open" : ""}`}>
+        <button
+          id={id}
+          type="button"
+          className="pk-trigger"
+          aria-haspopup="true"
+          aria-expanded={open}
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpen((v) => !v);
+          }}
+        >
+          <span className="pk-value">{cur ? cur.name : placeholder}</span>
+          <span className="pk-caret" aria-hidden>
+            ▾
+          </span>
+        </button>
+        <div className="pk-menu" role="menu" aria-label={label}>
+          {options.map((o, i) => (
+            <button
+              key={o.id}
+              type="button"
+              role="menuitem"
+              className={`pk-menu-item${o.id === value ? " active" : ""}`}
+              // Staggered only on the way in — delaying the fade-out too just
+              // makes closing feel slow. Capped so a 16-spot region doesn't
+              // take a second and a half to finish arriving.
+              style={{ transitionDelay: open ? `${Math.min(i, 11) * 45}ms` : "0ms" }}
+              onClick={() => {
+                onPick(o.id);
+                setOpen(false);
+              }}
+            >
+              {o.name}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SpotCard({
   id,
   s,
@@ -158,10 +240,6 @@ export default function DiveSites() {
   // The card rolling shut — kept mounted until its transition ends, or there'd
   // be nothing left to animate.
   const [closing, setClosing] = useState("");
-  // Picker cascade: `n` bumps on every narrowing so the animation retriggers
-  // (a remount is the reliable way to replay a CSS animation); `deep` says the
-  // state changed, so the region field is downstream too, not just the site.
-  const [cascade, setCascade] = useState({ n: 0, deep: false });
   const didInit = useRef(false);
 
   const openNow = (m: SelMap) => Object.keys(m).find((k) => m[k].expanded) ?? "";
@@ -265,93 +343,51 @@ export default function DiveSites() {
   const inState = REGIONS.filter((r) => r.state === state);
   const spots = inState.find((r) => r.region === region)?.spots ?? [];
 
-  // Nothing animates on first paint (n === 0). The region field only joins in
-  // when the state changed above it; the site field always does, and waits its
-  // turn when there's a field lighting up ahead of it.
-  const lit = cascade.n > 0;
-  const rgLit = lit && cascade.deep;
-  const spDelay = cascade.deep ? "110ms" : "0ms";
-
   return (
     <div id="sub-divesites">
       <h2 className="sec">
         Dive sites
       </h2>
       <div className="picker">
-        <div className="pk-field">
-          <label htmlFor="stateSelect">State</label>
-          <select
-            id="stateSelect"
-            value={state}
-            onChange={(e) => {
-              setState(e.target.value);
-              setRegion(REGIONS.find((r) => r.state === e.target.value)!.region);
-              setPick("");
-              setCascade((c) => ({ n: c.n + 1, deep: true }));
-            }}
-          >
-            {STATES.map((st) => (
-              <option key={st} value={st}>
-                {st}
-              </option>
-            ))}
-          </select>
-        </div>
+        <PickerMenu
+          id="stateSelect"
+          label="State"
+          value={state}
+          options={STATES.map((st) => ({ id: st, name: st }))}
+          onPick={(v) => {
+            setState(v);
+            setRegion(REGIONS.find((r) => r.state === v)!.region);
+            setPick("");
+          }}
+        />
 
-        <span
-          key={`ar1-${rgLit ? cascade.n : "s"}`}
-          className={`pk-arrow${rgLit ? " pk-cascade" : ""}`}
-          aria-hidden
-        >
+        <span className="pk-arrow" aria-hidden>
           ▶
         </span>
 
-        <div
-          key={`rg-${rgLit ? cascade.n : "s"}`}
-          className={`pk-field${rgLit ? " pk-cascade" : ""}`}
-        >
-          <label htmlFor="regionSelect">Region</label>
-          <select
-            id="regionSelect"
-            value={region}
-            onChange={(e) => {
-              setRegion(e.target.value);
-              setPick("");
-              setCascade((c) => ({ n: c.n + 1, deep: false }));
-            }}
-          >
-            {inState.map((rg) => (
-              <option key={rg.region} value={rg.region}>
-                {rg.region}
-              </option>
-            ))}
-          </select>
-        </div>
+        <PickerMenu
+          id="regionSelect"
+          label="Region"
+          value={region}
+          options={inState.map((rg) => ({ id: rg.region, name: rg.region }))}
+          onPick={(v) => {
+            setRegion(v);
+            setPick("");
+          }}
+        />
 
-        <span
-          key={`ar2-${lit ? cascade.n : "s"}`}
-          className={`pk-arrow${lit ? " pk-cascade" : ""}`}
-          style={{ "--pk-delay": spDelay } as React.CSSProperties}
-          aria-hidden
-        >
+        <span className="pk-arrow" aria-hidden>
           ▶
         </span>
 
-        <div
-          key={`sp-${lit ? cascade.n : "s"}`}
-          className={`pk-field${lit ? " pk-cascade" : ""}`}
-          style={{ "--pk-delay": spDelay } as React.CSSProperties}
-        >
-          <label htmlFor="spotSelect">Dive site</label>
-          <select id="spotSelect" value={pick} onChange={(e) => setPick(e.target.value)}>
-            <option value="">Choose a spot…</option>
-            {spots.map((sp) => (
-              <option key={sp.id} value={sp.id}>
-                {sp.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <PickerMenu
+          id="spotSelect"
+          label="Dive site"
+          value={pick}
+          placeholder="Choose a spot…"
+          options={spots.map((sp) => ({ id: sp.id, name: sp.name }))}
+          onPick={setPick}
+        />
 
         <button
           disabled={!pick || !!selected[pick]}

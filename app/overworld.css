@@ -140,11 +140,38 @@
   .pk-field{display:flex;flex-direction:column;gap:5px;flex:0 1 240px;min-width:0}
   .pk-field label{color:var(--muted);text-transform:uppercase;letter-spacing:.1em;
     font-size:14px;line-height:1}
-  .picker select{font:inherit;width:100%;height:38px;padding:0 12px;border:2px solid var(--ink);
-    border-radius:0;background:var(--paper);color:var(--ink);cursor:pointer;
+  /* Trigger wears what the <select> used to. Resets the global button rules —
+     display face, uppercase and the 4px block shadow all belong to real buttons. */
+  .pk-dd{position:relative}
+  .pk-trigger{display:flex;align-items:center;justify-content:space-between;gap:8px;
+    font-family:var(--font-hud);font-size:16px;font-weight:400;letter-spacing:normal;
+    text-transform:none;width:100%;height:38px;padding:0 12px;border:2px solid var(--ink);
+    border-radius:0;background:var(--paper);color:var(--ink);cursor:pointer;box-shadow:none;
     transition:border-color .18s var(--ease),box-shadow .18s var(--ease)}
-  .picker select:hover{background:var(--panel)}
-  .picker select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+  .pk-trigger:hover{background:var(--panel);color:var(--ink)}
+  .pk-trigger:active{transform:none}
+  .pk-trigger:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+  .pk-value{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pk-caret{font-size:11px;opacity:.65;flex:none;transition:transform .18s var(--ease)}
+  .pk-dd.open .pk-caret{transform:rotate(180deg)}
+
+  /* The menu, and the reveal: items drop in one after another (the nav's
+     tab-menu trick), delay per item set inline so long lists stay capped. */
+  .pk-menu{position:absolute;top:calc(100% + 6px);left:0;min-width:100%;max-height:300px;
+    overflow-y:auto;display:flex;flex-direction:column;z-index:700;
+    background:var(--panel);border:2px solid var(--ink);box-shadow:var(--shadow-1);
+    opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-6px);
+    transition:opacity .16s var(--ease),transform .16s var(--ease)}
+  .pk-dd.open .pk-menu{opacity:1;visibility:visible;pointer-events:auto;transform:none}
+  .pk-menu-item{font-family:var(--font-hud);font-size:16px;font-weight:400;letter-spacing:normal;
+    text-transform:none;justify-content:flex-start;text-align:left;white-space:nowrap;
+    padding:7px 12px;border:none;border-radius:0;background:transparent;color:var(--ink);
+    box-shadow:none;cursor:pointer;opacity:0;transform:translateY(-5px);
+    transition:opacity .3s var(--ease),transform .3s var(--ease),background-color .14s var(--ease)}
+  .pk-dd.open .pk-menu-item{opacity:1;transform:none}
+  .pk-menu-item:hover{background:rgba(22,19,16,.07);color:var(--ink)}
+  .pk-menu-item:active{transform:none}
+  .pk-menu-item.active{background:var(--ink);color:var(--panel)}
   /* cascade markers between the fields */
   .pk-arrow{color:var(--line);font-size:15px;line-height:38px;user-select:none}
   /* Narrowing the choice runs left to right: each field downstream of the one
@@ -158,19 +185,13 @@
     0%{color:var(--accent);transform:translateX(-5px)}
     100%{color:var(--line);transform:none}
   }
-  /* --pk-delay is set on the field wrapper; animation-delay doesn't inherit but
-     custom properties do, so this is how the stagger reaches the select. */
-  .pk-cascade select{animation:pk-cascade .38s var(--ease) both;
-    animation-delay:var(--pk-delay,0ms)}
-  .pk-arrow.pk-cascade{animation:pk-cascade-arrow .38s var(--ease) both;
-    animation-delay:var(--pk-delay,0ms)}
   /* Same cascade on hover, and on tap via :focus-within (a phone gives a select
      focus when its native picker opens). `~` is every sibling downstream of the
      field you're on, so the strip shows you what it's about to narrow before
      you commit to anything. Delays are by position in the strip — CSS can't
      count "how far downstream", and left-to-right is the point either way. */
-  .pk-field:hover ~ .pk-field select,
-  .pk-field:focus-within ~ .pk-field select{
+  .pk-field:hover ~ .pk-field .pk-trigger,
+  .pk-field:focus-within ~ .pk-field .pk-trigger{
     animation:pk-cascade .38s var(--ease) both;animation-delay:var(--pk-hover,0ms)}
   .pk-field:hover ~ .pk-arrow,
   .pk-field:focus-within ~ .pk-arrow{
@@ -181,20 +202,22 @@
   .picker > :nth-child(5){--pk-hover:180ms}
 
   @media(prefers-reduced-motion:reduce){
-    .pk-cascade select,.pk-arrow.pk-cascade,
-    .pk-field:hover ~ .pk-field select,.pk-field:focus-within ~ .pk-field select,
+    .pk-field:hover ~ .pk-field .pk-trigger,
+    .pk-field:focus-within ~ .pk-field .pk-trigger,
     .pk-field:hover ~ .pk-arrow,.pk-field:focus-within ~ .pk-arrow{animation:none}
+    .pk-menu,.pk-menu-item{transition:none}
   }
-  .picker button{height:38px;padding:0 22px;margin-left:auto;box-shadow:none;
+  /* child combinator: the Add button is a direct child, the field triggers are not */
+  .picker > button{height:38px;padding:0 22px;margin-left:auto;box-shadow:none;
     background:var(--accent);color:#FFFAEF}
-  .picker button:hover{background:#1F47B0;color:#FFFAEF}
-  .picker button:active{transform:translate(2px,2px)}
-  .picker button:disabled{background:var(--line);color:var(--muted);pointer-events:none}
+  .picker > button:hover{background:#1F47B0;color:#FFFAEF}
+  .picker > button:active{transform:translate(2px,2px)}
+  .picker > button:disabled{background:var(--line);color:var(--muted);pointer-events:none}
   .picker-hint{color:var(--muted);margin-bottom:12px;display:block}
   @media(max-width:560px){
     .pk-field{flex:1 1 100%}
     .pk-arrow{display:none}
-    .picker button{width:100%;margin-left:0}
+    .picker > button{width:100%;margin-left:0}
   }
 
   /* Scrollbars — square ink thumb on sunken parchment, zero radius */
