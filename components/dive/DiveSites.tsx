@@ -409,7 +409,6 @@ export default function DiveSites() {
           + Add
         </button>
       </div>
-      <span className="picker-hint">Click a card to expand its 7-day outlook.</span>
 
       <div className="panel">
         <div className="panel-bd flush">
@@ -477,6 +476,7 @@ export default function DiveSites() {
           </MapContainer>
         </div>
       </div>
+      <span className="list-hint">Click a card to expand its 7-day outlook.</span>
 
       <div className="sidepanel">
         {ids.length === 0 ? (

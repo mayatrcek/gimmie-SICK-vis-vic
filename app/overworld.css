@@ -195,7 +195,8 @@
   .picker > button:hover{background:#1F47B0;color:#FFFAEF}
   .picker > button:active{transform:translate(2px,2px)}
   .picker > button:disabled{background:var(--line);color:var(--muted);pointer-events:none}
-  .picker-hint{color:var(--muted);margin-bottom:12px;display:block}
+  /* sits under the map, above the cards it's talking about */
+  .list-hint{display:block;color:var(--muted);margin:0 0 12px}
   @media(max-width:560px){
     .pk-field{flex:1 1 100%}
     .pk-arrow{display:none}
