@@ -46,18 +46,21 @@ export const WIND_FLOOR = 4;
 // NB: this one ladder is in KM/H, not knots — it came straight from Maya in the
 // units the forecast table displays, and it supersedes the five sheltered rows
 // in the rating spreadsheet (which were knots and much more generous). 15 km/h
-// is the hinge: at or under it dives well (7+), over it drops away fast, and a
-// 46 km/h day on an exposed bay pile is a 1.
+// is the hinge: at or under it dives well (7+), and a 46 km/h day on an exposed
+// bay pile is a 1.
+// The fall-off from 15 to 22 km/h is deliberately steep — three points across
+// seven km/h, so 20 km/h is a 4. Chop builds fast on a pile with no lee, and a
+// gentler curve here read far too optimistic. Don't smooth it out.
 export const SHELTER_KMH: readonly (readonly [number, number])[] = [
   [8, 10],
   [11, 9],
   [13, 8],
-  [15, 7],
-  [20, 6],
-  [26, 5],
-  [32, 4],
-  [38, 3],
-  [45, 2],
+  [15, 7], // hinge
+  [17, 6],
+  [19, 5],
+  [22, 4], // 20 km/h lands here
+  [28, 3],
+  [38, 2],
 ];
 export const SHELTER_GALE = 1;
 

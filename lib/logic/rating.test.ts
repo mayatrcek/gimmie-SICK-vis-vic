@@ -61,7 +61,8 @@ for (const [name, s, h, kn, wdir, want] of CASES) {
 // A bay pile is exposed on every side, so wind bites much harder than the
 // original knot-based ratings allowed.
 const bay = spot({ sheltered: true });
-for (const [kmh, want] of [[5, 10], [8, 10], [11, 9], [13, 8], [15, 7], [16, 6], [20, 6], [26, 5], [32, 4], [38, 3], [45, 2], [46, 1], [70, 1]]) {
+// 20 km/h -> 4 is Maya's own number; the steep 15-22 band exists to hit it.
+for (const [kmh, want] of [[5, 10], [8, 10], [11, 9], [13, 8], [15, 7], [16, 6], [19, 5], [20, 4], [22, 4], [28, 3], [38, 2], [46, 1], [70, 1]]) {
   assert.equal(score10(bay, null, kmh, 0, 0), want, `sheltered ${kmh} km/h: expected ${want}`);
 }
 // The hinge, stated as the rule rather than the table: 15 and under dives well,

@@ -57,8 +57,9 @@ python test_cmems_currents.py  # currents rasterizer self-check (no CMEMS creds 
     `"bay"` for the silty top half of Port Phillip.
   - `sheltered` spots score on wind alone — nothing else may deduct from them.
     Runoff and tidal race are warnings, not points. `SHELTER_KMH` is the one
-    ladder in km/h rather than knots (15 km/h dives well, 46 km/h is a 1); it
-    supersedes the spreadsheet's five sheltered rows.
+    ladder in km/h rather than knots (15 km/h is a 7, 20 km/h a 4, 46 km/h a 1 —
+    the fall-off just past the hinge is steep on purpose); it supersedes the
+    spreadsheet's five sheltered rows.
 - `app/overworld.css` — the OVERWORLD pixel design system (see `ui_design/overworld/`);
   `app/globals.css` wires Tailwind v4 (no preflight) + the homepage `@theme` tokens.
 - `public/assets/` — brand, loading anims, pre-rendered geo basemaps.
