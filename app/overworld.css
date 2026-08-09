@@ -163,12 +163,24 @@
     opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-6px);
     transition:opacity .16s var(--ease),transform .16s var(--ease)}
   .pk-dd.open .pk-menu{opacity:1;visibility:visible;pointer-events:auto;transform:none}
+  /* invisible bridge over the 6px gap, so crossing from trigger to menu doesn't
+     drop the hover and shut it in your face (same trick as .tab-menu) */
+  .pk-menu::before{content:"";position:absolute;left:0;right:0;top:-8px;height:8px}
+  /* Opens on hover on pointer devices, like the nav's tab menu; touch still has
+     the click, and hover:none never matches this block. */
+  @media(hover:hover){
+    .pk-dd:hover .pk-menu{opacity:1;visibility:visible;pointer-events:auto;transform:none}
+    .pk-dd:hover .pk-caret{transform:rotate(180deg)}
+    .pk-dd:hover .pk-menu-item{opacity:1;transform:none;transition-delay:var(--i,0ms)}
+  }
   .pk-menu-item{font-family:var(--font-hud);font-size:16px;font-weight:400;letter-spacing:normal;
     text-transform:none;justify-content:flex-start;text-align:left;white-space:nowrap;
     padding:7px 12px;border:none;border-radius:0;background:transparent;color:var(--ink);
     box-shadow:none;cursor:pointer;opacity:0;transform:translateY(-5px);
-    transition:opacity .3s var(--ease),transform .3s var(--ease),background-color .14s var(--ease)}
-  .pk-dd.open .pk-menu-item{opacity:1;transform:none}
+    transition:opacity .3s var(--ease),transform .3s var(--ease),background-color .14s var(--ease);
+    /* no queue on the way out — all of them leave together */
+    transition-delay:0ms}
+  .pk-dd.open .pk-menu-item{opacity:1;transform:none;transition-delay:var(--i,0ms)}
   .pk-menu-item:hover{background:rgba(22,19,16,.07);color:var(--ink)}
   .pk-menu-item:active{transform:none}
   .pk-menu-item.active{background:var(--ink);color:var(--panel)}

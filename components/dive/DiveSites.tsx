@@ -128,10 +128,12 @@ function PickerMenu({
               type="button"
               role="menuitem"
               className={`pk-menu-item${o.id === value ? " active" : ""}`}
-              // Staggered only on the way in — delaying the fade-out too just
-              // makes closing feel slow. Capped so a 16-spot region doesn't
+              // The item's place in the queue. CSS spends it only while the
+              // menu is open or hovered, so the way out isn't staggered too —
+              // it can't be an inline transition-delay, because hover opens the
+              // menu without React knowing. Capped so a 16-spot region doesn't
               // take a second and a half to finish arriving.
-              style={{ transitionDelay: open ? `${Math.min(i, 11) * 45}ms` : "0ms" }}
+              style={{ "--i": `${Math.min(i, 11) * 45}ms` } as React.CSSProperties}
               onClick={() => {
                 onPick(o.id);
                 setOpen(false);
