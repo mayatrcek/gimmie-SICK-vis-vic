@@ -120,6 +120,15 @@ body {
   white-space: nowrap;
   transition: transform 0.1s steps(2); }
 .book:hover, .book:focus-visible { transform: translateY(-10px); }
+/* A gated spine keeps its place on the shelf but doesn't lift or lead anywhere
+   — see `wip` in lib/nav.ts. The palette rules below still colour it, so the
+   shelf's cycle doesn't shift; opacity is what marks it as out of service. */
+.book.wip { opacity: 0.45; cursor: default; }
+.book.wip:hover, .book.wip:focus-visible { transform: none; }
+/* The nav's boxed tag sits across the spine's vertical text at the wrong angle,
+   so on a shelf it reads inline with the label instead. */
+.book .wip-tag { border: 0; padding: 0; margin-left: 0.4em; opacity: 1; }
+.book .wip-tag::before { content: "· "; }
 /* Spines: cycle the palette and stagger the heights so it reads as a shelf. */
 .book:nth-child(4n + 1) { background: var(--color-bone); color: var(--color-ink-soft); }
 .book:nth-child(4n + 2) { background: var(--color-primary); color: var(--color-bone); min-height: calc(var(--spine) * 8.65); }

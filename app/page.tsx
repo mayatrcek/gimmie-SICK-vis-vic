@@ -21,7 +21,7 @@ const CHANNELS: Channel[] = [
   },
   {
     title: "Learn",
-    href: "/fish",
+    href: "/fish", // unused: shelf channels render as a toggle, not a link
     cls: "bg-secondary text-bone",
     shelf: "learn-shelf",
     items: LEARN_ITEMS,
@@ -169,11 +169,17 @@ export default function Home() {
                   {head}
                 </label>
                 <nav className="shelf" data-shelf={c.shelf} aria-label={`${c.title} pages`}>
-                  {c.items!.map((i) => (
-                    <Link key={i.href} href={i.href} className="book">
-                      {i.label}
-                    </Link>
-                  ))}
+                  {c.items!.map((i) =>
+                    i.wip ? (
+                      <span key={i.href} className="book wip" aria-disabled="true">
+                        {i.label} <em className="wip-tag">WIP</em>
+                      </span>
+                    ) : (
+                      <Link key={i.href} href={i.href} className="book">
+                        {i.label}
+                      </Link>
+                    ),
+                  )}
                 </nav>
               </Fragment>
             );

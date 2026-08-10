@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { FISH_WIP } from "@/lib/nav";
 
 // ponytail: hand-listed. 19 static routes, no dynamic segments — globbing the app
 // dir would be more code than the list. Add a route here when you add a page.
@@ -26,7 +27,7 @@ const ROUTES: Array<[path: string, priority: number]> = [
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
-  return ROUTES.map(([path, priority]) => ({
+  return ROUTES.filter(([path]) => !(FISH_WIP && path === "/fish")).map(([path, priority]) => ({
     url: `https://gimmiesickvis.com${path}`,
     lastModified,
     priority,

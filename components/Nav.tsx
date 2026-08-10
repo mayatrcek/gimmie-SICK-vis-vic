@@ -158,16 +158,23 @@ function Dropdown({
         </span>
       </button>
       <div className="tab-menu" role="menu" aria-label={g.label} data-open={open}>
-        {g.items.map((i) => (
-          <Link
-            key={i.href}
-            className={`tab-menu-item${isActive(i.href) ? " active" : ""}`}
-            role="menuitem"
-            href={i.href}
-          >
-            {i.label}
-          </Link>
-        ))}
+        {g.items.map((i) =>
+          i.wip ? (
+            <span key={i.href} className="tab-menu-item wip" role="menuitem" aria-disabled="true">
+              {i.label}
+              <em className="wip-tag">WIP</em>
+            </span>
+          ) : (
+            <Link
+              key={i.href}
+              className={`tab-menu-item${isActive(i.href) ? " active" : ""}`}
+              role="menuitem"
+              href={i.href}
+            >
+              {i.label}
+            </Link>
+          ),
+        )}
       </div>
     </div>
   );
