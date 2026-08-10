@@ -144,7 +144,15 @@
     transition:grid-template-rows .3s var(--ease)}
   .pk-collapse.open{grid-template-rows:1fr}
   .pk-collapse.settled{overflow:visible}
-  .pk-collapse > .picker{min-height:0;min-width:0}
+  /* min-height:0 only zeroes the content box. The strip's own padding, border
+     and margin (12+12 + 2+2 + 8 = 36px) survive it and would sit under the
+     heading as a visible sliver while collapsed, so fold those away too — and
+     on the same curve, or the box would snap before the roll starts. */
+  .pk-collapse > .picker{min-height:0;min-width:0;
+    padding-block:0;border-block-width:0;margin-bottom:0;
+    transition:padding .3s var(--ease),border-width .3s var(--ease),
+      margin-bottom .3s var(--ease)}
+  .pk-collapse.open > .picker{padding-block:12px;border-block-width:2px;margin-bottom:8px}
   @media(prefers-reduced-motion:reduce){.pk-collapse{transition:none}}
   /* Phones: shrink the button, and let it drop onto its own line rather than
      squeeze the title. Scoped to this heading so other .sec headings are
