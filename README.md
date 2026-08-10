@@ -43,7 +43,9 @@ python test_cmems_currents.py  # currents rasterizer self-check (no CMEMS creds 
   Nominatim `geocode`,
   and `depth-tile` (Terrarium elevation PNGs for the dive-map water shading).
 - `components/` — UI + map/chart components. `MapRecall` persists each map's
-  last-viewed center/zoom to localStorage (`gsv:mapview:<name>`).
+  last-viewed center/zoom to localStorage (`gsv:mapview:<name>`); `DiveSites`
+  persists this device's chosen spots and which card is open
+  (`gsv:locations:v1`, falling back to `DEFAULTS` in `lib/data/regions.ts`).
 - `lib/` — data (`data/`), pure logic (`logic/`), API clients (`api/`),
   Leaflet helpers (`leaflet/`).
   - `lib/data/thresholds.ts` — every rating knob, calibrated (in knots) against

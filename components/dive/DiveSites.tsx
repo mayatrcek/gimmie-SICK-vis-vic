@@ -21,6 +21,23 @@ const fmt = (n: number | null, d = 1) => (n == null || isNaN(n) ? "—" : Number
 // Keep in step with .sbody-wrap's transition in overworld.css.
 const SLIDE_MS = 300;
 
+// This device's saved locations, as [id, expanded][] — an array, not an object,
+// so card order survives. Bump the version suffix if the shape changes.
+const KEY = "gsv:locations:v1";
+
+function loadSaved(): [string, boolean][] {
+  try {
+    const v = JSON.parse(localStorage.getItem(KEY)!);
+    // [] is a real state (user removed every card) — only a missing or corrupt
+    // entry falls back to DEFAULTS.
+    if (!Array.isArray(v)) throw 0;
+    // Drop ids that no longer exist, in case a spot is renamed out of regions.ts.
+    return v.filter((e) => Array.isArray(e) && SPOTS[e[0]]).map((e) => [e[0], !!e[1]]);
+  } catch {
+    return DEFAULTS.map((id) => [id, false]); // first visit, or storage blocked
+  }
+}
+
 // Week-box labels: "Mo" on phones, "Monday" on wider screens (CSS swaps them)
 const wd = (ds: string) => new Date(ds + "T00:00:00").toLocaleDateString("en-AU", { weekday: "short" }).slice(0, 2);
 const wdFull = (ds: string) => new Date(ds + "T00:00:00").toLocaleDateString("en-AU", { weekday: "long" });
@@ -243,7 +260,14 @@ function SpotCard({
 }
 
 export default function DiveSites() {
-  const [selected, setSelected] = useState<SelMap>({});
+  // Restored synchronously: this component is only ever loaded with ssr:false
+  // (DiveSitesClient), so localStorage is available and nothing can hydrate
+  // against an empty list.
+  const [selected, setSelected] = useState<SelMap>(() =>
+    Object.fromEntries(
+      loadSaved().map(([id, expanded]) => [id, { rows: null, hourly: null, loading: true, expanded }]),
+    ),
+  );
   const [state, setState] = useState(STATES[0]);
   const [region, setRegion] = useState(REGIONS[0].region);
   const [pick, setPick] = useState("");
@@ -282,20 +306,9 @@ export default function DiveSites() {
     setTimeout(() => setClosing((c) => (c === id ? "" : c)), SLIDE_MS + 50);
   }
 
-  // `open` is only set when the user adds a spot themselves — the card opens and
-  // the page rides down to it. The startup defaults come in closed.
-  function addSpot(id: string, open = false) {
+  function fetchFor(id: string) {
     const s = SPOTS[id];
     if (!s) return;
-    if (open) startClosing(openNow(selected)); // sibling rolls up as the new one rolls down
-    setSelected((prev) => {
-      if (prev[id]) return prev;
-      const next: SelMap = open
-        ? Object.fromEntries(Object.entries(prev).map(([k, st]) => [k, { ...st, expanded: false }]))
-        : { ...prev };
-      next[id] = { rows: null, hourly: null, loading: true, expanded: open };
-      return next;
-    });
     // Water temp from the latest NOAA ACSPO scan (same source as the SST page)
     fetch(`/api/sst-point?lat=${s.lat}&lon=${s.lon}&box=1`)
       .then((r) => r.json())
@@ -314,6 +327,21 @@ export default function DiveSites() {
           prev[id] ? { ...prev, [id]: { ...prev[id], loading: false, rows: null } } : prev,
         ),
       );
+  }
+
+  // `open` is only set when the user adds a spot themselves — the card opens and
+  // the page rides down to it. Cards restored on load come in as they were left.
+  function addSpot(id: string, open = false) {
+    if (!SPOTS[id] || selected[id]) return; // re-picking a shown spot: don't refetch
+    if (open) startClosing(openNow(selected)); // sibling rolls up as the new one rolls down
+    setSelected((prev) => {
+      const next: SelMap = open
+        ? Object.fromEntries(Object.entries(prev).map(([k, st]) => [k, { ...st, expanded: false }]))
+        : { ...prev };
+      next[id] = { rows: null, hourly: null, loading: true, expanded: open };
+      return next;
+    });
+    fetchFor(id);
   }
 
   function removeSpot(id: string) {
@@ -338,19 +366,32 @@ export default function DiveSites() {
   }
 
   useEffect(() => {
-    if (didInit.current) return;
+    if (didInit.current) return; // StrictMode remounts in dev; fetch each spot once
     didInit.current = true;
-    // not `forEach(addSpot)` — forEach hands the index in as `open`, which would
-    // open (and scroll to) every default after the first.
-    DEFAULTS.forEach((id) => addSpot(id));
+    Object.keys(selected).forEach(fetchFor);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Save on change only: the payload doubles as the dep, so forecast fetches
+  // resolving (which also touch `selected`) don't trigger a write. The first run
+  // rewrites exactly what loadSaved() read, so it can't clobber anything.
+  const payload = JSON.stringify(Object.entries(selected).map(([id, st]) => [id, st.expanded]));
+  useEffect(() => {
+    try {
+      localStorage.setItem(KEY, payload);
+    } catch {} // storage blocked (private mode) → the list just won't persist
+  }, [payload]);
 
   const ids = Object.keys(selected);
   const openId = ids.find((id) => selected[id].expanded) ?? "";
 
+  // A card restored from storage is already open on the first render, and
+  // landing on the page shouldn't yank you past the map — only cards opened in
+  // this session get scrolled to.
+  const skipScroll = useRef(openId !== "");
+
   // Whichever card is open gets scrolled to — covers both clicking one open and
-  // adding one from the picker. Nothing is open on load, so this stays quiet.
+  // adding one from the picker.
   // Once per opened card, and only once: the loading body reserves a loaded
   // card's height (see .sbody .loadgif), so the page is already its final size
   // when this runs and the forecast landing doesn't move anything.
@@ -359,6 +400,10 @@ export default function DiveSites() {
   // Scrolling during it would aim at a target still on the move — the sibling
   // above is shrinking at the same time — and overshoot by its height.
   useEffect(() => {
+    if (skipScroll.current) {
+      skipScroll.current = false;
+      return;
+    }
     if (!openId) return;
     const t = setTimeout(() => {
       const el = document.getElementById(`spot-${openId}`);

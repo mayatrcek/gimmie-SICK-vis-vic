@@ -187,50 +187,6 @@ for (const rg of REGIONS) {
 // ponytail: only VIC today — the picker reads this, so adding a state is a data-only change
 export const STATES = [...new Set(REGIONS.map((r) => r.state))];
 
-export const DEFAULTS = ["sorrento", "bells", "woolamai", "schanck"];
+// Shown on a device that has never picked its own locations.
+export const DEFAULTS = ["fort", "schanck"];
 
-// Surf-Forecast.com break slug for each spot. Spots without their own page
-// map to the nearest listed break.
-export const SF_BREAK: Record<string, string> = {
-  bells: "Bells-Beach",
-  winki: "Winki-Pop-V-I-C",
-  janjuc: "Jan-Juc",
-  torquay: "Torquay-Point-and-Beach",
-  roadknight: "Point-Roadnight",
-  anglesea: "Anglesea",
-  lorne: "Lorne-Point",
-  apollo: "Apollo-Bay",
-  "13th": "Thirteenth-Beach_The-Beacon",
-  barwon: "Thirteenth-Beach_The-Bluff",
-  oceangrove: "Bancoora",
-  lonsdale: "Point-Lonsdale",
-  pointnepean: "Quarantine",
-  portsea: "Portsea-Back-Beach",
-  diamond: "Portsea-Back-Beach",
-  sorrento: "St-Andrews-Beach",
-  rye: "Rye-Ocean-Beach",
-  gunnamatta: "Gunnamatta-Beach",
-  schanck: "Cape-Schanck",
-  flinders: "Gunnery",
-  pointleo: "Point-Leo",
-  woolamai: "Woolamai",
-  smiths: "Smiths-Beach",
-  surfbeach: "Surf-Beach",
-  pyramid: "Pyramid-Rock_1",
-  express: "Express-Point",
-  summerland: "Summerland-Bay",
-  ycw: "Cat-Bay",
-  capepat: "Cape-Patterson",
-  inverloch: "Eagles-Nest",
-  venus: "Cape-Liptrap",
-  waratah: "Walkerville",
-  sandypt: "Sandy-Point",
-  walkerville: "Walkerville",
-  portcampbell: "Gibson-Steps",
-  princetown: "Point-Ronald",
-  warrnambool: "Warnambool-Surf-Beach",
-  portfairy: "Port-Fairy",
-  portland: "Portland",
-  fort: "Portsea-Back-Beach",
-  blairgowrie: "Pearses-Beach",
-};
