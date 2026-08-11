@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import { REGIONS, SPOTS, DEFAULTS, STATES } from "@/lib/data/regions";
@@ -10,7 +10,7 @@ import { todayRating, todayRow, visNotes } from "@/lib/logic/rating";
 import type { Hourly, Row, Spot } from "@/lib/types";
 import { dotIcon } from "@/lib/leaflet/icons";
 import { pixelBasemap, pixelBaseOverlay } from "@/lib/leaflet/pixelTiles";
-import { scrollToEl } from "@/lib/smoothScroll";
+import { reducedMotion, scrollToEl } from "@/lib/smoothScroll";
 import ForecastTable from "./ForecastTable";
 
 type St = { rows: Row[] | null; hourly: Hourly | null; loading: boolean; expanded: boolean; sst?: number | null };
@@ -18,8 +18,76 @@ type SelMap = Record<string, St>;
 
 const fmt = (n: number | null, d = 1) => (n == null || isNaN(n) ? "—" : Number(n).toFixed(d));
 
-// Keep in step with .sbody-wrap's transition in overworld.css.
+// How long a card body takes to roll open or shut (see useRoll), and so how long
+// the page waits before riding down to a card it has just opened.
 const SLIDE_MS = 300;
+// Opening snaps out and settles; shutting has to accelerate away instead, or the
+// last sliver sits on screen while the eye has already called it closed.
+const ROLL_OPEN = "cubic-bezier(.22,1,.36,1)";
+const ROLL_SHUT = "cubic-bezier(.65,0,.35,1)";
+
+// Roll a card body open and shut over its own height.
+//
+// This used to be CSS: grid-template-rows 0fr -> 1fr, which sizes the roll to the
+// content without needing a magic number. The catch is that it only animates if
+// the browser interpolates grid tracks. Where it doesn't, the change is discrete
+// — the track holds its old size and then flips — so the body's top, in practice
+// a vis advisory, stayed on screen after the card was shut and then vanished. A
+// timing function can't fix that, because a discrete flip ignores it, which is
+// exactly what we saw. Animating a measured pixel height runs everywhere.
+//
+// `mounted` covers the shut roll, which needs the body in the DOM to have
+// anything to shrink; onShut is what takes it back out, fired off the animation
+// itself rather than a timer set to guess at its length.
+function useRoll(el: React.RefObject<HTMLDivElement | null>, mounted: boolean, open: boolean, onShut: () => void) {
+  const anim = useRef<Animation | null>(null);
+  // Layout, not effect: the body is in the DOM at full height by now, and a
+  // passive effect would let that paint for a frame before the roll starts.
+  useLayoutEffect(() => {
+    const node = el.current;
+    if (!node) return;
+    if (!mounted) {
+      anim.current?.cancel();
+      anim.current = null;
+      return;
+    }
+    // Interrupted mid-roll (reopened while shutting), so carry on from wherever
+    // it got to. Otherwise a shut starts at full height and an open at nothing.
+    const from = anim.current || !open ? node.getBoundingClientRect().height : 0;
+    anim.current?.cancel();
+    anim.current = null;
+    // Cancelling first: with no animation on it the box is back to its auto
+    // height, which is what the open roll is aiming at.
+    const to = open ? node.getBoundingClientRect().height : 0;
+    if (reducedMotion()) {
+      if (!open) onShut();
+      return;
+    }
+    const a = node.animate([{ height: `${from}px` }, { height: `${to}px` }], {
+      duration: SLIDE_MS,
+      easing: open ? ROLL_OPEN : ROLL_SHUT,
+      // Shutting holds at zero after it lands. Without it the box springs back to
+      // its auto height for the frame between the roll ending and React taking
+      // the body out — the whole forecast, flashed back up on the way out.
+      // Opening must NOT hold: the height it measured is only right until the
+      // forecast arrives and the body grows.
+      fill: open ? "none" : "forwards",
+    });
+    anim.current = a;
+    a.finished
+      .then(() => {
+        // Left in anim.current, not nulled: a filled roll is still pinning the
+        // height, so the next one has to cancel it before it can measure.
+        if (anim.current === a && !open) onShut();
+      })
+      .catch(() => {}); // cancelled — whatever replaced it owns the box now
+    // No cleanup cancelling this: React runs the old cleanup before the new
+    // effect, so tearing the roll down there would snap the box back to its auto
+    // height before the next run could read where the roll had actually got to,
+    // and reopening mid-shut would jump instead of turning around. The run above
+    // cancels its predecessor itself, once it has taken that measurement.
+  }, [el, mounted, open, onShut]);
+}
 
 // This device's saved locations, as [id, expanded][] — an array, not an object,
 // so card order survives. Bump the version suffix if the shape changes.
@@ -177,17 +245,27 @@ function SpotCard({
   id,
   s,
   st,
+  closing,
   onToggle,
   onRemove,
+  onShut,
 }: {
   id: string;
   s: Spot;
   st: St;
+  // Mid-roll-up: the body stays mounted until the shut roll finishes.
+  closing: boolean;
   onToggle: (id: string) => void;
   onRemove: (id: string) => void;
+  onShut: (id: string) => void;
 }) {
   const td = st.rows ? todayRow(st.rows) : null;
   const sst = st.sst ?? td?.sst ?? null; // NOAA scan first, Open-Meteo fallback
+  const wrap = useRef<HTMLDivElement>(null);
+  const mounted = st.expanded || closing;
+  // Stable, or useRoll would tear down and restart the roll on every render.
+  const shut = useCallback(() => onShut(id), [onShut, id]);
+  useRoll(wrap, mounted, st.expanded, shut);
   return (
     <div className="scard" id={`spot-${id}`}>
       <div className="schead" onClick={() => onToggle(id)}>
@@ -232,14 +310,11 @@ function SpotCard({
           ×
         </button>
       </div>
-      {/* The body goes the moment the card is shut. Keeping it mounted for the
-          length of the roll-up is what a collapse animation needs, but on a phone
-          the roll doesn't run — the wrapper holds its height and lets go only when
-          the body unmounts, leaving the top of the body (a vis advisory) sitting
-          there for a beat. Unmounting on the spot means there is nothing left to
-          hang. Opening still rolls; see .sbody-wrap in overworld.css. */}
-      <div className={`sbody-wrap${st.expanded ? " open" : ""}`}>
-        {st.expanded && (
+      {/* .open rides `mounted`, not `expanded`: the grid track has to stay at the
+          content's height for the whole shut roll, because what animates the box
+          down is useRoll's explicit height, not the track. */}
+      <div ref={wrap} className={`sbody-wrap${mounted ? " open" : ""}`}>
+        {mounted && (
           <div className="sbody">
             {td && (
               <ul className="visnotes">
@@ -274,6 +349,8 @@ export default function DiveSites() {
   const [state, setState] = useState(STATES[0]);
   const [region, setRegion] = useState(REGIONS[0].region);
   const [pick, setPick] = useState("");
+  // The card rolling shut — kept mounted until useRoll says its roll has ended.
+  const [closing, setClosing] = useState("");
   // The picker starts folded behind the heading's Add site button.
   const [pickerOpen, setPickerOpen] = useState(false);
   // Set once the roll-open has finished, which is when the wrapper can stop
@@ -294,6 +371,11 @@ export default function DiveSites() {
     setPickerOpen(true);
     settleTimer.current = window.setTimeout(() => setPickerSettled(true), SLIDE_MS);
   }
+
+  const openNow = (m: SelMap) => Object.keys(m).find((k) => m[k].expanded) ?? "";
+  // Guarded by id: a card that was superseded by a newer close shouldn't be the
+  // one to clear it.
+  const clearClosing = useCallback((id: string) => setClosing((c) => (c === id ? "" : c)), []);
 
   function fetchFor(id: string) {
     const s = SPOTS[id];
@@ -322,6 +404,7 @@ export default function DiveSites() {
   // the page rides down to it. Cards restored on load come in as they were left.
   function addSpot(id: string, open = false) {
     if (!SPOTS[id] || selected[id]) return; // re-picking a shown spot: don't refetch
+    if (open) setClosing(openNow(selected)); // sibling rolls up as the new one rolls down
     setSelected((prev) => {
       const next: SelMap = open
         ? Object.fromEntries(Object.entries(prev).map(([k, st]) => [k, { ...st, expanded: false }]))
@@ -343,6 +426,7 @@ export default function DiveSites() {
   // Accordion: opening a card closes the others, so an expanded 7-day table
   // never buries the rest of the list.
   function toggleExpand(id: string) {
+    setClosing(openNow(selected)); // whichever was open is the one rolling up
     setSelected((prev) => {
       if (!prev[id]) return prev;
       const open = !prev[id].expanded;
@@ -559,8 +643,10 @@ export default function DiveSites() {
               id={id}
               s={SPOTS[id]}
               st={selected[id]}
+              closing={closing === id}
               onToggle={toggleExpand}
               onRemove={removeSpot}
+              onShut={clearClosing}
             />
           ))
         )}
