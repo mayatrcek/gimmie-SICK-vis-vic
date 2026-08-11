@@ -14,7 +14,7 @@ const CHANNELS: Channel[] = [
   { title: "Forecast", href: "/forecast", cls: "bg-primary text-bone" },
   {
     title: "Live Data",
-    href: "/live/chlorophyll",
+    href: "/live",
     cls: "bg-bone text-ink-soft",
     shelf: "live-shelf",
     items: LIVE_ITEMS,
@@ -29,15 +29,37 @@ const CHANNELS: Channel[] = [
   { title: "Geography", href: "/geo/depth", cls: "bg-tertiary text-bone" },
 ];
 
+// The homepage title is the one Google shows for the brand query, so it says what
+// the site is rather than just repeating the name (every other route already does
+// this via its own metadata export; only "/" was falling back to the layout title).
+export const metadata = {
+  title: "GIMMIE SICK VIS — Victorian dive & fishing conditions",
+};
+
 // Google reads this off the homepage to decide the site name shown above the
 // result — without it the domain gets used (which is why results said "Vercel").
 // https://developers.google.com/search/docs/appearance/site-names
 const SITE_LD = {
   "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: "GIMMIE SICK VIS",
-  alternateName: ["Gimme Sick Vis", "Gimmie Sick Vis"],
-  url: "https://gimmiesickvis.com",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      name: "GIMMIE SICK VIS",
+      alternateName: ["Gimme Sick Vis", "Gimmie Sick Vis"],
+      url: "https://gimmiesickvis.com",
+      publisher: { "@id": "https://gimmiesickvis.com/#org" },
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://gimmiesickvis.com/#org",
+      name: "GIMMIE SICK VIS",
+      url: "https://gimmiesickvis.com",
+      // 512x512 SVG — the dive-flag PNGs are 96px, under Google's 112px minimum.
+      logo: "https://gimmiesickvis.com/assets/brand/logo-mark.svg",
+      // TODO(Maya): add socials here when there are any, e.g.
+      // sameAs: ["https://instagram.com/...", "https://youtube.com/@..."],
+    },
+  ],
 };
 
 export default function Home() {

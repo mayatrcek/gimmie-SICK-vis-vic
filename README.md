@@ -6,8 +6,14 @@ marine/satellite feeds.
 
 **Live:** https://gimmiesickvis.com (Vercel, auto-deploys from `main`; the
 `gimmie-sick-vis-vic.vercel.app` host should 301 here). The canonical host is
-hardcoded in `app/layout.tsx` (`metadataBase`), `app/sitemap.ts` and
-`app/robots.ts` — change all three together if the domain ever moves.
+hardcoded in `app/layout.tsx` (`metadataBase`), `app/sitemap.ts`, `app/robots.ts`
+and the JSON-LD in `app/page.tsx` — change all four together if the domain moves.
+
+Search appearance: every route exports its own `title`/`description`;
+`alternates: { canonical: "./" }` in the layout makes each page canonical itself;
+the homepage carries `WebSite` + `Organization` JSON-LD (this is what sets the
+site name shown above the result). Sitelinks themselves are Google's call — no
+markup produces them, so the lever is section hubs and clean internal links.
 
 Built with **Next.js (App Router) + React + TypeScript + Tailwind v4** and
 react-leaflet. (Ported from the original single-file static site.)
@@ -31,6 +37,9 @@ python test_cmems_currents.py  # currents rasterizer self-check (no CMEMS creds 
     (0–10 score, wave height/direction/period, energy, wind, runoff, high/low
     tides) from Open-Meteo hourly data; card water temp comes from the latest
     NOAA ACSPO scan via `sst-point?box=1` (Open-Meteo fallback)
+  - `/live` — section hub listing every live feed. Exists so the biggest section
+    has one indexable page of its own (Google promotes section hubs into
+    sitelinks); it renders `LIVE_ITEMS` from `lib/nav.ts`, minus its own entry.
   - `/live/*` — SST (12-day daily-scan gallery), chlorophyll (daily-scan
     gallery), currents (12-day vector-arrow gallery), altimetry, salinity,
     Nepean cam

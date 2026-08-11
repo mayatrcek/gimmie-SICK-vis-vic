@@ -6,6 +6,7 @@ import { FISH_WIP } from "@/lib/nav";
 const ROUTES: Array<[path: string, priority: number]> = [
   ["/", 1],
   ["/forecast", 0.9],
+  ["/live", 0.9],
   ["/live/chlorophyll", 0.9],
   ["/live/sst", 0.9],
   ["/live/nepean", 0.8],
