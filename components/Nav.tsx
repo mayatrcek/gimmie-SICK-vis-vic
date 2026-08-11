@@ -5,7 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { SST_DS } from "@/lib/api/erddap";
-import { LEARN_ITEMS, LIVE_HREF, LIVE_ITEMS, type NavItem as Item } from "@/lib/nav";
+import { LEARN_ITEMS, LIVE_ITEMS, type NavItem as Item } from "@/lib/nav";
 
 type Group = { id: string; label: string; items: Item[] };
 
@@ -65,10 +65,8 @@ export default function Nav() {
     return () => document.body.classList.remove("nav-locked");
   }, [navOpen]);
 
-  // Exact match for the hrefs that are prefixes of other nav entries ("/" and
-  // the /live hub), or they'd read as active on every page underneath them.
   const isActive = (href: string) =>
-    href === "/" || href === LIVE_HREF ? pathname === href : pathname.startsWith(href);
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
   const groupActive = (g: Group) => g.items.some((i) => isActive(i.href));
 
   return (

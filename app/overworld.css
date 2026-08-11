@@ -717,19 +717,6 @@
   .guide li{margin-bottom:6px}
   .guide .note{margin:10px 0 18px}
 
-  /* ===== Section hub list (/live) — one tile per page, label + blurb.
-     Same ink-border/block-shadow language as .picker and .field. The blurb
-     needs its own color and no underline or it reads as part of the link. */
-  .hublist{display:grid;gap:12px;margin:0;padding:0;list-style:none}
-  @media(min-width:561px){.hublist{grid-template-columns:1fr 1fr}}
-  .hub-item{display:block;height:100%;padding:12px 14px;text-decoration:none;
-    background:var(--panel);border:2px solid var(--ink);box-shadow:2px 2px 0 0 var(--ink)}
-  a.hub-item:hover{box-shadow:4px 4px 0 0 var(--accent)}
-  .hub-item b{display:block;font-family:var(--font-hud);font-size:19px;letter-spacing:.04em;
-    text-transform:uppercase;color:var(--ink);line-height:1.1;font-weight:400}
-  .hub-item>span{display:block;margin-top:5px;font-size:13.5px;line-height:1.45;color:var(--muted)}
-  .hub-item.wip{opacity:.55;cursor:default}
-
   /* ===== Form fields (contact page) — same ink-border/block-shadow language
      as .picker select above, ported from ui_design/overworld/css/system.css ===== */
   .field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}

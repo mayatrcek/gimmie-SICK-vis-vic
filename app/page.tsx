@@ -14,7 +14,7 @@ const CHANNELS: Channel[] = [
   { title: "Forecast", href: "/forecast", cls: "bg-primary text-bone" },
   {
     title: "Live Data",
-    href: "/live",
+    href: "/live/chlorophyll", // unused: shelf channels render as a toggle, not a link
     cls: "bg-bone text-ink-soft",
     shelf: "live-shelf",
     items: LIVE_ITEMS,
