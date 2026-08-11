@@ -4,7 +4,6 @@ export const BASE = "https://coastwatch.pfeg.noaa.gov/erddap/griddap/";
 export const SST_BASE = "https://coastwatch.noaa.gov/erddap/griddap/";
 export const SST_DS = "noaacwLEOACSPOSSTL3SnrtCDaily";
 export const LAT = "(-44):(-37.5)";
-export const LAT_DESC = "(-37.5):(-44)";
 export const LON = "(140):(151)";
 
 type Stretch = { min?: number | null; max?: number | null; bump?: number };
@@ -174,18 +173,6 @@ export function frontsFromCsv(csv: string): [number, number][] {
     if (v?.trim() === "1") pts.push([Number(lat), Number(lon)]);
   }
   return pts;
-}
-
-export function chlURL(bump = 0): string {
-  return (
-    BASE +
-    "nesdisVHNchlaDaily.png?chlor_a%5B(last)%5D%5B(0.0)%5D%5B" +
-    LAT_DESC +
-    "%5D%5B" +
-    LON +
-    "%5D&.draw=surface&.vars=longitude%7Clatitude%7Cchlor_a&.colorBar=%7C%7C%7C%7C%7C&.land=over&.size=720%7C" +
-    (600 + bump)
-  );
 }
 
 // noaacw* datasets live on the main CoastWatch host; pfeg doesn't know them

@@ -221,9 +221,3 @@ export function todayRating(rows: Row[] | null): Rating {
   if (!rows || !rows.length) return EMPTY;
   return todayRow(rows).rating;
 }
-
-export function tomorrowRating(rows: Row[] | null): Rating {
-  if (!rows || !rows.length) return EMPTY;
-  for (const r of rows) if (dname(r.date) === "Tomorrow") return r.rating;
-  return rows[0].rating;
-}

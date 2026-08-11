@@ -500,7 +500,7 @@
 
   /* Top-level tabs — a single floating cloud pill, centered, sticky on every page.
      Only the pill is interactive; the surrounding strip lets clicks pass through. */
-  /* z 1300: above every page overlay (maploader 1000, wind-map chrome 1000-1200) */
+  /* z 1300: above every page overlay (the map loader sits at 1000) */
   .tabs{position:fixed;top:14px;left:0;right:0;z-index:1300;display:flex;justify-content:center;padding:0 12px;pointer-events:none}
   .tabs-inner{pointer-events:auto;display:inline-flex;gap:4px;padding:6px;max-width:calc(100vw - 24px);
         background:var(--color-cloud);border:1px solid var(--line);border-radius:var(--radius-pill);box-shadow:var(--shadow-1)}

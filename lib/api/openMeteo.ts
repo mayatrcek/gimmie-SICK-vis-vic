@@ -126,16 +126,3 @@ export async function fetchSite(s: Spot): Promise<SiteData> {
 
   return { rows, hourly };
 }
-
-// 3-day hourly point forecast for the wind-map click-to-forecast panel.
-// Returns [weatherResponse, marineResponse].
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function fetchPointForecast(lat: number, lon: number): Promise<[any, any]> {
-  const w =
-    `${WEATHER}?latitude=${lat}&longitude=${lon}` +
-    `&hourly=weather_code,wind_speed_10m,wind_direction_10m,is_day&timezone=${TZ}&forecast_days=3`;
-  const m =
-    `${MARINE}?latitude=${lat}&longitude=${lon}` +
-    `&hourly=wave_height,wave_period,swell_wave_height,swell_wave_period,sea_level_height_msl&timezone=${TZ}&forecast_days=3`;
-  return Promise.all([fetch(w).then((r) => r.json()), fetch(m).then((r) => r.json())]);
-}
