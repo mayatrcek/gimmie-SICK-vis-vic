@@ -153,8 +153,11 @@ body {
 /* The hero was min-h-[85vh], an arbitrary fraction, so nav + hero + marquee never
    summed to a screen and the parchment section below showed as a pale strip along
    the bottom on load. The fold is now exactly the viewport minus the nav, with the
-   hero taking whatever the marquee doesn't. dvh so mobile browser chrome counts. */
-.home .home-fold { min-height: calc(100dvh - var(--tabh)); display: flex; flex-direction: column; }
+   hero taking whatever the marquee doesn't. svh, not dvh: dvh tracks the phone's
+   URL bar, so scrolling down collapsed the bar, grew the fold and pushed
+   everything below it down — which reads as a flick back up. svh is the
+   bar-visible height, which is what you get on load anyway, and it never moves. */
+.home .home-fold { min-height: calc(100svh - var(--tabh)); display: flex; flex-direction: column; }
 .home .home-fold > section:first-child { flex: 1; }
 
 /* Fluid mobile clamps for the big pixel display type + full-bleed padding. */

@@ -289,9 +289,15 @@
   /* Both minimums matter: a grid item defaults to min-width:auto, which means
      "never narrower than min-content" — and min-content here is the whole 2665px
      forecast table. That pushed .sbody past the card, left .fcwrap wide enough to
-     need no scrollbar, and the wrapper's overflow:hidden ate the rest. */
-  .sbody-wrap > .sbody{min-height:0;min-width:0}
-  @media(prefers-reduced-motion:reduce){.sbody-wrap{transition:none}}
+     need no scrollbar, and the wrapper's overflow:hidden ate the rest.
+     The fade is what stops the roll-up snagging: the body is top-anchored and the
+     wrapper clips from the bottom, so the topmost thing in it — a vis advisory —
+     is the last to be cut, and it sits there at full strength while the table
+     wipes away beneath it before popping. Faded out faster than the roll, it's
+     gone before the clip reaches it. */
+  .sbody-wrap > .sbody{min-height:0;min-width:0;opacity:0;transition:opacity .18s ease}
+  .sbody-wrap.open > .sbody{opacity:1}
+  @media(prefers-reduced-motion:reduce){.sbody-wrap,.sbody-wrap > .sbody{transition:none}}
   .sbody{border-top:1px solid var(--line);padding:12px 14px}
   .sbody .pad{padding:14px;color:var(--muted);font-size:13px}
   /* Hold a loaded card's height (notes + table + tide graph ≈ 467px) while the
