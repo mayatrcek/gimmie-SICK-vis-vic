@@ -47,4 +47,4 @@ This site isn't directed at children, and we don't knowingly collect data from c
 We may update this policy from time to time. Updates will be posted on this page with a new "last updated" date.
 
 ## Contact
-Questions about this policy: mayatrcek@gmail.com
+Questions about this policy: maddog.mayaa@gmail.com

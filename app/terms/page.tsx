@@ -102,7 +102,7 @@ export default function Terms() {
 
         <h2>Contact</h2>
         <p>
-          <a href="mailto:mayatrcek@gmail.com">mayatrcek@gmail.com</a>
+          <a href="mailto:maddog.mayaa@gmail.com">maddog.mayaa@gmail.com</a>
         </p>
       </div>
     </div>

@@ -5,7 +5,7 @@ import { validateContact } from "@/lib/contact/validate";
 // Resend sandbox (no verified domain) only delivers to the account's own
 // address; switch to a real "from" domain + this to a personal inbox once
 // a domain is verified at resend.com/domains.
-const TO_EMAIL = "mtrc0001@student.monash.edu";
+const TO_EMAIL = "maddog.mayaa@gmail.com";
 const FROM_EMAIL = "GIMMIE SICK VIS <onboarding@resend.dev>";
 
 export async function POST(req: Request) {

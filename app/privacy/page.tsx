@@ -104,7 +104,7 @@ export default function Privacy() {
           We handle personal information consistent with the Australian Privacy Principles where
           they apply to us. You can ask what data we hold about you, ask us to correct it, or ask
           us to delete it, by contacting us at{" "}
-          <a href="mailto:mayatrcek@gmail.com">mayatrcek@gmail.com</a>.
+          <a href="mailto:maddog.mayaa@gmail.com">maddog.mayaa@gmail.com</a>.
         </p>
 
         <h2>Children</h2>
@@ -122,7 +122,7 @@ export default function Privacy() {
         <h2>Contact</h2>
         <p>
           Questions about this policy:{" "}
-          <a href="mailto:mayatrcek@gmail.com">mayatrcek@gmail.com</a>
+          <a href="mailto:maddog.mayaa@gmail.com">maddog.mayaa@gmail.com</a>
         </p>
       </div>
     </div>
