@@ -292,9 +292,12 @@
      which max-height can't do without a magic number. The wrapper is always in
      the DOM (a transition needs something to transition from) and clips the body
      — including its border — while the track is closed. */
+  /* Only the roll open is animated: the body is unmounted the instant the card is
+     shut (see SpotCard), so on the way out there is no content left for the track
+     to size to and it is already zero. One curve is all this needs. */
   .sbody-wrap{display:grid;grid-template-rows:0fr;overflow:hidden;
-    transition:grid-template-rows .3s var(--ease-shut)}
-  .sbody-wrap.open{grid-template-rows:1fr;transition-timing-function:var(--ease)}
+    transition:grid-template-rows .3s var(--ease)}
+  .sbody-wrap.open{grid-template-rows:1fr}
   /* Both minimums matter: a grid item defaults to min-width:auto, which means
      "never narrower than min-content" — and min-content here is the whole 2665px
      forecast table. That pushed .sbody past the card, left .fcwrap wide enough to

@@ -177,15 +177,12 @@ function SpotCard({
   id,
   s,
   st,
-  closing,
   onToggle,
   onRemove,
 }: {
   id: string;
   s: Spot;
   st: St;
-  // Mid-roll-up: the body has to stay mounted for the collapse to animate.
-  closing: boolean;
   onToggle: (id: string) => void;
   onRemove: (id: string) => void;
 }) {
@@ -235,8 +232,14 @@ function SpotCard({
           ×
         </button>
       </div>
+      {/* The body goes the moment the card is shut. Keeping it mounted for the
+          length of the roll-up is what a collapse animation needs, but on a phone
+          the roll doesn't run — the wrapper holds its height and lets go only when
+          the body unmounts, leaving the top of the body (a vis advisory) sitting
+          there for a beat. Unmounting on the spot means there is nothing left to
+          hang. Opening still rolls; see .sbody-wrap in overworld.css. */}
       <div className={`sbody-wrap${st.expanded ? " open" : ""}`}>
-        {(st.expanded || closing) && (
+        {st.expanded && (
           <div className="sbody">
             {td && (
               <ul className="visnotes">
@@ -271,9 +274,6 @@ export default function DiveSites() {
   const [state, setState] = useState(STATES[0]);
   const [region, setRegion] = useState(REGIONS[0].region);
   const [pick, setPick] = useState("");
-  // The card rolling shut — kept mounted until its transition ends, or there'd
-  // be nothing left to animate.
-  const [closing, setClosing] = useState("");
   // The picker starts folded behind the heading's Add site button.
   const [pickerOpen, setPickerOpen] = useState(false);
   // Set once the roll-open has finished, which is when the wrapper can stop
@@ -293,17 +293,6 @@ export default function DiveSites() {
     if (pickerOpen) return closePicker();
     setPickerOpen(true);
     settleTimer.current = window.setTimeout(() => setPickerSettled(true), SLIDE_MS);
-  }
-
-  const openNow = (m: SelMap) => Object.keys(m).find((k) => m[k].expanded) ?? "";
-
-  // Hold the outgoing card's body in the DOM for the length of the roll-up.
-  // On a timer rather than transitionend: under prefers-reduced-motion there's
-  // no transition, so no event, and the body would sit mounted forever.
-  function startClosing(id: string) {
-    if (!id) return;
-    setClosing(id);
-    setTimeout(() => setClosing((c) => (c === id ? "" : c)), SLIDE_MS + 50);
   }
 
   function fetchFor(id: string) {
@@ -333,7 +322,6 @@ export default function DiveSites() {
   // the page rides down to it. Cards restored on load come in as they were left.
   function addSpot(id: string, open = false) {
     if (!SPOTS[id] || selected[id]) return; // re-picking a shown spot: don't refetch
-    if (open) startClosing(openNow(selected)); // sibling rolls up as the new one rolls down
     setSelected((prev) => {
       const next: SelMap = open
         ? Object.fromEntries(Object.entries(prev).map(([k, st]) => [k, { ...st, expanded: false }]))
@@ -355,7 +343,6 @@ export default function DiveSites() {
   // Accordion: opening a card closes the others, so an expanded 7-day table
   // never buries the rest of the list.
   function toggleExpand(id: string) {
-    startClosing(openNow(selected)); // whichever was open is the one rolling up
     setSelected((prev) => {
       if (!prev[id]) return prev;
       const open = !prev[id].expanded;
@@ -572,7 +559,6 @@ export default function DiveSites() {
               id={id}
               s={SPOTS[id]}
               st={selected[id]}
-              closing={closing === id}
               onToggle={toggleExpand}
               onRemove={removeSpot}
             />
