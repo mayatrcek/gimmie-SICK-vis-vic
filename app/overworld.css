@@ -36,6 +36,12 @@
     --shadow-2:6px 6px 0 0 #161310;
     --focus-ring:0 0 0 3px #2E5DD6;
     --ease:cubic-bezier(.22,1,.36,1);
+    /* --ease is easeOutQuint: it lands most of the distance immediately and eases
+       the remainder away, which is what makes a reveal feel quick. Run in reverse
+       it does the opposite — a box shutting on it drops ~85% in the first 90ms and
+       then spends 200ms creeping the last sliver to nothing, which reads as the
+       thing snagging on the way out. Anything that collapses uses this instead. */
+    --ease-shut:cubic-bezier(.65,0,.35,1);
   }
   *{margin:0;padding:0;box-sizing:border-box}
 
@@ -139,10 +145,12 @@
   .pk-toggle.open .plus{transform:rotate(45deg)}
   /* Same roll as the card bodies. overflow has to be hidden for the track to
      clip anything, but the field menus hang below the strip — so it goes back to
-     visible once the roll has finished (.settled, set on a timer in the JSX). */
+     visible once the roll has finished (.settled, set on a timer in the JSX).
+     A transition takes its curve from the state being moved to, so the base rule
+     carries the shutting one and .open supplies the opening one. */
   .pk-collapse{display:grid;grid-template-rows:0fr;overflow:hidden;
-    transition:grid-template-rows .3s var(--ease)}
-  .pk-collapse.open{grid-template-rows:1fr}
+    transition:grid-template-rows .3s var(--ease-shut)}
+  .pk-collapse.open{grid-template-rows:1fr;transition-timing-function:var(--ease)}
   .pk-collapse.settled{overflow:visible}
   /* min-height:0 only zeroes the content box. The strip's own padding, border
      and margin (12+12 + 2+2 + 8 = 36px) survive it and would sit under the
@@ -150,9 +158,10 @@
      on the same curve, or the box would snap before the roll starts. */
   .pk-collapse > .picker{min-height:0;min-width:0;
     padding-block:0;border-block-width:0;margin-bottom:0;
-    transition:padding .3s var(--ease),border-width .3s var(--ease),
-      margin-bottom .3s var(--ease)}
-  .pk-collapse.open > .picker{padding-block:12px;border-block-width:2px;margin-bottom:8px}
+    transition:padding .3s var(--ease-shut),border-width .3s var(--ease-shut),
+      margin-bottom .3s var(--ease-shut)}
+  .pk-collapse.open > .picker{padding-block:12px;border-block-width:2px;margin-bottom:8px;
+    transition-timing-function:var(--ease)}
   @media(prefers-reduced-motion:reduce){.pk-collapse{transition:none}}
   /* Phones: shrink the button, and let it drop onto its own line rather than
      squeeze the title. Scoped to this heading so other .sec headings are
@@ -284,20 +293,14 @@
      the DOM (a transition needs something to transition from) and clips the body
      — including its border — while the track is closed. */
   .sbody-wrap{display:grid;grid-template-rows:0fr;overflow:hidden;
-    transition:grid-template-rows .3s var(--ease)}
-  .sbody-wrap.open{grid-template-rows:1fr}
+    transition:grid-template-rows .3s var(--ease-shut)}
+  .sbody-wrap.open{grid-template-rows:1fr;transition-timing-function:var(--ease)}
   /* Both minimums matter: a grid item defaults to min-width:auto, which means
      "never narrower than min-content" — and min-content here is the whole 2665px
      forecast table. That pushed .sbody past the card, left .fcwrap wide enough to
-     need no scrollbar, and the wrapper's overflow:hidden ate the rest.
-     The fade is what stops the roll-up snagging: the body is top-anchored and the
-     wrapper clips from the bottom, so the topmost thing in it — a vis advisory —
-     is the last to be cut, and it sits there at full strength while the table
-     wipes away beneath it before popping. Faded out faster than the roll, it's
-     gone before the clip reaches it. */
-  .sbody-wrap > .sbody{min-height:0;min-width:0;opacity:0;transition:opacity .18s ease}
-  .sbody-wrap.open > .sbody{opacity:1}
-  @media(prefers-reduced-motion:reduce){.sbody-wrap,.sbody-wrap > .sbody{transition:none}}
+     need no scrollbar, and the wrapper's overflow:hidden ate the rest. */
+  .sbody-wrap > .sbody{min-height:0;min-width:0}
+  @media(prefers-reduced-motion:reduce){.sbody-wrap{transition:none}}
   .sbody{border-top:1px solid var(--line);padding:12px 14px}
   .sbody .pad{padding:14px;color:var(--muted);font-size:13px}
   /* Hold a loaded card's height (notes + table + tide graph ≈ 467px) while the
