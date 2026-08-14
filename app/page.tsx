@@ -29,11 +29,17 @@ const CHANNELS: Channel[] = [
   { title: "Geography", href: "/geo/depth", cls: "bg-tertiary text-bone" },
 ];
 
-// The homepage title is the one Google shows for the brand query, so it says what
-// the site is rather than just repeating the name (every other route already does
-// this via its own metadata export; only "/" was falling back to the layout title).
+// The homepage title/description are what Google shows for the brand query, so they
+// say what the site is rather than just repeating the name. Every other route sets its
+// own; "/" used to fall back to the layout's, which now only covers 404s.
+// og:title / og:description resolve from these; layout's openGraph sets neither.
+// Keep the title under ~55 chars: Google truncates on pixel width (~600px), and the
+// all-caps brand eats ~165px of that on its own. "The Ultimate" was the 12 chars that
+// pushed it over. Measure before adding words back.
 export const metadata = {
-  title: "GIMMIE SICK VIS — Victorian dive & fishing conditions",
+  title: "GIMMIE SICK VIS - Forecasting Tool For Victorian Divers",
+  description:
+    "Dive forecasting, access to premium live data and a learning database open to all Victorian divers.",
 };
 
 // Google reads this off the homepage to decide the site name shown above the

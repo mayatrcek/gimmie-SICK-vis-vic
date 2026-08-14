@@ -25,11 +25,13 @@ const ROUTES: Array<[path: string, priority: number]> = [
   ["/terms", 0.2],
 ];
 
+// ponytail: no lastmod. It was build time on every URL, which claims the whole site
+// changed on every deploy — Google ignores a lastmod it can't trust, and a wrong one
+// is worse than none. Vercel's shallow clone rules out deriving it from git history.
+// Add real per-route dates here if pages ever get an edited-on date of their own.
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date();
   return ROUTES.filter(([path]) => !(FISH_WIP && path === "/fish")).map(([path, priority]) => ({
     url: `https://gimmiesickvis.com${path}`,
-    lastModified,
     priority,
   }));
 }

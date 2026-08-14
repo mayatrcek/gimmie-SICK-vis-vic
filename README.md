@@ -12,8 +12,9 @@ and the JSON-LD in `app/page.tsx` — change all four together if the domain mov
 Search appearance: every route exports its own `title`/`description`;
 `alternates: { canonical: "./" }` in the layout makes each page canonical itself;
 the homepage carries `WebSite` + `Organization` JSON-LD (this is what sets the
-site name shown above the result). Sitelinks themselves are Google's call — no
-markup produces them, so the lever is section hubs and clean internal links.
+site name shown above the result). The sitemap ships `priority` but deliberately no
+`lastmod` — see the note in `app/sitemap.ts`. Sitelinks themselves are Google's call —
+no markup produces them, so the lever is section hubs and clean internal links.
 
 Built with **Next.js (App Router) + React + TypeScript + Tailwind v4** and
 react-leaflet. (Ported from the original single-file static site.)
