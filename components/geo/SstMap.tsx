@@ -5,7 +5,7 @@ import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 
 import { SST_REGION, sstURL } from "@/lib/api/erddap";
-import { dotIcon } from "@/lib/leaflet/icons";
+import { pixelDotIcon } from "@/lib/leaflet/icons";
 import MapRecall from "@/components/MapRecall";
 import { coordPopupContent } from "@/lib/coords";
 
@@ -100,9 +100,10 @@ function Probe({ day }: { day?: string }) {
       temp.textContent = "…";
       body.appendChild(temp);
       body.appendChild(coordPopupContent(e.latlng.lat, e.latlng.lng));
-      // OVERWORLD square dot — white with ink frame + block shadow keeps it
-      // visible over any overlay colour
-      pin = L.marker(e.latlng, { icon: dotIcon("#FFFAEF"), keyboard: false })
+      // Same circular probe as CoordCopy drops on the other geo maps — the
+      // square dotIcon is the dive-site marker, and reusing it here made the
+      // click probe read as a site pin.
+      pin = L.marker(e.latlng, { icon: pixelDotIcon(), keyboard: false })
         .addTo(map)
         .bindPopup(body, { maxWidth: 220, autoPan: false, closeButton: false })
         .openPopup();

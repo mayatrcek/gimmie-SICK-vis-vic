@@ -8,8 +8,9 @@ import { pixelDotIcon } from "@/lib/leaflet/icons";
 
 // Click anywhere on the map → pin + OVERWORLD popup with the coordinate and
 // a copy button. Drop into maps that don't already have their own click
-// handler (SstMap/DepthMap build the coord+copy row into their
-// existing click popups/readouts instead).
+// handler — SstMap is the exception, since its probe also fetches that cell's
+// temperature, so it builds the coord+copy row into its own popup. It uses the
+// same pixelDotIcon pin, so the probe looks identical on every map.
 export default function CoordCopy() {
   const map = useMap();
   const pin = useRef<L.Marker | null>(null);
