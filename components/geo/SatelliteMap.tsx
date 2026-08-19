@@ -56,16 +56,21 @@ export default function SatelliteMap({ date }: { date: string }) {
       maxBounds={VIC_COAST_BOUNDS}
       maxBoundsViscosity={1.0}
       minZoom={7}
-      maxZoom={14}
+      maxZoom={16}
       attributionControl={false}
     >
       <MapLoading />
       <MapRecall name="satellite" />
       <Backdrop date={date} />
+      {/* Sentinel-2's RGB bands are 10m, which runs out at about z14 — past that
+          Copernicus would bill us Processing Units to render tiles carrying no
+          more detail than the z14 ones. maxNativeZoom stops at the real limit
+          and lets Leaflet upscale from there, so the extra zoom is free. */}
       <TileLayer
         url={`/api/satellite/tile/${date}/{z}/{x}/{y}?v=${RENDER_V}`}
         attribution="Imagery: Copernicus Sentinel-2 (ESA)"
         noWrap
+        maxNativeZoom={14}
         zIndex={200}
       />
       <CoordCopy />
