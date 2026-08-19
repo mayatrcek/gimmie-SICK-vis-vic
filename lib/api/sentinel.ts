@@ -31,28 +31,16 @@ export const VIC_COAST_BBOX = [140.9, -39.3, 150.0, -37.2]; // [minLon, minLat, 
 // wrong way (1.4 measured 11/17/17 — darker and flatter than no curve at all).
 // Retune against real Sorrento scenes if it drifts; haze and turbidity shift
 // daily. 0.55 with a 3.2 gain also reads well but starts grey-ing the deep water.
-//
-// Water eats red first, which is why submerged sand banks come out pale green
-// rather than sand-coloured. B08 (NIR) is absorbed within about a metre of
-// water, so it reads as a free water mask: w ramps 0 (land, whitewash, boats)
-// to 1 (open water) and we hand red back in proportion, trimming blue slightly
-// to match. Deep water has no red left to restore so it stays blue — the warmth
-// lands only where there's actually sand under the surface. Raising saturation
-// instead does NOT work: the dominant hue out there is teal, so it pushes the
-// banks greener still (measured: mean red 34 -> 28 at 1.35x saturation).
 const TRUE_COLOR_EVALSCRIPT = `
 //VERSION=3
-function setup() { return { input: ["B02","B03","B04","B08","dataMask"], output: { bands: 4 } }; }
-function t(v, g) { return Math.pow(Math.min(v, 1), g); }
-function evaluatePixel(s) {
-  var w = Math.max(0, Math.min(1, (0.12 - s.B08) / 0.08));
-  return [t(s.B04 * 2.8 * (1 + 1.2 * w), 0.7), t(s.B03 * 2.8, 0.7), t(s.B02 * 2.8 * (1 - 0.15 * w), 0.66), s.dataMask];
-}`;
+function setup() { return { input: ["B02","B03","B04","dataMask"], output: { bands: 4 } }; }
+function t(v, g) { return Math.pow(Math.min(v * 2.8, 1), g); }
+function evaluatePixel(s) { return [t(s.B04,0.7), t(s.B03,0.7), t(s.B02,0.66), s.dataMask]; }`;
 
 // Bump whenever TRUE_COLOR_EVALSCRIPT changes. Rendered tiles/thumbnails are
 // cached immutable for a year keyed on URL alone, so without moving the URL
 // anyone who has already opened a scene keeps the old render until 2027.
-export const RENDER_V = 3;
+export const RENDER_V = 2;
 
 // Simple land/sea silhouette to show through no-data gaps — GIBS OSM_Land_Mask
 // (free, no auth), same trick as gibs.ts's THUMB_LAND, cropped to our
