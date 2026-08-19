@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { fmtDataDate } from "@/lib/api/erddap";
-import { SATELLITE_LAND_BACKDROP } from "@/lib/api/sentinel";
+import { RENDER_V, SATELLITE_LAND_BACKDROP } from "@/lib/api/sentinel";
 import SnaggleInfo from "@/components/SnaggleInfo";
 
 const SatelliteMap = dynamic(() => import("./geo/SatelliteMap"), {
@@ -31,7 +31,7 @@ function Thumb({ date }: { date: string }) {
         ref={ref}
         loading="lazy"
         className="satdata"
-        src={`/api/satellite/thumbnail?date=${date}`}
+        src={`/api/satellite/thumbnail?date=${date}&v=${RENDER_V}`}
         alt={`Satellite scan ${fmtDataDate(date)}`}
         onLoad={() => setLoaded(true)}
       />

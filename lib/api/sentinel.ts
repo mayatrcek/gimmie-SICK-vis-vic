@@ -19,10 +19,28 @@ export const VIC_COAST_BBOX = [140.9, -39.3, 150.0, -37.2]; // [minLon, minLat, 
 // dataMask is Sentinel Hub's built-in "is this pixel real data" band (0
 // outside the swath/collection footprint) — carried through as alpha so the
 // land-mask backdrop shows through gaps instead of solid black.
+// Gain lifts L2A reflectance (mostly 0-0.3) into a usable range, then a gamma
+// below 1 lifts the midtones where sand banks and shallow reef sit, well clear
+// of the near-black deep channel they used to sit against. Blue/green
+// penetration is most of what separates reef from sand in shallow water, so
+// blue runs a slightly lower gamma again (brighter) than red/green.
+//
+// Measured over Sullivan Bay on 2026-08-02 (clear scene): the old plain 2.5
+// gain gave mean RGB 18/29/27, sd 33/32/29 — near-black water with the banks
+// crushed into it. This gives 35/56/59, sd 40/36/30. Gamma ABOVE 1 goes the
+// wrong way (1.4 measured 11/17/17 — darker and flatter than no curve at all).
+// Retune against real Sorrento scenes if it drifts; haze and turbidity shift
+// daily. 0.55 with a 3.2 gain also reads well but starts grey-ing the deep water.
 const TRUE_COLOR_EVALSCRIPT = `
 //VERSION=3
 function setup() { return { input: ["B02","B03","B04","dataMask"], output: { bands: 4 } }; }
-function evaluatePixel(s) { return [s.B04*2.5, s.B03*2.5, s.B02*2.5, s.dataMask]; }`;
+function t(v, g) { return Math.pow(Math.min(v * 2.8, 1), g); }
+function evaluatePixel(s) { return [t(s.B04,0.7), t(s.B03,0.7), t(s.B02,0.66), s.dataMask]; }`;
+
+// Bump whenever TRUE_COLOR_EVALSCRIPT changes. Rendered tiles/thumbnails are
+// cached immutable for a year keyed on URL alone, so without moving the URL
+// anyone who has already opened a scene keeps the old render until 2027.
+export const RENDER_V = 2;
 
 // Simple land/sea silhouette to show through no-data gaps — GIBS OSM_Land_Mask
 // (free, no auth), same trick as gibs.ts's THUMB_LAND, cropped to our

@@ -6,7 +6,7 @@ import L from "leaflet";
 import MapLoading from "@/components/MapLoading";
 import MapRecall from "@/components/MapRecall";
 import CoordCopy from "@/components/geo/CoordCopy";
-import { VIC_COAST_BOUNDS, landBackdropMercatorURL } from "@/lib/api/sentinel";
+import { RENDER_V, VIC_COAST_BOUNDS, landBackdropMercatorURL } from "@/lib/api/sentinel";
 
 // Two layers under the satellite tiles:
 //
@@ -31,7 +31,7 @@ function Backdrop({ date }: { date: string }) {
       attribution: "",
     }).addTo(map);
     land.setZIndex(50);
-    const preview = L.imageOverlay(`/api/satellite/thumbnail?date=${date}`, VIC_COAST_BOUNDS, {
+    const preview = L.imageOverlay(`/api/satellite/thumbnail?date=${date}&v=${RENDER_V}`, VIC_COAST_BOUNDS, {
       pane: "tilePane",
       className: "satpreview",
       interactive: false,
@@ -63,7 +63,7 @@ export default function SatelliteMap({ date }: { date: string }) {
       <MapRecall name="satellite" />
       <Backdrop date={date} />
       <TileLayer
-        url={`/api/satellite/tile/${date}/{z}/{x}/{y}`}
+        url={`/api/satellite/tile/${date}/{z}/{x}/{y}?v=${RENDER_V}`}
         attribution="Imagery: Copernicus Sentinel-2 (ESA)"
         noWrap
         zIndex={200}
