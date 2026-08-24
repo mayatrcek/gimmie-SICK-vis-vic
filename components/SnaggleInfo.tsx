@@ -46,13 +46,13 @@ export default function SnaggleInfo({
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/assets/brand/Snaggletooth Hover.gif" alt="" />
       </button>
-      {show && (
-        <div className="snaggle-note">
-          <span className="snaggle-note-txt">
-            {done ? (children ?? text) : <span aria-hidden="true">{text.slice(0, reveal)}</span>}
-          </span>
-        </div>
-      )}
+      {/* Rendered even while closed (just `hidden`) so the note ships in the server
+          HTML — crawlers were only ever seeing the button. */}
+      <div className={`snaggle-note${show ? " open" : ""}`} hidden={!show}>
+        <span className="snaggle-note-txt">
+          {show && !done ? <span aria-hidden="true">{text.slice(0, reveal)}</span> : (children ?? text)}
+        </span>
+      </div>
     </>
   );
 }

@@ -687,7 +687,10 @@
      Lives inside .panel-hd's flex-wrap: full-width row after title/meta/button. */
   .snaggle-note{flex-basis:100%;order:10;margin:10px 0 2px;padding:14px 18px;background:var(--paper);border:2px solid var(--ink);
     box-shadow:4px 4px 0 0 var(--ink);font-size:14px;line-height:1.55;color:var(--muted);
-    transform-origin:top right;animation:snaggle-pop .18s var(--ease)}
+    transform-origin:top right}
+  /* the note is in the DOM even when closed, so mount no longer coincides with
+     opening — adding .open is what replays the pop */
+  .snaggle-note.open{animation:snaggle-pop .18s var(--ease)}
   .snaggle-note a{color:var(--accent);font-weight:600;text-decoration:none}
   .snaggle-note a:hover{text-decoration:underline}
   /* --snaggle-reserve is the strip of the card the shark hangs over: 0 on phones
@@ -697,6 +700,9 @@
   .snaggle-note-txt{display:block}
   @media(min-width:561px){.snaggle-note{--snaggle-reserve:240px}}
   @keyframes snaggle-pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+  /* header-only panel (forecast: title + shark, everything else in the note) —
+     drop the rule that would otherwise sit 1px above the panel's own border */
+  .panel-hd:last-child{border-bottom:0}
   .panel-bd{padding:18px 20px}
   .panel-bd.flush{padding:0}
   /* maps/iframes inside a panel shed their own chrome to avoid a box-in-a-box

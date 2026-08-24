@@ -23,7 +23,10 @@ crawlers** — this is the trap to watch when adding a route. `/forecast` shippe
 spot names. It now server-renders an `<h1>`, an intro, and an "All dive sites"
 index built from `REGIONS`, with `<DiveSitesClient />` untouched in between; the
 SST and satellite galleries hoist their header above the data gate for the same
-reason. If you add a page, check the built HTML, not the browser:
+reason. That copy lives inside the shark's `SnaggleInfo` note, which renders into
+the server HTML and is merely `hidden` until you click — content behind a toggle
+the visitor can open, not text hidden only from humans. If you add a page, check
+the built HTML, not the browser:
 `grep -o '<h1[^>]*>[^<]*' .next/server/app/<route>.html`.
 
 Every page has exactly one `<h1>` (`.panel-ttl`, which carries `margin:0` because
