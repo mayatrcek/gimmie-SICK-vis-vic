@@ -17,7 +17,7 @@ export default function Nepean() {
   return (
     <div className="panel">
       <div className="panel-hd">
-        <span className="panel-ttl">Point Nepean — live waves</span>
+        <h1 className="panel-ttl">Point Nepean — live waves</h1>
         <span className="panel-meta">Ports Victoria / OMC</span>
         <SnaggleInfo text={NOTE}>
           This is a buoy situated past the Port Phillip Heads. It collects live data and displays

@@ -1,8 +1,10 @@
 import type { MetadataRoute } from "next";
 import { FISH_WIP } from "@/lib/nav";
 
-// ponytail: hand-listed. 19 static routes, no dynamic segments — globbing the app
+// ponytail: hand-listed. 15 indexable routes, no dynamic segments — globbing the app
 // dir would be more code than the list. Add a route here when you add a page.
+// Coming-soon stubs (/store, /live/altimetry, /live/bathymetry, /live/salinity) are
+// deliberately absent — they also carry robots:{index:false}. Re-add them when they ship.
 const ROUTES: Array<[path: string, priority: number]> = [
   ["/", 1],
   ["/forecast", 0.9],
@@ -13,13 +15,9 @@ const ROUTES: Array<[path: string, priority: number]> = [
   ["/geo/depth", 0.8],
   ["/back-beach", 0.7],
   ["/live/currents", 0.6],
-  ["/live/altimetry", 0.6],
-  ["/live/salinity", 0.6],
-  ["/live/bathymetry", 0.6],
   ["/live/satellite", 0.6],
   ["/about", 0.5],
   ["/contact", 0.4],
-  ["/store", 0.4],
   ["/feedback", 0.3],
   ["/privacy", 0.2],
   ["/terms", 0.2],

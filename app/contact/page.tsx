@@ -9,7 +9,7 @@ export default function Contact() {
   return (
     <div className="panel">
       <div className="panel-hd">
-        <span className="panel-ttl">Contact</span>
+        <h1 className="panel-ttl">Contact</h1>
       </div>
       <div className="panel-bd">
         <ContactForm />

@@ -8,7 +8,7 @@ export default function Privacy() {
   return (
     <div className="panel">
       <div className="panel-hd">
-        <span className="panel-ttl">Privacy Policy</span>
+        <h1 className="panel-ttl">Privacy Policy</h1>
         <span className="panel-meta">Last updated: 8 August 2026</span>
       </div>
       <div className="panel-bd guide">

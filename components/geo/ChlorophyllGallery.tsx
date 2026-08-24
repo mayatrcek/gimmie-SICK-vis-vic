@@ -98,7 +98,7 @@ export default function ChlorophyllGallery({
     <>
     <div className="panel">
       <div className="panel-hd">
-        <span className="panel-ttl">Chlorophyll scans</span>
+        <h1 className="panel-ttl">Chlorophyll scans</h1>
         <SnaggleInfo text="You’re looking at live scans of algae/plankton present in the water. A lot of this stuff directly impacts water visibility and it doesn’t go away quickly. Red typically means terrible, yellow and green are pretty good, and blue is amazing! Empty gaps is cloud cover." />
       </div>
       <div className="panel-bd flush">

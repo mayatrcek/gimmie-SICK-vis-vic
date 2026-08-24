@@ -68,7 +68,24 @@ export default function SatelliteGallery() {
     };
   }, [selected]);
 
-  if (!scenes) return <div className="pad loadgif loadgif-lg" />;
+  // The header renders ahead of the client-fetched scans so the page ships a real
+  // <h1> in its server HTML — behind the gate a crawler saw only the loading div.
+  const header = (
+    <div className="panel-hd">
+      <h1 className="panel-ttl">Satellite imagery</h1>
+      <SnaggleInfo text="Live scans from Copernicus. You can checkout the visibility on some spots by looking for patches of reef (dark spots) over shallow water." />
+    </div>
+  );
+
+  if (!scenes)
+    return (
+      <div className="panel">
+        {header}
+        <div className="panel-bd flush">
+          <div className="pad loadgif loadgif-lg" />
+        </div>
+      </div>
+    );
 
   if (selected) {
     return (
@@ -87,10 +104,7 @@ export default function SatelliteGallery() {
   return (
     <>
       <div className="panel">
-        <div className="panel-hd">
-          <span className="panel-ttl">Satellite imagery</span>
-          <SnaggleInfo text="Live scans from Copernicus. You can checkout the visibility on some spots by looking for patches of reef (dark spots) over shallow water." />
-        </div>
+        {header}
         <div className="panel-bd flush">
           <div style={{ padding: "8px 16px 16px" }}>
             {scenes.length === 0 ? (

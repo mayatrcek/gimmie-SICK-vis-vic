@@ -37,9 +37,9 @@ const CHANNELS: Channel[] = [
 // all-caps brand eats ~165px of that on its own. "The Ultimate" was the 12 chars that
 // pushed it over. Measure before adding words back.
 export const metadata = {
-  title: "GIMMIE SICK VIS - Forecasting Tool For Victorian Divers",
+  title: "GIMMIE SICK VIS - Dive Forecast Melbourne & Victoria",
   description:
-    "Dive forecasting, access to premium live data and a learning database open to all Victorian divers.",
+    "Dive forecasting for Melbourne and the Victorian coast — live swell, wind and tide scores for every dive site, plus satellite sea temperature and chlorophyll.",
 };
 
 // Google reads this off the homepage to decide the site name shown above the
@@ -93,7 +93,7 @@ export default function Home() {
         </div>
         <div className="absolute left-0 w-full top-1/4 -translate-y-1/2 z-10 px-md">
           <h1 className="home-display font-display-xxl text-display-xl md:text-display-xxl text-bone drop-shadow-[8px_8px_0px_rgba(25,19,16,1)] mb-md hero-title-entrance">
-            GIMME SICK VIS
+            GIMMIE SICK VIS
           </h1>
           <div className="home-tagline inline-flex flex-col md:flex-row items-center gap-md bg-ink-soft text-parchment py-sm px-xl border-2 border-primary shadow-[6px_6px_0px_0px_#2e5dd6]">
             <span className="font-hud-md text-hud-md tracking-[0.2em] uppercase">
@@ -151,9 +151,21 @@ export default function Home() {
             <h2 className="home-h2 font-display-lg text-headline-lg text-ink-soft mb-md uppercase">
               SUMMARY
             </h2>
+            <p className="font-hud-md text-hud-md text-ink-soft opacity-80 mb-md">
+              Chasing the best diving and fishing days around Melbourne with live data and a bit
+              of local know-how. Built to help you find sick vis when it counts.
+            </p>
+            <p className="font-hud-md text-hud-md text-ink-soft opacity-80 mb-md">
+              Every dive site is scored out of 10 from live swell, wind, tide and rainfall: the
+              piers and wrecks inside Port Phillip Bay, the tide-run of Western Port, the
+              Mornington Peninsula back beaches, and the open coast from the Surf Coast down to
+              Wilsons Promontory.
+            </p>
             <p className="font-hud-md text-hud-md text-ink-soft opacity-80">
-              Chasing the best diving and fishing days with live data and a bit of local know-how.
-              Built to help you find sick vis when it counts.
+              Alongside the forecast you get the raw feeds most sites hide: satellite sea-surface
+              temperature, chlorophyll scans that show a plankton bloom before it kills your vis,
+              surface currents and seabed depth. It&rsquo;s a planning aid, not a substitute for
+              checking official forecasts before you get in the water.
             </p>
           </div>
         </div>

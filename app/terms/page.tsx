@@ -8,7 +8,7 @@ export default function Terms() {
   return (
     <div className="panel">
       <div className="panel-hd">
-        <span className="panel-ttl">Terms of Use</span>
+        <h1 className="panel-ttl">Terms of Use</h1>
         <span className="panel-meta">Last updated: 8 August 2026</span>
       </div>
       <div className="panel-bd guide">

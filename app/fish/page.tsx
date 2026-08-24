@@ -17,7 +17,7 @@ export default function Fish() {
     return (
       <div className="panel">
         <div className="panel-hd">
-          <span className="panel-ttl">What&rsquo;s biting</span>
+          <h1 className="panel-ttl">What&rsquo;s biting</h1>
           <span className="panel-meta">Work in progress</span>
           <SnaggleInfo text="The fish guide is being reworked and is off the menu for now. Check back soon." />
         </div>
@@ -28,7 +28,7 @@ export default function Fish() {
   return (
     <div className="panel">
       <div className="panel-hd">
-        <span className="panel-ttl">What&rsquo;s biting</span>
+        <h1 className="panel-ttl">What&rsquo;s biting</h1>
       </div>
       <div className="panel-bd">
         <div className="sub">

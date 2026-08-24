@@ -92,7 +92,24 @@ export default function SstGallery() {
     };
   }, [selected]);
 
-  if (!stretch || !days) return <div className="pad loadgif loadgif-lg" />;
+  // The header renders ahead of the client-fetched scans so the page ships a real
+  // <h1> in its server HTML — behind the gate a crawler saw only the loading div.
+  const header = (
+    <div className="panel-hd">
+      <h1 className="panel-ttl">Sea temperature scans</h1>
+      <SnaggleInfo text="Sea surface temps are good for tracking seasonal fish and finding those temperature breaks. And also if you’re just curious about the water temp haha. You can select a point and copy coordinates if you’re planning a trip offshore." />
+    </div>
+  );
+
+  if (!stretch || !days)
+    return (
+      <div className="panel">
+        {header}
+        <div className="panel-bd flush">
+          <div className="pad loadgif loadgif-lg" />
+        </div>
+      </div>
+    );
 
   if (selected) {
     return (
@@ -118,10 +135,7 @@ export default function SstGallery() {
   return (
     <>
       <div className="panel">
-        <div className="panel-hd">
-          <span className="panel-ttl">Sea temperature scans</span>
-          <SnaggleInfo text="Sea surface temps are good for tracking seasonal fish and finding those temperature breaks. And also if you’re just curious about the water temp haha. You can select a point and copy coordinates if you’re planning a trip offshore." />
-        </div>
+        {header}
         <div className="panel-bd flush">
           <div style={{ padding: "8px 16px 16px" }}>
             <div className="fishgrid chlgrid">

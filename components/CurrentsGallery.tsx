@@ -88,7 +88,7 @@ export default function CurrentsGallery() {
     <>
       <div className="panel">
         <div className="panel-hd">
-          <span className="panel-ttl">Surface current scans</span>
+          <h1 className="panel-ttl">Surface current scans</h1>
           <SnaggleInfo text="Large scale currents, good for tracking down pelagics." />
         </div>
         <div className="panel-bd flush">

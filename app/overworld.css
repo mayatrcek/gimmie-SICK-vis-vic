@@ -661,7 +661,7 @@
   .panel-hd{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:16px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
   /* heading scale matches the home-page SUMMARY h2 (home-h2/text-headline-lg) */
   .panel-ttl{font-family:var(--font-display);font-size:clamp(1.6rem,6.5vw,44px);line-height:1.02;
-    font-weight:700;letter-spacing:-.015em;text-transform:uppercase;color:var(--ink)}
+    font-weight:700;letter-spacing:-.015em;text-transform:uppercase;color:var(--ink);margin:0}
   /* meta stacks under the title on its own line (no split heading/description header) */
   .panel-meta{flex-basis:100%;font-size:13px;color:var(--muted)}
   /* corner mascot button — same absolute-badge convention as .f2badge/.sstscale-float */
@@ -716,6 +716,11 @@
   .guide ul,.guide ol{margin:0 0 14px;padding-left:22px;line-height:1.6}
   .guide li{margin-bottom:6px}
   .guide .note{margin:10px 0 18px}
+  /* /forecast dive-site index: ~77 names stacked in one column is a mile of
+     scroll, so let the regions flow into as many columns as fit. */
+  .sitedex{columns:3 210px;column-gap:28px}
+  .sitedex section{break-inside:avoid;margin-bottom:14px}
+  .sitedex h3{margin-top:0}
 
   /* ===== Form fields (contact page) — same ink-border/block-shadow language
      as .picker select above, ported from ui_design/overworld/css/system.css ===== */

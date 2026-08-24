@@ -12,9 +12,24 @@ and the JSON-LD in `app/page.tsx` — change all four together if the domain mov
 Search appearance: every route exports its own `title`/`description`;
 `alternates: { canonical: "./" }` in the layout makes each page canonical itself;
 the homepage carries `WebSite` + `Organization` JSON-LD (this is what sets the
-site name shown above the result). The sitemap ships `priority` but deliberately no
-`lastmod` — see the note in `app/sitemap.ts`. Sitelinks themselves are Google's call —
-no markup produces them, so the lever is section hubs and clean internal links.
+site name shown above the result) and `/back-beach` carries `Article`. The sitemap
+ships `priority` but deliberately no `lastmod` — see the note in `app/sitemap.ts`.
+Sitelinks themselves are Google's call — no markup produces them, so the lever is
+section hubs and clean internal links.
+
+**A page behind `ssr:false` (or behind a client-fetch gate) is invisible to
+crawlers** — this is the trap to watch when adding a route. `/forecast` shipped
+16 KB of nav and an empty loading div for months: no headings, none of the ~77
+spot names. It now server-renders an `<h1>`, an intro, and an "All dive sites"
+index built from `REGIONS`, with `<DiveSitesClient />` untouched in between; the
+SST and satellite galleries hoist their header above the data gate for the same
+reason. If you add a page, check the built HTML, not the browser:
+`grep -o '<h1[^>]*>[^<]*' .next/server/app/<route>.html`.
+
+Every page has exactly one `<h1>` (`.panel-ttl`, which carries `margin:0` because
+Tailwind runs with no preflight). Coming-soon stubs (`/store`, `/live/altimetry`,
+`/live/bathymetry`, `/live/salinity`) carry `robots:{index:false}` and are absent
+from the sitemap — thin pages drag the whole domain. Re-add them when they ship.
 
 Built with **Next.js (App Router) + React + TypeScript + Tailwind v4** and
 react-leaflet. (Ported from the original single-file static site.)

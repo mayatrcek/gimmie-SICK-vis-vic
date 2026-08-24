@@ -11,7 +11,7 @@ export default function Feedback() {
     <>
       <div className="panel">
         <div className="panel-hd">
-          <span className="panel-ttl">Send feedback</span>
+          <h1 className="panel-ttl">Send feedback</h1>
         </div>
         <div className="panel-bd" style={{ padding: 6 }}>
           <div className="sub" style={{ margin: "6px 8px 10px" }}>

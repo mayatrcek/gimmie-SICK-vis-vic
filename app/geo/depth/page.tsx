@@ -11,7 +11,7 @@ export default function Depth() {
   return (
     <div className="panel">
       <div className="panel-hd">
-        <span className="panel-ttl">Depth detail</span>
+        <h1 className="panel-ttl">Depth detail</h1>
         <SnaggleInfo text="A rough depth map in intervals of 10m." />
       </div>
       <div className="panel-bd flush">

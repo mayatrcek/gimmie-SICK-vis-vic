@@ -1,14 +1,41 @@
 export const metadata = {
-  title: "Back Beach Forecasting — GIMMIE SICK VIS",
+  title: "Back Beach Diving Guide — Mornington Peninsula",
   description:
-    "How to read swell, wind and tide together to pick a diveable day on Victoria's back beaches.",
+    "How to read swell, wind and tide together to pick a diveable day on the Mornington Peninsula back beaches, an hour from Melbourne.",
+};
+
+// The site's one long-form guide — the page most likely to earn links, so it gets
+// its own Article node pointing at the Organization declared on the home page.
+const ARTICLE_LD = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "Back Beach Diving Guide — Mornington Peninsula",
+  description:
+    "How to read swell, wind and tide together to pick a diveable day on the Mornington Peninsula back beaches, an hour from Melbourne.",
+  url: "https://gimmiesickvis.com/back-beach",
+  mainEntityOfPage: "https://gimmiesickvis.com/back-beach",
+  author: { "@type": "Person", name: "Maya" },
+  // Same @id as the Organization on the home page, but spelled out: a bare
+  // reference would dangle, since that node isn't declared on this page.
+  publisher: {
+    "@type": "Organization",
+    "@id": "https://gimmiesickvis.com/#org",
+    name: "GIMMIE SICK VIS",
+    url: "https://gimmiesickvis.com",
+    logo: "https://gimmiesickvis.com/assets/brand/logo-mark.svg",
+  },
+  about: ["Scuba diving", "Mornington Peninsula", "Victoria, Australia"],
 };
 
 export default function BackBeach() {
   return (
     <div className="panel">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ARTICLE_LD) }}
+      />
       <div className="panel-hd">
-        <span className="panel-ttl">Back Beach Forecasting</span>
+        <h1 className="panel-ttl">Back Beach Forecasting</h1>
       </div>
       <div className="panel-bd guide">
         <p>
