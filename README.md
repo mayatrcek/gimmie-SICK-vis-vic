@@ -20,12 +20,15 @@ section hubs and clean internal links.
 **A page behind `ssr:false` (or behind a client-fetch gate) is invisible to
 crawlers** — this is the trap to watch when adding a route. `/forecast` shipped
 16 KB of nav and an empty loading div for months: no headings, none of the ~77
-spot names. It now server-renders an `<h1>`, an intro, and an "All dive sites"
-index built from `REGIONS`, with `<DiveSitesClient />` untouched in between; the
-SST and satellite galleries hoist their header above the data gate for the same
-reason. That copy lives inside the shark's `SnaggleInfo` note, which renders into
-the server HTML and is merely `hidden` until you click — content behind a toggle
-the visitor can open, not text hidden only from humans. If you add a page, check
+spot names. The SST and satellite galleries hoist their header above the data
+gate for the same reason, and every `SnaggleInfo` note now renders into the server
+HTML (`hidden` until you click) rather than only existing after one — content
+behind a toggle the visitor can open, not text hidden only from humans.
+`/forecast` deliberately stays minimal: it carries only an `sr-only` `<h1>`, since
+its visible heading is inside the `ssr:false` client. The intro copy and the
+77-name site index that briefly lived here were cut as page clutter — if those
+keywords need a home, put them somewhere a visitor actually reads them (the
+homepage SUMMARY, `/back-beach`), not off-screen. If you add a page, check
 the built HTML, not the browser:
 `grep -o '<h1[^>]*>[^<]*' .next/server/app/<route>.html`.
 
