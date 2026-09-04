@@ -120,9 +120,9 @@ npm test           # rating-logic, tide-prediction + ERDDAP-client self-checks
 Open-Meteo (marine + weather), tides predicted from constituents fitted to BOM
 ABSLMP gauge records + CSIRO's Williamstown record (CC BY 4.0), NOAA ACSPO L3S
 2 km SST + thermal fronts via NOAA CoastWatch ERDDAP, NASA GIBS VIIRS
-chlorophyll (NOAA-20, NOAA-21, Suomi NPP), Copernicus Marine currents, Sentinel-2
-via CDSE, DEECA CoastKit bathymetry/contours, Esri basemaps (Ocean Base + label
-reference) + AWS Terrarium bathymetry (dive-sites pixel map).
+chlorophyll (NOAA-20, NOAA-21, Suomi NPP), Sentinel-2 via CDSE, DEECA CoastKit
+bathymetry/contours, Esri basemaps (Ocean Base + label reference) + AWS Terrarium
+bathymetry (dive-sites pixel map).
 All free/public; a planning aid, not for navigation or safety-of-life use.
 The same list, written for readers, is the panel at the bottom of `/forecast`
 (`components/dive/DataSources.tsx`) — keep the two in step.

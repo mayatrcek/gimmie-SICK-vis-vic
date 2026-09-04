@@ -90,11 +90,6 @@ export default function DataSources() {
             <A href="https://dataspace.copernicus.eu/">Copernicus Data Space Ecosystem</A>.
           </li>
           <li>
-            <b>Surface currents</b> —{" "}
-            <A href="https://marine.copernicus.eu/">Copernicus Marine Service</A> global physics
-            (0.083°), a model rather than an observation.
-          </li>
-          <li>
             <b>Point Nepean waves</b> — the public{" "}
             <A href="https://portweather-public.omcinternational.com/">OMC International</A> buoy
             dashboard, embedded as-is.
