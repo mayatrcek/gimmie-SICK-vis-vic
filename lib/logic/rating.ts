@@ -176,22 +176,33 @@ export function dayRating(scores: (number | null)[]): Rating {
 export type TideMark = { date: string; kind: "H" | "L"; time: string; height: number };
 
 // Local extrema of the hourly sea-level series -> high/low tide marks.
+// The turn rarely lands on the hour, so the three samples around it get a
+// parabola through them and the mark takes the vertex: same arithmetic either
+// way, but the printed time stops being rounded to the nearest hour.
 export function tideExtremes(mtime: string[], tide: number[]): TideMark[] {
   const out: TideMark[] = [];
   for (let i = 1; i < tide.length - 1; i++) {
     const a = tide[i - 1], b = tide[i], c = tide[i + 1];
-    if (a == null || b == null || c == null) continue;
+    if (a == null || b == null || c == null || isNaN(a) || isNaN(b) || isNaN(c)) continue;
     if ((b > a && b >= c) || (b < a && b <= c)) {
+      const curve = a - 2 * b + c;
+      // offset from the sample, in hours; flat three-in-a-row leaves it at 0
+      const d = curve === 0 ? 0 : (0.5 * (a - c)) / curve;
+      const at = new Date(mtime[i] + ":00");
+      at.setMinutes(at.getMinutes() + Math.round(d * 60));
       out.push({
-        date: mtime[i].slice(0, 10),
+        date: iso(at),
         kind: b > a ? "H" : "L",
-        time: mtime[i].slice(11, 16),
-        height: b,
+        time: `${String(at.getHours()).padStart(2, "0")}:${String(at.getMinutes()).padStart(2, "0")}`,
+        height: b - 0.25 * (a - c) * d,
       });
     }
   }
   return out;
 }
+
+const iso = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 const EMPTY: Rating = { label: "—", col: "#d7d4c8", rank: 0 };
 

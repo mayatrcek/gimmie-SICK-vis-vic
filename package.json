@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node lib/logic/rating.test.ts && node lib/api/erddap.test.ts && node components/geo/gibs.test.ts && node lib/contact/validate.test.ts"
+    "test": "node lib/logic/rating.test.ts && node lib/api/erddap.test.ts && node components/geo/gibs.test.ts && node lib/tides/tides.test.ts && node lib/contact/validate.test.ts"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

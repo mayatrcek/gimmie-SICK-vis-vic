@@ -47,6 +47,8 @@ export type Hourly = {
   swellP: number[];
   swellD: number[];
   tide: number[];
+  // which gauge the tide came from ("Lorne", "Stony Point", …) or "modelled"
+  tideRef: string;
   wtime: string[];
   wind: number[];
   wdir: number[];

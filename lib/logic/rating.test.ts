@@ -151,13 +151,22 @@ for (const [shown, cols] of Object.entries(byShown)) {
   assert.equal(cols.size, 1, `height ${shown} rendered in ${cols.size} colours`);
 }
 
-// tideExtremes finds the hump and the dip.
+// tideExtremes finds the hump and the dip, and puts the turn on the vertex of
+// the parabola through the three samples rather than on the nearest hour.
 const mt = ["2026-07-16T00:00", "2026-07-16T01:00", "2026-07-16T02:00", "2026-07-16T03:00", "2026-07-16T04:00"];
 const marks = tideExtremes(mt, [0.2, 0.8, 0.5, 0.1, 0.6]);
 assert.deepEqual(
-  marks.map((m) => [m.kind, m.time]),
-  [["H", "01:00"], ["L", "03:00"]],
+  marks.map((m) => m.kind),
+  ["H", "L"],
 );
+// a symmetric hump turns exactly on the hour, and no higher than the samples
+const sym = tideExtremes(mt.slice(0, 3), [0.2, 0.8, 0.2]);
+assert.deepEqual(sym.map((m) => [m.kind, m.time, m.height]), [["H", "01:00", 0.8]]);
+// an asymmetric one turns off the hour, past the middle sample
+const off = tideExtremes(mt.slice(0, 3), [0.2, 0.8, 0.6]);
+assert.equal(off[0].time > "01:00" && off[0].time < "02:00", true);
+assert.equal(off[0].height > 0.8, true);
+assert.equal(off[0].date, "2026-07-16");
 
 // dayRating: mode of the day's hourly buckets, not a single worst-case slot.
 assert.equal(dayRating([8, 8, 8, 6, 6]).label, "Amazing");

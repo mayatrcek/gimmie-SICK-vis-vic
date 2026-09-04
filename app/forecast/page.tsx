@@ -1,3 +1,4 @@
+import DataSources from "@/components/dive/DataSources";
 import DiveSitesClient from "@/components/dive/DiveSitesClient";
 
 export const metadata = {
@@ -14,6 +15,7 @@ export default function DiveSites() {
           land on a page with no heading at all. */}
       <h1 className="sr-only">Dive forecast — Melbourne &amp; Victoria</h1>
       <DiveSitesClient />
+      <DataSources />
     </>
   );
 }

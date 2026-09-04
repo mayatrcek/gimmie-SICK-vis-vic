@@ -1,5 +1,6 @@
 import type { Hourly, Row, SiteData, Spot } from "@/lib/types";
 import { dayRating, runoffIndex, score10, windRel } from "@/lib/logic/rating";
+import { tideSeries } from "@/lib/tides/series";
 import { RAIN_DAYS } from "@/lib/data/thresholds";
 
 export const MARINE = "https://marine-api.open-meteo.com/v1/marine";
@@ -113,12 +114,17 @@ export async function fetchSite(s: Spot): Promise<SiteData> {
     });
   });
 
+  // Tides come from harmonic constituents fitted to gauge records, not from the
+  // marine model — see lib/tides/series.ts.
+  const tides = tideSeries(s.id, mh.time || [], mh.sea_level_height_msl || []);
+
   const hourly: Hourly = {
     mtime: mh.time || [],
     swellH: mh.swell_wave_height || [],
     swellP: mh.swell_wave_period || [],
     swellD: mh.swell_wave_direction || [],
-    tide: mh.sea_level_height_msl || [],
+    tide: tides.tide,
+    tideRef: tides.ref,
     wtime: weather.hourly ? weather.hourly.time : [],
     wind: weather.hourly ? weather.hourly.wind_speed_10m : [],
     wdir: weather.hourly ? weather.hourly.wind_direction_10m : [],

@@ -53,8 +53,16 @@ function TideGraph({ hourly, days }: { hourly: Hourly; days: { date: string; n: 
 
   const vals = hourly.tide.filter((v) => v != null && !isNaN(v));
   if (!vals.length) return null;
-  const lo = Math.min(...vals);
-  const hi = Math.max(...vals);
+
+  const marks = tideExtremes(hourly.mtime, hourly.tide)
+    .map((m: TideMark) => ({ ...m, x: xFor(`${m.date}T${m.time}`) }))
+    .filter((m) => m.x != null) as (TideMark & { x: number })[];
+
+  // A turn sits between two samples, so its interpolated height can fall just
+  // outside the hourly series — take the marks into the range or the lowest low
+  // ends up labelled "-0.0m".
+  const lo = Math.min(...vals, ...marks.map((m) => m.height));
+  const hi = Math.max(...vals, ...marks.map((m) => m.height));
   const yFor = (v: number) => PT + ((hi - v) / (hi - lo || 1)) * (H - PT - PB);
 
   let path = "";
@@ -64,10 +72,6 @@ function TideGraph({ hourly, days }: { hourly: Hourly; days: { date: string; n: 
     if (v == null || isNaN(v) || x == null) return;
     path += `${path ? "L" : "M"}${x.toFixed(1)} ${yFor(v).toFixed(1)}`;
   });
-
-  const marks = tideExtremes(hourly.mtime, hourly.tide)
-    .map((m: TideMark) => ({ ...m, x: xFor(`${m.date}T${m.time}`) }))
-    .filter((m) => m.x != null) as (TideMark & { x: number })[];
 
   return (
     <svg width={W} height={H} className="fctidesvg" role="img" aria-label="Tide curve with high and low tide times">
@@ -232,7 +236,11 @@ export default function ForecastTable({ s, hourly, rows }: { s: Spot; hourly: Ho
             })}
           </tr>
           <tr>
-            <th className="fclab">Tide <i>(m)</i></th>
+            {/* the gauge standing in for this site, so a 2 m Stony Point range
+                next to a 1 m Portland one reads as geography, not a glitch */}
+            <th className="fclab">
+              Tide <i>({hourly.tideRef === "modelled" ? "m, modelled" : hourly.tideRef})</i>
+            </th>
             <td colSpan={slots.length} className="fcgraph fcd0">
               <TideGraph hourly={hourly} days={days} />
             </td>

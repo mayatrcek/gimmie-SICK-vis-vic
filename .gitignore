@@ -50,3 +50,6 @@ __pycache__/
 
 # office lock files (created while a doc is open)
 ~$*
+
+# downloaded gauge records for tools/fit-tides.ts
+tools/.cache
