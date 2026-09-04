@@ -56,7 +56,7 @@ async function tile(url) {
   for (let ty = y0; ty <= y1; ty++) {
     for (let tx = x0; tx <= x1; tx++) {
       const [map, dep] = await Promise.all([
-        tile(`https://a.basemaps.cartocdn.com/rastertiles/voyager_nolabels/${Z}/${tx}/${ty}.png`),
+        tile(`https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/${Z}/${ty}/${tx}`),
         tile(`https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${Z}/${tx}/${ty}.png`),
       ]);
       for (let p = 0; p < 256 * 256; p++) {

@@ -114,7 +114,7 @@ Open-Meteo (marine + weather), NOAA ACSPO L3S 2 km SST + thermal fronts via NOAA
 CoastWatch ERDDAP, Copernicus Marine global ocean forecast surface currents
 (0.083°, `uo`/`vo`) via the `copernicusmarine` Python client, NASA GIBS VIIRS
 chlorophyll (NOAA-20, NOAA-21, Suomi NPP), DEECA CoastKit bathymetry/contours,
-Esri basemaps, CARTO basemap + AWS Terrarium bathymetry (dive-sites pixel map).
+Esri basemaps (Ocean Base + label reference) + AWS Terrarium bathymetry (dive-sites pixel map).
 All free/public; a planning aid, not for navigation or safety-of-life use.
 
 Currents needs a free Copernicus Marine account (register at

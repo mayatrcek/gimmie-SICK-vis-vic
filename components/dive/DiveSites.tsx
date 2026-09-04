@@ -583,7 +583,7 @@ export default function DiveSites() {
                 pixelTiles.ts) and 4x-stretched; labels ride on top at 2x. */}
             <PixelBasemap />
             <TileLayer
-              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}.png"
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
               maxZoom={19}
               opacity={0.9}
               tileSize={512}

@@ -1,6 +1,6 @@
 import L from "leaflet";
 
-// OVERWORLD-quantised basemap: draws each CARTO Voyager tile to a canvas and
+// OVERWORLD-quantised basemap: draws each Esri Ocean Base tile to a canvas and
 // snaps every pixel to the kit palette. Water is shaded by real depth from the
 // AWS Terrarium elevation tiles (satellite-derived ETOPO1/GEBCO bathymetry,
 // elevation = R*256 + G + B/256 - 32768), quantised into four cobalt bands so
@@ -119,13 +119,12 @@ export function pixelBaseOverlay(): L.ImageOverlay {
 export function pixelBasemap(): L.TileLayer {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return new (QuantisedTiles as any)(
-    "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}.png",
+    "https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}",
     {
       maxZoom: 19,
       tileSize: 1024,
       zoomOffset: -2,
-      attribution:
-        "&copy; OpenStreetMap contributors &copy; CARTO &middot; bathymetry: Mapzen/ETOPO1",
+      attribution: "Basemap &copy; Esri, GEBCO, NOAA &middot; bathymetry: Mapzen/ETOPO1",
     },
   );
 }

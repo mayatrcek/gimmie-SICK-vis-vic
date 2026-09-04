@@ -115,7 +115,7 @@ export default function About() {
           <a href="https://www.marineandcoasts.vic.gov.au/" target="_blank" rel="noopener">
             DEECA CoastKit (Victoria)
           </a>
-          , with open basemaps and bathymetry from OpenStreetMap, CARTO and Mapzen. The whole
+          , with open basemaps from Esri and bathymetry from Mapzen/GEBCO. The whole
           thing is a single web app — no account, no tracking, no servers of mine.
         </p>
         <p style={{ marginTop: 20, color: "var(--muted)", fontSize: 13 }}>
