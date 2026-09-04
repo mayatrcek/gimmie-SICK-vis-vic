@@ -110,9 +110,6 @@ export default function Nav() {
         <Link className={`tab${isActive("/store") ? " active" : ""}`} href="/store">
           Store
         </Link>
-        <Link className={`tab${isActive("/contact") ? " active" : ""}`} href="/contact">
-          Contact
-        </Link>
         <Link className={`tab${isActive("/about") ? " active" : ""}`} href="/about">
           About
         </Link>
