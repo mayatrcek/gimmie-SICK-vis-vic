@@ -23,19 +23,24 @@ const MODELS: Record<string, TideModel> = {
 // Wilsons Prom, Gippsland, the Mornington back beaches and the Phillip Island
 // surf coast, none of which have a public gauge anywhere near.
 const BY_STATION: Record<string, string[]> = {
-  // open coast from Cape Otway east to the Heads
+  // open coast from Cape Otway east to the Heads, plus the entrance itself:
+  // at the Heads the tide is still the ocean's, and only turns into the bay's
+  // once it's through the constriction
   lorne: [
     "bells", "winki", "janjuc", "torquay", "roadknight", "anglesea", "lorne", "apollo",
     "13th", "barwon", "oceangrove", "lonsdale", "princetown", "portcampbell",
-    // just inside Port Phillip Heads the tide still tracks the open coast
-    // (~1.4 m range, minutes behind Point Lonsdale) rather than the top of the bay
-    "fort", "portseapier", "portseahole", "sorrentopier", "chinamans", "lonsdalewall",
-    "queenscliffpier", "popeseye",
+    "lonsdalewall", "queenscliffpier", "popeseye",
   ],
   // open coast west of Cape Otway, where the range drops to about a metre
   portland: ["portland", "portfairy", "warrnambool"],
-  // the top and east of Port Phillip: half the range of the Heads, hours later
+  // Inside Port Phillip. The Heads throttle the flow hard enough that the whole
+  // basin behind them turns together, hours after the ocean outside: South
+  // Channel Fort, only 12 km in, peaks within half an hour of Williamstown, not
+  // with the open coast. So everything past the entrance runs on this gauge.
+  // (Its range is the northern bay's; sites down the southern end swing wider,
+  // which the graph's own 0 m datum hides but the printed heights understate.)
   williamstown: [
+    "fort", "portseapier", "portseahole", "sorrentopier", "chinamans",
     "blairgowrie", "ryepier", "stleonards", "portarlington", "morningtonpier",
     "ricketts", "cerberus", "williamstown",
   ],

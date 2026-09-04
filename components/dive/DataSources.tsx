@@ -62,6 +62,10 @@ export default function DataSources() {
           </li>
           <li>
             Each site borrows the gauge that matches its tidal regime, named in the tide row.
+            Everything inside Port Phillip runs on Williamstown, because the Heads throttle the
+            flow enough that the whole bay turns together, hours after the ocean outside; only the
+            entrance itself still keeps ocean time. Heights are drawn against the week&rsquo;s
+            lowest tide rather than chart datum, so they read lower than a tide table&rsquo;s.
             Wilsons Prom, Gippsland, the Mornington back beaches and the Phillip Island surf coast
             have no public gauge nearby, so they fall back to Open-Meteo&rsquo;s global tide model,
             delay-corrected and labelled <i>modelled</i>.

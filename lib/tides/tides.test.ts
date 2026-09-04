@@ -41,6 +41,13 @@ for (const [spot, points] of Object.entries(REF)) {
   assert.ok(worst < 0.1, `${model.station}: worst error ${worst.toFixed(3)} m vs BOM`);
 }
 
+// Inside Port Phillip the bay turns hours after the ocean outside, so a site
+// past the Heads must not end up on the open-coast gauge (South Channel Fort
+// read 3.5 h early when it did).
+assert.equal(stationFor("fort")!.station, "Williamstown");
+assert.equal(stationFor("ryepier")!.station, "Williamstown");
+assert.equal(stationFor("lonsdale")!.station, "Lorne"); // Point Lonsdale, outside
+
 // Sites with no gauge nearby fall back to the corrected model.
 assert.equal(stationFor("normanbay"), null); // Wilsons Prom
 assert.equal(stationFor("schanck"), null); // Mornington back beach
