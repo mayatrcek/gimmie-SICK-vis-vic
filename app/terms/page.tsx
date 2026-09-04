@@ -20,8 +20,7 @@ export default function Terms() {
         <h2>What this site is</h2>
         <p>
           Gimmie Sick Vis is a marine conditions dashboard for the Victorian coast, aggregating
-          swell, wind, sea surface temperature, chlorophyll, currents, salinity and satellite
-          imagery from public data sources, alongside original guides on diving and fishing
+          swell, wind, sea surface temperature, chlorophyll and satellite imagery from public data sources, alongside original guides on diving and fishing
           conditions.
         </p>
 

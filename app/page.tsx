@@ -164,7 +164,7 @@ export default function Home() {
             <p className="font-hud-md text-hud-md text-ink-soft opacity-80">
               Alongside the forecast you get the raw feeds most sites hide: satellite sea-surface
               temperature, chlorophyll scans that show a plankton bloom before it kills your vis,
-              surface currents and seabed depth. It&rsquo;s a planning aid, not a substitute for
+              and seabed depth. It&rsquo;s a planning aid, not a substitute for
               checking official forecasts before you get in the water.
             </p>
           </div>

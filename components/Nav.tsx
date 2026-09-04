@@ -19,7 +19,7 @@ type Group = { id: string; label: string; items: Item[] };
 // ERDDAP/CDSE quota for people who never open Live data. Opening the menu is
 // the earliest honest signal of intent. Move to page-load only if the quota
 // headroom is there. The remaining live pages can't be warmed this way:
-// chlorophyll is server-rendered, currents/nepean are cross-origin iframes.
+// chlorophyll is server-rendered, nepean is a cross-origin iframe.
 const LIVE_WARM = [
   "/api/satellite/scenes",
   "/api/sst-stretch",

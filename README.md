@@ -33,9 +33,8 @@ the built HTML, not the browser:
 `grep -o '<h1[^>]*>[^<]*' .next/server/app/<route>.html`.
 
 Every page has exactly one `<h1>` (`.panel-ttl`, which carries `margin:0` because
-Tailwind runs with no preflight). Coming-soon stubs (`/store`, `/live/altimetry`,
-`/live/bathymetry`, `/live/salinity`) carry `robots:{index:false}` and are absent
-from the sitemap — thin pages drag the whole domain. Re-add them when they ship.
+Tailwind runs with no preflight). The `/store` coming-soon stub carries `robots:{index:false}` and is absent
+from the sitemap — thin pages drag the whole domain. Re-add it when it ships.
 
 Built with **Next.js (App Router) + React + TypeScript + Tailwind v4** and
 react-leaflet. (Ported from the original single-file static site.)
@@ -47,7 +46,6 @@ npm install
 npm run dev        # http://localhost:3000
 npm run build      # production build
 npm test           # rating-logic + ERDDAP-client self-checks
-python test_cmems_currents.py  # currents rasterizer self-check (no CMEMS creds needed)
 ```
 
 ## Structure
@@ -60,8 +58,7 @@ python test_cmems_currents.py  # currents rasterizer self-check (no CMEMS creds 
     tides) from Open-Meteo hourly data; card water temp comes from the latest
     NOAA ACSPO scan via `sst-point?box=1` (Open-Meteo fallback)
   - `/live/*` — SST (12-day daily-scan gallery), chlorophyll (daily-scan
-    gallery), currents (12-day vector-arrow gallery), altimetry, salinity,
-    Nepean cam
+    gallery), satellite imagery, Nepean cam
   - `/geo/*` — depth/bathymetry
   - `/fish` — species guide (OVERWORLD sprite cards). Currently behind a WIP
     gate: `FISH_WIP` in `lib/nav.ts` is the single switch — it greys the nav and
@@ -111,18 +108,11 @@ python test_cmems_currents.py  # currents rasterizer self-check (no CMEMS creds 
 ## Data sources
 
 Open-Meteo (marine + weather), NOAA ACSPO L3S 2 km SST + thermal fronts via NOAA
-CoastWatch ERDDAP, Copernicus Marine global ocean forecast surface currents
-(0.083°, `uo`/`vo`) via the `copernicusmarine` Python client, NASA GIBS VIIRS
+CoastWatch ERDDAP, NASA GIBS VIIRS
 chlorophyll (NOAA-20, NOAA-21, Suomi NPP), DEECA CoastKit bathymetry/contours,
 Esri basemaps (Ocean Base + label reference) + AWS Terrarium bathymetry (dive-sites pixel map).
 All free/public; a planning aid, not for navigation or safety-of-life use.
 
-Currents needs a free Copernicus Marine account (register at
-data.marine.copernicus.eu) with `COPERNICUSMARINE_SERVICE_USERNAME` /
-`COPERNICUSMARINE_SERVICE_PASSWORD` set as Vercel env vars — see
-`api/cmems-currents.py`, a Python serverless function (requires the Python
-runtime; deps in the root `requirements.txt`) since Copernicus retired
-OPeNDAP/ERDDAP/WMS in 2024 and only ships a Python client.
 
 ## Known quirks
 
