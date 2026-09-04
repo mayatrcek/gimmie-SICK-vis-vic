@@ -23,26 +23,17 @@ const MODELS: Record<string, TideModel> = {
 // Wilsons Prom, Gippsland, the Mornington back beaches and the Phillip Island
 // surf coast, none of which have a public gauge anywhere near.
 const BY_STATION: Record<string, string[]> = {
-  // open coast from Cape Otway east to the Heads, plus the entrance itself:
-  // at the Heads the tide is still the ocean's, and only turns into the bay's
-  // once it's through the constriction
+  // open coast from Cape Otway east to the Heads
   lorne: [
     "bells", "winki", "janjuc", "torquay", "roadknight", "anglesea", "lorne", "apollo",
     "13th", "barwon", "oceangrove", "lonsdale", "princetown", "portcampbell",
-    "lonsdalewall", "queenscliffpier", "popeseye",
   ],
   // open coast west of Cape Otway, where the range drops to about a metre
   portland: ["portland", "portfairy", "warrnambool"],
-  // Inside Port Phillip. The Heads throttle the flow hard enough that the whole
-  // basin behind them turns together, hours after the ocean outside: South
-  // Channel Fort, only 12 km in, peaks within half an hour of Williamstown, not
-  // with the open coast. So everything past the entrance runs on this gauge.
-  // (Its range is the northern bay's; sites down the southern end swing wider,
-  // which the graph's own 0 m datum hides but the printed heights understate.)
+  // the top and east of Port Phillip, where the gauge sits: our prediction lands
+  // within 5 min of published tide times here, so these need no correction
   williamstown: [
-    "fort", "portseapier", "portseahole", "sorrentopier", "chinamans",
-    "blairgowrie", "ryepier", "stleonards", "portarlington", "morningtonpier",
-    "ricketts", "cerberus", "williamstown",
+    "stleonards", "portarlington", "morningtonpier", "ricketts", "cerberus", "williamstown",
   ],
   // Western Port, where the embayment amplifies the tide to nearly 3 m
   "stony-point": [
@@ -51,12 +42,49 @@ const BY_STATION: Record<string, string[]> = {
   ],
 };
 
+// Port Phillip is a tidal wave crawling in through the Heads and dying as it
+// goes: high water is ~20 min behind the open coast at Point Lonsdale, an hour
+// at Portsea, two and a half at Rye, three and a half up in the South Channel,
+// and the range falls away with it. No gauge inside the bay is published except
+// Williamstown, so the entrance and the southern shore ride the Lorne gauge —
+// which carries the ocean's shape, and fits South Channel to 6 min once shifted
+// — with the offset and range each site actually has.
+//
+// The numbers are the classic secondary-port correction: minutes behind Lorne,
+// and range as a fraction of Lorne's. They come from comparing published tide
+// predictions site by site against this model over 4-10 Sep 2026, so treat them
+// as approximations from the gauges, not measurements. Sites without their own
+// published times take their nearest neighbour's (Portsea Hole ← Portsea Pier,
+// Chinaman's Hat ← South Channel Fort, Popes Eye ← Queenscliff).
+type Secondary = { station: string; lagMin: number; scale: number };
+const SECONDARY: Record<string, Secondary> = {
+  lonsdalewall: { station: "lorne", lagMin: 20, scale: 0.7 },
+  queenscliffpier: { station: "lorne", lagMin: 56, scale: 0.43 },
+  popeseye: { station: "lorne", lagMin: 56, scale: 0.43 },
+  portseapier: { station: "lorne", lagMin: 97, scale: 0.7 },
+  portseahole: { station: "lorne", lagMin: 97, scale: 0.7 },
+  sorrentopier: { station: "lorne", lagMin: 141, scale: 0.7 },
+  blairgowrie: { station: "lorne", lagMin: 166, scale: 0.36 },
+  ryepier: { station: "lorne", lagMin: 186, scale: 0.36 },
+  fort: { station: "lorne", lagMin: 210, scale: 0.7 },
+  chinamans: { station: "lorne", lagMin: 210, scale: 0.7 },
+};
+
 const STATION_OF: Record<string, string> = {};
 for (const [station, ids] of Object.entries(BY_STATION)) for (const id of ids) STATION_OF[id] = station;
 
 export function stationFor(spotId: string): TideModel | null {
+  const sec = SECONDARY[spotId];
+  if (sec) return MODELS[sec.station];
   const key = STATION_OF[spotId];
   return key ? MODELS[key] : null;
+}
+
+// What a site's tide row is named after: its own gauge, or the place the
+// correction was worked out for.
+export function refFor(spotId: string): string | null {
+  const m = stationFor(spotId);
+  return m ? m.station : null;
 }
 
 // Open-Meteo's global tide model runs early everywhere on this coast. Regressing
@@ -103,14 +131,21 @@ export function melbourneMs(local: string): number {
 }
 
 // The tide series for one site, aligned to Open-Meteo's hourly timestamps:
-// harmonic prediction where a gauge stands in for the site, the delay-corrected
-// model everywhere else. `ref` names the source for the table heading.
+// harmonic prediction where a gauge stands in for the site (shifted and damped
+// if it's a secondary port), the delay-corrected model everywhere else. `ref`
+// names the source for the table heading.
 export function tideSeries(
   spotId: string,
   mtime: string[],
   modelled: (number | null)[],
 ): { tide: number[]; ref: string } {
   const model = stationFor(spotId);
-  if (model) return { tide: mtime.map((t) => predict(model, melbourneMs(t))), ref: model.station };
-  return { tide: delayed(modelled), ref: "modelled" };
+  if (!model) return { tide: delayed(modelled), ref: "modelled" };
+  const sec = SECONDARY[spotId];
+  const lag = (sec?.lagMin ?? 0) * 60000;
+  const scale = sec?.scale ?? 1;
+  // scale about the gauge's mean level: the tide is damped on the way in, the
+  // level it's damped towards isn't
+  const tide = mtime.map((t) => model.z0 + scale * (predict(model, melbourneMs(t) - lag) - model.z0));
+  return { tide, ref: model.station };
 }

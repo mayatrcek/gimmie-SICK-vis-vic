@@ -7,7 +7,7 @@
 import assert from "node:assert";
 import { predict } from "./harmonics.ts";
 import type { TideModel } from "./harmonics.ts";
-import { melbourneMs, stationFor } from "./series.ts";
+import { melbourneMs, stationFor, tideSeries } from "./series.ts";
 
 const REF: Record<string, [string, number][]> = {
   lorne: [
@@ -41,12 +41,30 @@ for (const [spot, points] of Object.entries(REF)) {
   assert.ok(worst < 0.1, `${model.station}: worst error ${worst.toFixed(3)} m vs BOM`);
 }
 
-// Inside Port Phillip the bay turns hours after the ocean outside, so a site
-// past the Heads must not end up on the open-coast gauge (South Channel Fort
-// read 3.5 h early when it did).
-assert.equal(stationFor("fort")!.station, "Williamstown");
-assert.equal(stationFor("ryepier")!.station, "Williamstown");
+// Port Phillip is a wave crawling in through the Heads: without the secondary
+// -port offsets, South Channel Fort read 3.5 h early. Published predictions for
+// 4 Sep 2026 put its highs at 07:49 and 19:35 and its low at 13:23.
+{
+  const times: string[] = [];
+  for (let m = 0; m < 24 * 60; m += 5)
+    times.push(`2026-09-04T${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`);
+  const { tide } = tideSeries("fort", times, []);
+  const turns: string[] = [];
+  for (let i = 1; i < tide.length - 1; i++) {
+    const [a, b, c] = [tide[i - 1], tide[i], tide[i + 1]];
+    if ((b > a && b >= c) || (b < a && b <= c)) turns.push(times[i].slice(11));
+  }
+  const mins = (s: string) => +s.slice(0, 2) * 60 + +s.slice(3, 5);
+  for (const want of ["07:49", "13:23", "19:35"]) {
+    const off = Math.min(...turns.map((t) => Math.abs(mins(t) - mins(want))));
+    assert.ok(off <= 20, `South Channel Fort: nearest turn is ${off} min from ${want}`);
+  }
+  // damped on the way in: about 1.4 m at the fort, not the open coast's 2 m
+  const range = Math.max(...tide) - Math.min(...tide);
+  assert.ok(range > 1.2 && range < 1.7, `fort range ${range.toFixed(2)} m`);
+}
 assert.equal(stationFor("lonsdale")!.station, "Lorne"); // Point Lonsdale, outside
+assert.equal(stationFor("williamstown")!.station, "Williamstown");
 
 // Sites with no gauge nearby fall back to the corrected model.
 assert.equal(stationFor("normanbay"), null); // Wilsons Prom
