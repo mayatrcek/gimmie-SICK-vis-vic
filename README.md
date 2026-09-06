@@ -56,7 +56,7 @@ npm test           # rating-logic, tide-prediction + ERDDAP-client self-checks
     (runoff, standing dirty-water and tidal warnings) plus a 3-hourly week table
     (0–10 score, wave height/direction/period, energy, wind, runoff, high/low
     tides) from Open-Meteo hourly data; card water temp comes from the latest
-    NOAA ACSPO scan via `sst-point?box=1` (Open-Meteo fallback)
+    *unflagged* NOAA ACSPO scan via `sst-point?box=1` (Open-Meteo fallback)
   - `/live/*` — SST (12-day daily-scan gallery), chlorophyll (daily-scan
     gallery), satellite imagery, Nepean cam
   - `/geo/*` — depth/bathymetry
@@ -66,7 +66,9 @@ npm test           # rating-logic, tide-prediction + ERDDAP-client self-checks
     sitemap. Set it to `false` to put the guide back.
 - `app/api/*` — server route handlers proxying the gov feeds that used to be
   called via JSONP: ERDDAP `timestamp`, `sst-stretch` (regional percentiles that
-  drive the SST colour stretch), `sst-fronts` (detected thermal-front cells for
+  drive the SST colour stretch), `sst-times` (per-day measurement time and the
+  bad-scan flags, from one CSV carrying both `sea_surface_temperature` and
+  `sst_dtime`), `sst-fronts` (detected thermal-front cells for
   the SST map overlay), `sst-point` (click-probe temperature readout),
   Nominatim `geocode`,
   and `depth-tile` (Terrarium elevation PNGs for the dive-map water shading).
@@ -114,6 +116,16 @@ npm test           # rating-logic, tide-prediction + ERDDAP-client self-checks
 - `tools/prerender-pixelmap.js` — bakes the dive-sites OVERWORLD basemap to
   `assets/geo/pixelmap.png` (instant under-layer; re-run when the palette changes).
 - `sources/`, `docs/` — reference material and planning notes; not part of the build.
+
+**Bad SST scans are filtered, not trusted.** ACSPO L3S occasionally publishes a
+day of contaminated retrievals — 2026-09-02 came through ~3 °C warm across the
+whole region with normal (39 %) coverage, rendering as a saturated rainbow.
+`sstDaysFromCsv` (`lib/api/erddap.ts`) does one QC pass over the 12-day window:
+a day whose regional median is more than 1.5 °C off the median of the daily
+medians, or which rests on under 50 retrievals, is flagged. Flagged days still
+appear in the gallery (desaturated, stickered) so the gap is explained, but they
+never anchor a "current" reading — `sst-point` and `sst-stretch` resolve
+`latestGoodDay()` instead of ERDDAP's `(last)`.
 
 ## Data sources
 

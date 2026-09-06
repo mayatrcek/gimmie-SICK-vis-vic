@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { erddapFetch, meanFromCsv, sstPointURL } from "@/lib/api/erddap";
+import { erddapFetch, latestGoodDay, meanFromCsv, sstPointURL } from "@/lib/api/erddap";
 
 // Server proxy for the SST map's click probe: nearest-cell temperature at
 // lat/lon (optionally for a past ?day=). Coordinates are rounded to 0.01°
@@ -20,7 +20,10 @@ export async function GET(req: Request) {
     return NextResponse.json({ sst: null });
   }
   try {
-    const r = await erddapFetch(sstPointURL(lat, lon, day, box));
+    // No explicit day = "current", which must not land on a flagged scan;
+    // undefined (QC fetch failed) falls back to ERDDAP's (last).
+    const d = day ?? (await latestGoodDay());
+    const r = await erddapFetch(sstPointURL(lat, lon, d, box));
     return NextResponse.json({ sst: meanFromCsv(await r.text()) });
   } catch {
     return NextResponse.json({ sst: null });

@@ -15,7 +15,7 @@ const SstMap = dynamic(() => import("./geo/SstMap"), {
 type Stretch = { min?: number; max?: number };
 
 // Skeleton shimmer on the thumb until its ERDDAP image arrives.
-function Thumb({ day, stretch }: { day: string; stretch: Stretch }) {
+function Thumb({ day, stretch, flagged }: { day: string; stretch: Stretch; flagged?: boolean }) {
   const [loaded, setLoaded] = useState(false);
   const ref = useRef<HTMLImageElement>(null);
   // cached images can fire load before hydration — catch them here
@@ -34,6 +34,7 @@ function Thumb({ day, stretch }: { day: string; stretch: Stretch }) {
       />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img className="compmask thumbland" loading="lazy" src={THUMB_LAND} alt="" aria-hidden />
+      {flagged && <span className="chlbadge chlflag">Flagged</span>}
     </div>
   );
 }
@@ -43,7 +44,7 @@ const PAGE_SIZE = 6;
 export default function SstGallery() {
   const [selected, setSelected] = useState<string | null>(null);
   const [page, setPage] = useState(0);
-  // ponytail: latest day's colour stretch reused for all 12 days; per-day
+  // ponytail: latest good day's colour stretch reused for all 12 days; per-day
   // stretches via /api/sst-stretch?day= if the drift ever clips older days
   const [stretch, setStretch] = useState<Stretch | null>(null);
   // Latest available grid time — anchors the 12-day window so the newest
@@ -51,6 +52,9 @@ export default function SstGallery() {
   const [latest, setLatest] = useState<string | undefined>(undefined);
   // Median measurement time per day ("1:14 am"), keyed by day; {} until loaded
   const [times, setTimes] = useState<Record<string, string>>({});
+  // Days whose scan failed the out-of-family check server-side (see
+  // sstDaysFromCsv) — shown, but marked, so a bogus scan can't read as data
+  const [bad, setBad] = useState<string[]>([]);
   // if the timestamp query fails: 2 days behind now, past the ~1-day publication lag
   const fallback = () => new Date(Date.now() - 2 * 864e5).toISOString();
 
@@ -62,7 +66,10 @@ export default function SstGallery() {
 
     fetch("/api/sst-times")
       .then((r) => r.json())
-      .then((j) => setTimes(j.times ?? {}))
+      .then((j) => {
+        setTimes(j.times ?? {});
+        setBad(j.bad ?? []);
+      })
       .catch(() => {});
 
     fetch(`/api/timestamp?ds=${SST_DS}`)
@@ -127,6 +134,7 @@ export default function SstGallery() {
         )}
         <span className="chldate">
           {fmtDataDate(selected)} &middot; NOAA ACSPO{times[selected] ? ` · ${times[selected]}` : ""}
+          {bad.includes(selected) ? " · flagged scan" : ""}
         </span>
       </div>
     );
@@ -142,15 +150,18 @@ export default function SstGallery() {
               {days.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map((day) => (
                 <article
                   key={day}
-                  className="fish2 chlcard"
+                  className={`fish2 chlcard${bad.includes(day) ? " chlbad" : ""}`}
                   role="button"
                   tabIndex={0}
                   onClick={() => setSelected(day)}
                   onKeyDown={(e) => e.key === "Enter" && setSelected(day)}
                 >
-                  <Thumb day={day} stretch={stretch} />
+                  <Thumb day={day} stretch={stretch} flagged={bad.includes(day)} />
                   <h3 className="f2name">{fmtDataDate(day)}</h3>
-                  <p className="f2sci">NOAA ACSPO &middot; 2 km{times[day] ? ` · ${times[day]}` : ""}</p>
+                  <p className="f2sci">
+                    NOAA ACSPO &middot; 2 km{times[day] ? ` · ${times[day]}` : ""}
+                    {bad.includes(day) ? " · flagged scan" : ""}
+                  </p>
                 </article>
               ))}
             </div>

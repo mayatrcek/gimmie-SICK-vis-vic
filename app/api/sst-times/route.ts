@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server";
-import { erddapFetch, medianTimesFromCsv, sstDtimeURL } from "@/lib/api/erddap";
+import { erddapFetch, sstDaysFromCsv, sstDaysURL } from "@/lib/api/erddap";
 
-// Median measurement time per day for the last 12 SST grid days (Melbourne
-// local strings keyed by day). erddapFetch caches the ~1 MB CSV for an hour.
+// Per-day metadata for the last 12 SST grid days: median measurement time
+// (Melbourne local, keyed by day) and `bad`, the days whose scan failed the
+// out-of-family check. erddapFetch caches the ~1.3 MB CSV for an hour.
 export async function GET() {
   try {
-    const r = await erddapFetch(sstDtimeURL());
+    const r = await erddapFetch(sstDaysURL());
     if (!r.ok) throw new Error(`${r.status}`);
-    return NextResponse.json({ times: medianTimesFromCsv(await r.text()) });
+    const { times, bad } = sstDaysFromCsv(await r.text());
+    return NextResponse.json({ times, bad });
   } catch {
-    return NextResponse.json({ times: {} });
+    return NextResponse.json({ times: {}, bad: [] });
   }
 }

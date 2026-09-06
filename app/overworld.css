@@ -589,6 +589,10 @@
   @media(max-width:700px){.chlgrid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}}
   .chlcard{cursor:pointer}
   .chlcard .f2sci{font-family:var(--font-hud);font-style:normal;font-size:15px}
+  /* out-of-family scan (see sstDaysFromCsv): still openable, but desaturated
+     and stickered so bogus colours can't read as data */
+  .chlbad .chlthumb img:not(.thumbland){filter:grayscale(.55) contrast(.85)}
+  .chlflag{position:absolute;top:7px;left:7px;z-index:1;background:var(--warm);transform:rotate(-2deg)}
   /* satellite legend — OVERWORLD sticker badges (VT323 label, accent fill,
      2px ink border, tap shadow, ±2° rotation) + body-font descriptor */
   .chllegend{display:flex;flex-wrap:wrap;gap:12px 26px;padding:4px 16px 12px;
