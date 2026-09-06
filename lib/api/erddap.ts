@@ -76,10 +76,10 @@ export function meanFromCsv(csv: string): number | null {
 }
 
 // Same region as sstURL, strided to keep the CSV small. Feeds the colour
-// stretch.
-export function sstStretchURL(stride = 10): string {
+// stretch; no day = latest grid time.
+export function sstStretchURL(stride = 10, day?: string): string {
   return (
-    SST_BASE + SST_DS + `.csv?sea_surface_temperature%5B(last)%5D` + region(stride)
+    SST_BASE + SST_DS + `.csv?sea_surface_temperature%5B${sstTime(day)}%5D` + region(stride)
   );
 }
 
@@ -126,33 +126,78 @@ export function sstPointURL(lat: number, lon: number, day?: string, r = 0): stri
   );
 }
 
-// Per-cell measurement offsets for the last 12 grid days in one strided CSV
-// (~1 MB, cached hourly). (last-n) arithmetic is in axis units — seconds.
-export function sstDtimeURL(): string {
-  return SST_BASE + SST_DS + `.csv?sst_dtime%5B(last-950400):(last)%5D` + region(10);
+// Per-cell temperature and measurement offset for the last 12 grid days in one
+// strided CSV (~1.3 MB, cached hourly). Two variables in a single griddap
+// request — ERDDAP returns the columns in the order asked. (last-n) arithmetic
+// is in axis units — seconds.
+export function sstDaysURL(): string {
+  const sub = `%5B(last-950400):(last)%5D` + region(10);
+  return SST_BASE + SST_DS + `.csv?sea_surface_temperature${sub},sst_dtime${sub}`;
 }
 
-// Median measurement time per day from the sst_dtime CSV, as Melbourne local
-// strings keyed by day ("2026-07-17" → "1:14 am"). The L3S blend favours the
-// overnight JPSS passes here, so one median per day reads honestly; days
-// whose cells are all NaN (full cloud) are simply absent.
-export function medianTimesFromCsv(csv: string): Record<string, string> {
-  const byDay: Record<string, number[]> = {};
+// A day's regional median SST must sit within this much of the 12-day window
+// median, on at least this many retrievals, or the scan is flagged. Sep 2 2026
+// came through at 16.7 degC against a 13.7-14.9 band on every other day in the
+// window (warm-biased L3S composite: contaminated retrievals, not a cloud gap
+// — its coverage was a normal 39%). Real day-to-day drift here is under 1 degC.
+const BAD_DEV = 1.5;
+const MIN_CELLS = 50;
+
+const median = (v: number[]) => v.sort((a, b) => a - b)[Math.floor(v.length / 2)];
+
+// Median measurement time per day from the sst_dtime column, as Melbourne local
+// strings keyed by day ("2026-07-17" -> "1:14 am"), plus a QC pass over the
+// window: `bad` lists days whose SST is out of family (see BAD_DEV), and
+// `latestGood` is the newest day that passed — the anchor for any "current"
+// read, so a flagged scan never becomes a dive-card temperature. The L3S blend
+// favours the overnight JPSS passes here, so one median time per day reads
+// honestly; days whose cells are all NaN (full cloud) are simply absent.
+export function sstDaysFromCsv(csv: string): {
+  times: Record<string, string>;
+  bad: string[];
+  latestGood?: string;
+} {
+  const sst: Record<string, number[]> = {};
+  const offs: Record<string, number[]> = {};
   for (const line of csv.trim().split("\n").slice(2)) {
-    const [t, , , v] = line.split(",");
-    const dt = Number(v);
-    if (Number.isFinite(dt)) (byDay[t.slice(0, 10)] ??= []).push(dt);
+    const [t, , , v, dt] = line.split(",");
+    const day = t.slice(0, 10);
+    if (Number.isFinite(Number(v))) (sst[day] ??= []).push(Number(v));
+    if (Number.isFinite(Number(dt))) (offs[day] ??= []).push(Number(dt));
   }
-  return Object.fromEntries(
-    Object.entries(byDay).map(([day, vals]) => {
-      vals.sort((a, b) => a - b);
-      const ms = Date.parse(`${day}T12:00:00Z`) + vals[Math.floor(vals.length / 2)] * 1000;
+
+  const times = Object.fromEntries(
+    Object.entries(offs).map(([day, vals]) => {
+      const ms = Date.parse(`${day}T12:00:00Z`) + median(vals) * 1000;
       const s = new Date(ms)
         .toLocaleTimeString("en-AU", { timeZone: "Australia/Melbourne", hour: "numeric", minute: "2-digit" })
         .replace(/\s/g, " "); // some ICUs put narrow NBSP before am/pm
       return [day, s];
     }),
   );
+
+  // Median of the daily medians: a robust centre that half the window would
+  // have to be bad to shift.
+  const meds = Object.fromEntries(Object.entries(sst).map(([day, vals]) => [day, median(vals)]));
+  const mid = median(Object.values(meds));
+  const days = Object.keys(meds).sort();
+  const bad = days.filter((d) => sst[d].length < MIN_CELLS || Math.abs(meds[d] - mid) > BAD_DEV);
+  const latestGood = days.reverse().find((d) => !bad.includes(d));
+  return { times, bad, latestGood };
+}
+
+// Latest grid day that passed the QC filter above, for the server routes that
+// otherwise read (last). Shares erddapFetch's hourly cache entry with
+// /api/sst-times (same URL), so it costs nothing upstream. undefined on any
+// failure — callers fall back to (last), i.e. the old behaviour.
+export async function latestGoodDay(): Promise<string | undefined> {
+  try {
+    const r = await erddapFetch(sstDaysURL());
+    if (!r.ok) return undefined;
+    return sstDaysFromCsv(await r.text()).latestGood;
+  } catch {
+    return undefined;
+  }
 }
 
 // Detected thermal-front cells at stride 2 (~4 km): full res over this

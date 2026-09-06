@@ -727,6 +727,9 @@
 
   /* /forecast data sources: 16 short "what: where from" lines, so they flow into
      as many columns as fit rather than stacking into a scroll. */
+  /* the rating legend ends the forecast proper, so the panel stands well clear
+     of it rather than reading as one more row under the cards */
+  #sources{margin-top:40px}
   .srcs{columns:3 240px;column-gap:32px;margin:0}
   .srcs>div{break-inside:avoid;display:flex;gap:6px;line-height:1.5;margin-bottom:3px}
   .srcs dt{color:var(--muted);white-space:nowrap}
