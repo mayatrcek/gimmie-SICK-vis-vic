@@ -124,8 +124,9 @@ chlorophyll (NOAA-20, NOAA-21, Suomi NPP), Sentinel-2 via CDSE, DEECA CoastKit
 bathymetry/contours, Esri basemaps (Ocean Base + label reference) + AWS Terrarium
 bathymetry (dive-sites pixel map).
 All free/public; a planning aid, not for navigation or safety-of-life use.
-The same list, written for readers, is the panel at the bottom of `/forecast`
-(`components/dive/DataSources.tsx`) — keep the two in step.
+The reader-facing version is the one-line-each list at the bottom of `/forecast`
+(`components/dive/DataSources.tsx`) — keep the two in step, and keep that list
+terse: what it drives, who supplies it, nothing else.
 
 
 ## Known quirks

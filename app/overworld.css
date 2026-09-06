@@ -725,6 +725,15 @@
   .sitedex section{break-inside:avoid;margin-bottom:14px}
   .sitedex h3{margin-top:0}
 
+  /* /forecast data sources: 16 short "what: where from" lines, so they flow into
+     as many columns as fit rather than stacking into a scroll. */
+  .srcs{columns:3 240px;column-gap:32px;margin:0}
+  .srcs>div{break-inside:avoid;display:flex;gap:6px;line-height:1.5;margin-bottom:3px}
+  .srcs dt{color:var(--muted);white-space:nowrap}
+  .srcs dd{margin:0;color:var(--ink)}
+  .srcs-rating{margin:0 0 14px;line-height:1.55}
+  .srcs-note{margin:14px 0 0;color:var(--muted);font-size:13px}
+
   /* ===== Form fields (contact page) — same ink-border/block-shadow language
      as .picker select above, ported from ui_design/overworld/css/system.css ===== */
   .field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
