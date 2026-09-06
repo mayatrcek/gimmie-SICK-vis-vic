@@ -1,23 +1,21 @@
 // Where every number on this page comes from, one line each. Server-rendered on
 // purpose: the rest of /forecast is client-only, so this is what a crawler reads.
 // Keep it honest and keep it short: if a feed changes, change it here too.
+// Only what this page reads. Chlorophyll, satellite imagery, the wave buoy and
+// CoastKit contours belong to /live/* and /geo/depth, and are listed there.
 const SOURCES: [string, string, string?][] = [
   ["Swell height", "Open-Meteo Marine", "https://open-meteo.com/en/docs/marine-weather-api"],
   ["Swell period", "Open-Meteo Marine", "https://open-meteo.com/en/docs/marine-weather-api"],
   ["Swell direction", "Open-Meteo Marine", "https://open-meteo.com/en/docs/marine-weather-api"],
-  ["Water temperature", "Open-Meteo Marine", "https://open-meteo.com/en/docs/marine-weather-api"],
   ["Wind speed", "Open-Meteo Forecast", "https://open-meteo.com/en/docs"],
   ["Wind direction", "Open-Meteo Forecast", "https://open-meteo.com/en/docs"],
   ["Rainfall", "Open-Meteo Forecast", "https://open-meteo.com/en/docs"],
+  ["Water temperature", "NOAA ACSPO", "https://coastwatch.noaa.gov/erddap/"],
   ["Tides", "Bureau of Meteorology sea level gauges", "http://www.bom.gov.au/oceanography/projects/abslmp/data/"],
   ["Tides, Port Phillip", "CSIRO Williamstown gauge", "https://data.csiro.au/collection/csiro:55471"],
   ["Tides, sites with no gauge", "Open-Meteo", "https://open-meteo.com/en/docs/marine-weather-api"],
-  ["Sea temperature", "NOAA ACSPO", "https://coastwatch.noaa.gov/erddap/"],
-  ["Chlorophyll", "NASA GIBS", "https://nasa-gibs.github.io/gibs-api-docs/"],
-  ["Satellite imagery", "Copernicus Sentinel-2", "https://dataspace.copernicus.eu/"],
-  ["Wave buoy", "OMC International", "https://portweather-public.omcinternational.com/"],
-  ["Depth and contours", "DEECA CoastKit", "https://www.marineandcoasts.vic.gov.au/"],
-  ["Basemaps", "Esri", "https://www.esri.com/"],
+  ["Map", "Esri", "https://www.esri.com/"],
+  ["Seabed shading", "Mapzen ETOPO1", "https://registry.opendata.aws/terrain-tiles/"],
 ];
 
 export default function DataSources() {
