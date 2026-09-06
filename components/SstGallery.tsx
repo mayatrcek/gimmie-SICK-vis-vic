@@ -34,7 +34,11 @@ function Thumb({ day, stretch, flagged }: { day: string; stretch: Stretch; flagg
       />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img className="compmask thumbland" loading="lazy" src={THUMB_LAND} alt="" aria-hidden />
-      {flagged && <span className="chlbadge chlflag">Flagged</span>}
+      {flagged && (
+        <span className="chlbadge chlflag" title="Flagged scan" aria-label="Flagged scan">
+          !
+        </span>
+      )}
     </div>
   );
 }
