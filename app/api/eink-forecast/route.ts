@@ -1,16 +1,18 @@
 import { NextResponse } from "next/server";
 import { fetchSite } from "@/lib/api/openMeteo";
 import { SPOTS } from "@/lib/data/regions";
-import { KN } from "@/lib/data/thresholds";
 import { compass, score10 } from "@/lib/logic/rating";
 
-// 7 days of AM/PM readings for the e-ink display, 6 short lines a day:
-//   ["AM", "R7 0.8m", "15 SW", "PM", "R5 1.1m", "17 SW"]
-// Same data and score as the site's forecast table (score10, 1-10).
+// 7 days of 10am/1pm/4pm slots for Diamond Bay, for the ESP32 e-ink display:
+//   {"time":"10 AM","rating":7,"heightDir":"2.1m SW","energy":"1234 kJ","windDir":"15 kmh SW"}
+// Same numbers as the site's forecast table (score10, swell, energy, wind km/h).
 
 const SPOT = SPOTS.diamond;
-const AM_HOUR = 10;
-const PM_HOUR = 16;
+const SLOTS: [number, string][] = [
+  [10, "10 AM"],
+  [13, "1 PM"],
+  [16, "4 PM"],
+];
 
 export async function GET() {
   try {
@@ -21,30 +23,32 @@ export async function GET() {
     const wIdx: Record<string, number> = {};
     hourly.wtime.forEach((t, i) => (wIdx[t] = i));
 
-    // ponytail: exact hour lookup — the API returns every hour, no nearest-slot search needed
-    const slot = (date: string, hour: number, label: string) => {
+    const slot = (date: string, hour: number, time: string) => {
       const t = `${date}T${String(hour).padStart(2, "0")}:00`;
       const i = hourly.mtime.indexOf(t);
       const wi = wIdx[t];
-      if (i < 0 || wi == null) return [label, "-", "-"];
-      const h = hourly.swellH[i] ?? null;
-      const wind = hourly.wind[wi] ?? null;
-      const wdir = hourly.wdir[wi] ?? null;
-      const sc = score10(SPOT, h, wind, wdir, runoff[date] ?? null);
-      return [
-        label,
-        `${sc != null ? `R${sc}` : ""} ${h != null ? `${h.toFixed(1)}m` : ""}`.trim() || "-",
-        wind != null ? `${Math.round(wind / KN)} ${compass(wdir)}`.trim() : "-",
-      ];
+      const h = i < 0 ? null : (hourly.swellH[i] ?? null);
+      const p = i < 0 ? null : (hourly.swellP[i] ?? null);
+      const sd = i < 0 ? null : (hourly.swellD[i] ?? null);
+      const wind = wi == null ? null : (hourly.wind[wi] ?? null);
+      const wdir = wi == null ? null : (hourly.wdir[wi] ?? null);
+      return {
+        time,
+        rating: score10(SPOT, h, wind, wdir, runoff[date] ?? null),
+        heightDir: h == null ? "-" : `${h.toFixed(1)}m ${compass(sd)}`.trim(),
+        // same pseudo-kJ as ForecastTable's Energy row
+        energy: h == null || p == null ? "-" : `${Math.round(28 * h * h * p)} kJ`,
+        windDir: wind == null ? "-" : `${Math.round(wind)} kmh ${compass(wdir)}`.trim(),
+      };
     };
 
-    const week = rows.map((r) => ({
+    const days = rows.map((r) => ({
       date: r.date,
-      lines: [...slot(r.date, AM_HOUR, "AM"), ...slot(r.date, PM_HOUR, "PM")],
+      slots: SLOTS.map(([hour, time]) => slot(r.date, hour, time)),
     }));
 
     return NextResponse.json(
-      { week },
+      { days },
       { headers: { "Cache-Control": "s-maxage=1800, stale-while-revalidate=3600" } },
     );
   } catch (err) {
