@@ -4,7 +4,7 @@ import { SPOTS } from "@/lib/data/regions";
 import { compass, score10 } from "@/lib/logic/rating";
 
 // 7 days of 10am/1pm/4pm slots for Diamond Bay, for the ESP32 e-ink display:
-//   {"time":"10 AM","rating":7,"heightDir":"2.1m SW","energy":"1234 kJ","windDir":"15 kmh SW"}
+//   {"time":"10 AM","rating":7,"height":"2.1m","heightDirection":"SW","energy":"1234 kJ","wind":"15 kmh","windDirection":"SW"}
 // Same numbers as the site's forecast table (score10, swell, energy, wind km/h).
 
 const SPOT = SPOTS.diamond;
@@ -35,10 +35,12 @@ export async function GET() {
       return {
         time,
         rating: score10(SPOT, h, wind, wdir, runoff[date] ?? null),
-        heightDir: h == null ? "-" : `${h.toFixed(1)}m ${compass(sd)}`.trim(),
+        height: h == null ? "-" : `${h.toFixed(1)}m`,
+        heightDirection: compass(sd) || "-",
         // same pseudo-kJ as ForecastTable's Energy row
         energy: h == null || p == null ? "-" : `${Math.round(28 * h * h * p)} kJ`,
-        windDir: wind == null ? "-" : `${Math.round(wind)} kmh ${compass(wdir)}`.trim(),
+        wind: wind == null ? "-" : `${Math.round(wind)} kmh`,
+        windDirection: compass(wdir) || "-",
       };
     };
 
