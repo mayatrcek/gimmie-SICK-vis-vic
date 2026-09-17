@@ -72,6 +72,8 @@ npm test           # rating-logic, tide-prediction + ERDDAP-client self-checks
   the SST map overlay), `sst-point` (click-probe temperature readout),
   Nominatim `geocode`,
   and `depth-tile` (Terrarium elevation PNGs for the dive-map water shading).
+  `eink-forecast` is the odd one out: 7 days of AM/PM lines (score, swell,
+  wind kt) for Diamond Bay, for the ESP32 e-ink display.
 - `components/` — UI + map/chart components. `MapRecall` persists each map's
   last-viewed center/zoom to localStorage (`gsv:mapview:<name>`); `DiveSites`
   persists this device's chosen spots and which card is open
