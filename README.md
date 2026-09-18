@@ -73,7 +73,8 @@ npm test           # rating-logic, tide-prediction + ERDDAP-client self-checks
   Nominatim `geocode`,
   and `depth-tile` (Terrarium elevation PNGs for the dive-map water shading).
   `eink-forecast` is the odd one out: 7 days of 10am/1pm/4pm slots (score,
-  swell, energy, wind) for Diamond Bay, for the ESP32 e-ink display.
+  swell, energy, wind) for the ESP32 e-ink display; `?spot=<id>` picks the
+  spot (the device stores its own, set in its WiFi portal), default `diamond`.
 - `components/` — UI + map/chart components. `MapRecall` persists each map's
   last-viewed center/zoom to localStorage (`gsv:mapview:<name>`); `DiveSites`
   persists this device's chosen spots and which card is open
