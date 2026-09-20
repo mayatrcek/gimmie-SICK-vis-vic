@@ -4,11 +4,13 @@ import assert from "node:assert";
 import type { Spot } from "../types.ts";
 import {
   compass,
+  energyKJ,
   dayRating,
   rainPenalty,
   runoffIndex,
   score10,
   scoreCol,
+  slotCells,
   swellCol,
   tideExtremes,
   visNotes,
@@ -172,5 +174,37 @@ assert.equal(off[0].date, "2026-07-16");
 assert.equal(dayRating([8, 8, 8, 6, 6]).label, "Amazing");
 assert.equal(dayRating([3, 3, 3, 8, 8]).label, "Marginal");
 assert.equal(dayRating([]).label, "Marginal");
+
+// slotCells: the strings the e-ink panel prints. Open-Meteo snaps bay points to
+// the nearest ocean cell, so sheltered spots must blank the swell the same way
+// the site's table does — otherwise Rye Pier shows Diamond Bay's 1.5m.
+const ocean = slotCells(spot(), { h: 1.5, p: 10.7, sd: 225, wind: 38.4, wdir: 0 });
+assert.deepEqual(ocean, {
+  height: "1.5m",
+  heightDirection: "SW",
+  energy: "674 kJ", // 28 * 1.5^2 * 10.7
+  wind: "38 kmh",
+  windDirection: "N",
+});
+
+const pier = slotCells(spot({ sheltered: true }), { h: 1.5, p: 10.7, sd: 225, wind: 38.4, wdir: 0 });
+assert.equal(pier.height, "-");
+assert.equal(pier.heightDirection, "-");
+assert.equal(pier.energy, "-");
+assert.equal(pier.wind, "38 kmh"); // wind is real everywhere
+assert.equal(pier.windDirection, "N");
+
+// missing values read as "-" rather than "NaNm" or "0 kJ"
+assert.deepEqual(slotCells(spot(), { h: null, p: null, sd: null, wind: null, wdir: null }), {
+  height: "-",
+  heightDirection: "-",
+  energy: "-",
+  wind: "-",
+  windDirection: "-",
+});
+assert.equal(slotCells(spot(), { h: 1.5, p: null, sd: 225, wind: 10, wdir: 0 }).energy, "-");
+
+assert.equal(energyKJ(1.5, 10.7), 674);
+assert.equal(energyKJ(null, 10.7), null);
 
 console.log("rating.test.ts: all assertions passed");

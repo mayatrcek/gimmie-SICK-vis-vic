@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { fetchSite } from "@/lib/api/openMeteo";
 import { SPOTS } from "@/lib/data/regions";
-import { compass, score10 } from "@/lib/logic/rating";
+import { score10, slotCells } from "@/lib/logic/rating";
 
 // 7 days of 10am/1pm/4pm slots for the ESP32 e-ink display:
 //   {"time":"10 AM","rating":7,"height":"2.1m","heightDirection":"SW","energy":"1234 kJ","wind":"15 kmh","windDirection":"SW"}
@@ -40,12 +40,9 @@ export async function GET(req: Request) {
       return {
         time,
         rating: score10(SPOT, h, wind, wdir, runoff[date] ?? null),
-        height: h == null ? "-" : `${h.toFixed(1)}m`,
-        heightDirection: compass(sd) || "-",
-        // same pseudo-kJ as ForecastTable's Energy row
-        energy: h == null || p == null ? "-" : `${Math.round(28 * h * h * p)} kJ`,
-        wind: wind == null ? "-" : `${Math.round(wind)} kmh`,
-        windDirection: compass(wdir) || "-",
+        // Same strings the site's table shows, blanked the same way on
+        // sheltered water — see slotCells().
+        ...slotCells(SPOT, { h, p, sd, wind, wdir }),
       };
     };
 
@@ -56,7 +53,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(
       { spot: SPOT.id, name: SPOT.name, days },
-      { headers: { "Cache-Control": "s-maxage=1800, stale-while-revalidate=3600" } },
+      { headers: { "Cache-Control": "s-maxage=600, stale-while-revalidate=3600" } },
     );
   } catch (err) {
     console.error(err);

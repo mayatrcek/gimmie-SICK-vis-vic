@@ -1,7 +1,7 @@
 "use client";
 
 import type { Hourly, Row, Spot } from "@/lib/types";
-import { compass, dname, score10, scoreCol, swellCol, tideExtremes, windCol, windRel } from "@/lib/logic/rating";
+import { compass, dname, energyKJ, score10, scoreCol, swellCol, tideExtremes, windCol, windRel } from "@/lib/logic/rating";
 import type { TideMark } from "@/lib/logic/rating";
 
 // 3-hourly slots matching the classic surf-forecast layout (1am–10pm).
@@ -207,10 +207,8 @@ export default function ForecastTable({ s, hourly, rows }: { s: Spot; hourly: Ho
           </tr>
           <tr>
             <th className="fclab">Energy <i>(kJ)</i></th>
-            {/* ponytail: h²·p·28 pseudo-kJ, scaled to read like surf-forecast's column */}
-            {slots.map((sl) =>
-              td(sl, s.sheltered || sl.h == null || sl.p == null ? "—" : Math.round(28 * sl.h * sl.h * sl.p)),
-            )}
+            {/* same formula the e-ink route serves — energyKJ() is the one copy */}
+            {slots.map((sl) => td(sl, s.sheltered ? "—" : (energyKJ(sl.h, sl.p) ?? "—")))}
           </tr>
           <tr>
             <th className="fclab">Wind <i>(km/h)</i></th>

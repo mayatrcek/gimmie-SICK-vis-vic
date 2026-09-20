@@ -75,6 +75,9 @@ npm test           # rating-logic, tide-prediction + ERDDAP-client self-checks
   `eink-forecast` is the odd one out: 7 days of 10am/1pm/4pm slots (score,
   swell, energy, wind) for the ESP32 e-ink display; `?spot=<id>` picks the
   spot (the device stores its own, set in its WiFi portal), default `diamond`.
+  Its slot strings come from `slotCells()` in `lib/logic/rating.ts`, the same
+  place the forecast table's Energy cell gets its number, so a sheltered spot
+  sends `-` for swell/energy exactly as the table prints an em dash there.
 - `components/` — UI + map/chart components. `MapRecall` persists each map's
   last-viewed center/zoom to localStorage (`gsv:mapview:<name>`); `DiveSites`
   persists this device's chosen spots and which card is open

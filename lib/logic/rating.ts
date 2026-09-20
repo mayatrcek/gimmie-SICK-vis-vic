@@ -85,6 +85,35 @@ export function score10(
   return Math.max(1, Math.min(10, Math.round(sc)));
 }
 
+// ponytail: h²·p·28 pseudo-kJ, scaled to read like surf-forecast's column.
+export function energyKJ(h: number | null, p: number | null): number | null {
+  if (h == null || p == null || isNaN(h) || isNaN(p)) return null;
+  return Math.round(28 * h * h * p);
+}
+
+// One slot's numbers as display strings, for surfaces that can't render JSX —
+// the e-ink panel's API. The swell fields are blank on sheltered water for the
+// same reason ForecastTable blanks them: Open-Meteo has no marine cell inside
+// the heads, so a bay spot is served the nearest ocean cell's swell (Rye Pier
+// and Diamond Bay come back identical). Wind is real everywhere, and so is the
+// score — score10() reads sheltered water off the wind alone.
+export function slotCells(
+  s: Spot,
+  v: { h: number | null; p: number | null; sd: number | null; wind: number | null; wdir: number | null },
+): { height: string; heightDirection: string; energy: string; wind: string; windDirection: string } {
+  // "-", not the site's em dash: the panel's fonts and the firmware's
+  // directionToAngle() both expect plain ASCII.
+  const DASH = "-";
+  const e = s.sheltered ? null : energyKJ(v.h, v.p);
+  return {
+    height: s.sheltered || v.h == null ? DASH : `${v.h.toFixed(1)}m`,
+    heightDirection: (s.sheltered ? "" : compass(v.sd)) || DASH,
+    energy: e == null ? DASH : `${e} kJ`,
+    wind: v.wind == null ? DASH : `${Math.round(v.wind)} kmh`,
+    windDirection: compass(v.wdir) || DASH,
+  };
+}
+
 // Plain-English vis warnings for a spot on a given day: what the past week's
 // rain is likely to have done, plus any standing dirty-water caveat.
 export function visNotes(s: Spot, runoff: number | null): string[] {
