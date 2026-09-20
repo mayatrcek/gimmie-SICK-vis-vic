@@ -119,6 +119,14 @@ npm test           # rating-logic, tide-prediction + ERDDAP-client self-checks
 - `tools/prerender-pixelmap.js` — bakes the dive-sites OVERWORLD basemap to
   `assets/geo/pixelmap.png` (instant under-layer; re-run when the palette changes).
 - `sources/`, `docs/` — reference material and planning notes; not part of the build.
+- `device/weekly_forecast/weekly_forecast.ino` — the e-ink display firmware, an
+  Arduino sketch for a Waveshare 7.5" panel on the ESP32 e-Paper Driver Board
+  (GxEPD2; the folder name has to match the sketch name). A WiFiManager portal
+  stores WiFi and the spot in NVS, then it deep-sleeps an hour between
+  `eink-forecast?spot=<id>` fetches. Built and flashed from the Arduino IDE, not
+  by the web build. Its portal spot menu (`SPOT_PICKER`) hardcodes the
+  `lib/data/regions.ts` id/name pairs, since the AP has no internet — a new spot
+  needs a reflash to appear there (the route validates the id, so drift is safe).
 
 **Bad SST scans are filtered, not trusted.** ACSPO L3S occasionally publishes a
 day of contaminated retrievals — 2026-09-02 came through ~3 °C warm across the
