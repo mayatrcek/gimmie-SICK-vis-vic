@@ -130,6 +130,7 @@ static const char PORTAL_CSS[] =
 Preferences prefs;
 String spotId   = "diamond"; // slug the API knows; unknown ones fall back to Diamond Bay
 String spotName = "";        // display name, straight from the API response
+bool drawnOnce  = false;     // a forecast is already on the screen (see DRAWN_FLAG)
 
 // The portal opens on its own when WiFi won't connect. To reach it on a working
 // unit: press EN (reset) twice — once to restart it, again while it's awake.
@@ -138,6 +139,10 @@ String spotName = "";        // display name, straight from the API response
 // GPIO0/BOOT can't do this either, as a wake on it boots with the pin still low,
 // which is the ESP32's serial-bootloader strap.
 const char* PORTAL_FLAG = "portalpend";
+// Set once a forecast has been drawn. It answers two questions: whether there's
+// a screen worth keeping when a run fails, and whether this unit has ever been
+// set up (it can't have drawn one without credentials).
+const char* DRAWN_FLAG = "drawn";
 const int PORTAL_TIMEOUT_S = 180;         // don't hold a battery unit open forever
 
 const uint64_t SLEEP_SECONDS = 3600;
@@ -189,6 +194,7 @@ void setup() {
   // never reached sleep, i.e. EN was pressed again mid-run.
   bool portalRequested = prefs.getBool(PORTAL_FLAG, false);
   prefs.putBool(PORTAL_FLAG, true);
+  drawnOnce = prefs.getBool(DRAWN_FLAG, false);
   Serial.print("wake cause: ");
   Serial.print(esp_sleep_get_wakeup_cause());
   Serial.print("  portal requested: ");
@@ -211,6 +217,11 @@ void setup() {
   // "param" is listed, so leaving it out keeps them under the WiFi fields.
   std::vector<const char*> menu = {"wifi"};
   wm.setMenu(menu); // takes a non-const reference, so it needs a named vector
+  // A router reboot shouldn't cost the wall three minutes of setup screen: on a
+  // unit that has drawn before, a failed connect fails fast and the last
+  // forecast stays up. A brand-new one still needs the portal to open by
+  // itself, which is the only way in before anyone knows the AP exists.
+  wm.setEnableConfigPortal(!drawnOnce);
   // Save on the portal's Save button, not on a clean exit: a customer who
   // changes the spot and wanders off would otherwise lose it to the timeout.
   // A blank SSID means WiFiManager skips the wifi save (keeping the stored
@@ -238,7 +249,10 @@ void setup() {
   }
 
   if (!connected) {
-    drawError("No WiFi - press EN twice to set up");
+    // No network saved either, so nothing is going to refresh this screen on its
+    // own: the message wins, even over a forecast.
+    if (WiFi.SSID().length() == 0) drawnOnce = false;
+    reportFailure("No WiFi - press EN twice to set up");
     goToSleep();
     return;
   }
@@ -255,7 +269,7 @@ void setup() {
   struct tm timeinfo;
   if (!getLocalTime(&timeinfo, NTP_TIMEOUT_MS)) {
     Serial.println("NTP failed - no reply on UDP 123 within timeout");
-    drawError("No time sync - check the router allows NTP");
+    reportFailure("No time sync - check the router allows NTP");
     goToSleep();
     return;
   }
@@ -267,12 +281,25 @@ void setup() {
   if (fetchForecast(payload)) {
     parseForecast(payload);
     drawWeek(timeinfo);
+    if (!drawnOnce) {
+      drawnOnce = true;
+      prefs.putBool(DRAWN_FLAG, true);
+    }
   } else {
-    drawError("Fetch failed");
+    reportFailure("Fetch failed");
   }
 
   WiFi.disconnect(true);
   goToSleep();
+}
+
+// A failed run leaves the last forecast on the wall instead of replacing it with
+// an error line: e-ink holds its image with no power, and the screen carries its
+// own UPDATED stamp, so a stale panel reads as stale rather than broken. Only a
+// unit that has never drawn one has nothing to lose by showing the message.
+void reportFailure(const char* msg) {
+  Serial.println(msg);
+  if (!drawnOnce) drawError(msg);
 }
 
 // Persist a spot only when it's a real change — NVS writes are finite.

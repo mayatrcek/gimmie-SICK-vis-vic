@@ -65,8 +65,27 @@ That is deliberate and matches the site: Open-Meteo has no marine cell inside th
 heads, so those points get served the nearest ocean cell's swell. The rating and
 the wind are real everywhere.
 
-`drawError()` replaces the screen with one line when WiFi, the clock or the fetch
-fails, and the panel tries again an hour later.
+## When something fails
+
+A failed run leaves the last forecast on the wall rather than replacing it with
+an error line — e-ink holds its image with no power, and the screen's own
+`UPDATED: HH:MM` stamp is what tells you it is old. The failure goes to serial
+only. A panel that has never drawn a forecast has nothing to lose, so it still
+shows the message; the `drawn` flag in NVS is the difference.
+
+Recovery is automatic. A dropout that ends while the panel sleeps costs nothing:
+the next hourly wake joins with the stored credentials and redraws. A router
+that is still down at wake time means a failed connect, a stale screen, and
+another try an hour later, on and on until it works. Nothing needs pressing.
+
+`setEnableConfigPortal(!drawnOnce)` is what keeps a router reboot from turning
+into three minutes of setup screen: on a panel that has drawn before, a failed
+connect fails fast instead of holding the AP open. A brand-new panel still opens
+the portal by itself, and the EN double press always does.
+
+The one case that overrides all of this: no saved network at all. Then nothing
+can refresh the screen unattended, so the panel covers the forecast with
+`No WiFi - press EN twice to set up`.
 
 ## API
 
