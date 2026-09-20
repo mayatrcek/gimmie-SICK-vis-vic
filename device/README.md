@@ -46,26 +46,22 @@ browse to `192.168.4.1`. Enter the WiFi network and password, pick a dive spot,
 press Update. The portal closes after 3 minutes (`PORTAL_TIMEOUT_S`), or ~20 s
 after a save, then the panel redraws.
 
-**A blank password means "keep the network I'm already on."** Changing only the
-spot needs nothing else: pick the spot, press Update, and the saved credentials
-are left alone even if you tapped your network in the list on the way past.
+**Changing only the spot needs no password.** Leave the network box alone, pick
+a spot, press Update. The saved credentials are not touched.
 
-That rule is enforced in the browser, by a submit handler in `SPOT_PICKER` that
-clears the SSID field when no password was typed. Without it, tapping a network
-fills the SSID and sends WiFiManager down its connect-to-new-AP branch, where
-`WiFi.persistent(true); WiFi.begin(ssid, "")` writes the blank password over the
-working one — the join fails, the portal says "Not connected", and the panel is
-left holding credentials it cannot use. With the SSID cleared, WiFiManager skips
-the wifi save entirely (`WiFiManager.cpp:883`) and still saves the spot.
+**Tapping a network means you must type its password.** Update greys out until
+you do, with a line saying so. That one combination — a network selected, the
+password blank — is what breaks a working panel: it sends WiFiManager down its
+connect-to-new-AP branch, where `WiFi.persistent(true); WiFi.begin(ssid, "")`
+writes the blank password over the stored one (`WiFiManager.cpp:1104`). The join
+then fails, the page says "Not connected", and the panel is left holding
+credentials it cannot use. Clear the network box to get Update back.
 
-What it costs: an open network with no password can't be joined from the portal,
-because a blank password now means "keep what's stored". Deliberate, and worth
-it — home networks have passwords.
-
-The spot menu is hardcoded in `SPOT_PICKER` because the portal runs an access
-point with no internet. It mirrors the `id`/`name` pairs in
-`lib/data/regions.ts`; a spot added to the site needs a reflash to appear here.
-Drift is safe — the API validates the id and falls back to Diamond Bay.
+Both rules live in the injected script in `SPOT_PICKER`. Note the selector:
+the form renders as `action='wifisave'`, with **no leading slash**
+(`WiFiManager.cpp:1371`), so anything matching it needs `form[action$='wifisave']`.
+An exact `'/wifisave'` match silently does nothing — that bug shipped once, and
+it is also why the button read "Save" instead of "Update".
 
 ## What it draws
 
