@@ -57,6 +57,16 @@ writes the blank password over the stored one (`WiFiManager.cpp:1104`). The join
 then fails, the page says "Not connected", and the panel is left holding
 credentials it cannot use. Clear the network box to get Update back.
 
+After you press Update the portal closes and **the panel reboots itself**, then
+comes back on the new spot about half a minute later. That is deliberate: the
+portal leaves the radio in AP mode with the station switched off
+(`WiFiManager.cpp:720-730`), and a cold boot walks the ordinary `autoConnect()`
+path instead of trying to rebuild that state by hand. It is also why
+`WiFi.SSID()` reads empty straight after the portal even though the credentials
+are still in flash — a trap worth remembering, since the old reconnect fallback
+was gated on that check and so never ran, leaving "No WiFi" on a panel whose
+network was fine.
+
 Both rules live in the injected script in `SPOT_PICKER`. Note the selector:
 the form renders as `action='wifisave'`, with **no leading slash**
 (`WiFiManager.cpp:1371`), so anything matching it needs `form[action$='wifisave']`.

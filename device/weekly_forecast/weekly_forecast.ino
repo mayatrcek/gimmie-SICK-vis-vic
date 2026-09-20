@@ -251,8 +251,10 @@ void setup() {
   // A blank SSID means WiFiManager skips the wifi save (keeping the stored
   // network), so nothing closes the portal. Shorten the timeout on save instead:
   // ~20s after the last page load it closes and the panel redraws.
+  bool portalSaved = false;
   wm.setSaveParamsCallback([&]() {
     saveSpot(spotParam.getValue());
+    portalSaved = true;
     wm.setConfigPortalTimeout(20);
   });
   wm.setAPCallback([](WiFiManager *) { drawSetupScreen(); });
@@ -260,16 +262,35 @@ void setup() {
   bool connected = portalRequested ? wm.startConfigPortal(portalName)
                                    : wm.autoConnect(portalName);
 
-  // Portal timed out. If credentials are already stored, that's a spot-only
-  // edit (or nobody touched it), so join with what's saved rather than
-  // burning an hour on an error screen.
-  if (!connected && WiFi.SSID().length() > 0) {
-    WiFi.begin();
-    unsigned long start = millis();
-    while (WiFi.status() != WL_CONNECTED && millis() - start < 15000) {
-      delay(250);
+  // Someone pressed Update. The portal leaves the radio in AP mode with the
+  // station switched off (WiFiManager.cpp:720-730), so rather than coax it back
+  // by hand, start the boot over: a cold boot is the ordinary autoConnect path,
+  // the one that works every other hour of the day. Clear the double-press flag
+  // first or the fresh boot reopens the portal. Only a human pressing Update
+  // gets here, so this can't turn into a reboot loop.
+  if (!connected && portalSaved) {
+    Serial.println("saved from portal - restarting into a normal run");
+    prefs.putBool(PORTAL_FLAG, false);
+    prefs.end();
+    delay(100); // let the serial line and the portal's last response drain
+    ESP.restart();
+  }
+
+  // Portal timed out with nobody touching it. Join with whatever is stored
+  // rather than burning an hour on an error screen. The station has to be
+  // switched back on before asking: with STA down, WiFi.SSID() reads empty on
+  // the ESP32 core even though the credentials are still in flash — which is
+  // what used to make this block get skipped.
+  if (!connected) {
+    WiFi.mode(WIFI_STA);
+    if (WiFi.SSID().length() > 0) {
+      WiFi.begin();
+      unsigned long start = millis();
+      while (WiFi.status() != WL_CONNECTED && millis() - start < 15000) {
+        delay(250);
+      }
+      connected = (WiFi.status() == WL_CONNECTED);
     }
-    connected = (WiFi.status() == WL_CONNECTED);
   }
 
   if (!connected) {
