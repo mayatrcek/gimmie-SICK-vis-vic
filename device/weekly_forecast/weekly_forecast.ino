@@ -79,8 +79,9 @@ static const char SPOT_PICKER[] =
   "<optgroup label='Surf Coast'><option value='bells'>Bells Beach</option><option value='winki'>Winkipop</option><option value='janjuc'>Jan Juc</option><option value='torquay'>Torquay Point</option><option value='roadknight'>Point Roadknight</option><option value='anglesea'>Anglesea</option><option value='lorne'>Lorne</option><option value='apollo'>Apollo Bay</option></optgroup><optgroup label='Bellarine'><option value='13th'>13th Beach</option><option value='barwon'>Barwon Heads</option><option value='oceangrove'>Ocean Grove</option><option value='lonsdale'>Point Lonsdale</option></optgroup><optgroup label='Mornington Peninsula'><option value='pointnepean'>Point Nepean (buoy)</option><option value='portsea'>Portsea Back Beach</option><option value='diamond'>Diamond Bay</option><option value='sorrento'>Sorrento Back Beach</option><option value='rye'>Rye Back Beach</option><option value='gunnamatta'>Gunnamatta</option><option value='schanck'>Cape Schanck</option><option value='flinders'>Flinders</option><option value='pointleo'>Point Leo</option></optgroup><optgroup label='Phillip Island'><option value='woolamai'>Cape Woolamai</option><option value='smiths'>Smiths Beach</option><option value='surfbeach'>Surf Beach</option><option value='pyramid'>Pyramid Rock</option><option value='express'>Express Point</option><option value='summerland'>Summerland</option><option value='ycw'>YCW / Cat Bay</option></optgroup><optgroup label='East Coast / Gippsland'><option value='capepat'>Cape Paterson</option><option value='inverloch'>Inverloch</option><option value='venus'>Venus Bay</option><option value='waratah'>Waratah Bay</option><option value='sandypt'>Sandy Point</option><option value='walkerville'>Walkerville</option></optgroup><optgroup label='Wilsons Promontory'><option value='tonguept'>Tongue Point</option><option value='whiskybay'>Whisky Bay</option><option value='squeaky'>Squeaky Beach</option><option value='normanbay'>Norman Bay (Tidal River)</option><option value='shellback'>Shellback Island</option><option value='oberon'>Oberon Bay</option><option value='glennie'>Great Glennie Island</option><option value='cleft'>Cleft Island (Skull Rock)</option><option value='anser'>Anser Island</option><option value='kanowna'>Kanowna Island</option><option value='rodondo'>Rodondo Island</option><option value='waterloobay'>Waterloo Bay</option><option value='refugecove'>Refuge Cove</option><option value='sealerscove'>Sealers Cove</option></optgroup><optgroup label='Far West / Shipwreck Coast'><option value='portcampbell'>Port Campbell</option><option value='princetown'>Princetown</option><option value='warrnambool'>Warrnambool (Logans)</option><option value='portfairy'>Port Fairy</option><option value='portland'>Portland</option></optgroup><optgroup label='Port Phillip'><option value='fort'>South Channel Fort</option><option value='blairgowrie'>Blairgowrie (bay)</option><option value='ryepier'>Rye Pier</option><option value='sorrentopier'>Sorrento Pier</option><option value='portseapier'>Portsea Pier</option><option value='portseahole'>Portsea Hole</option><option value='popeseye'>Popes Eye</option><option value='chinamans'>Chinaman's Hat</option><option value='lonsdalewall'>Lonsdale Wall</option><option value='queenscliffpier'>Queenscliff Pier</option><option value='stleonards'>St Leonards Pier</option><option value='portarlington'>Portarlington Pier</option><option value='morningtonpier'>Mornington Pier</option><option value='ricketts'>Ricketts Point</option><option value='cerberus'>HMVS Cerberus (Black Rock)</option><option value='williamstown'>Williamstown (The Dell)</option></optgroup><optgroup label='Western Port'><option value='flinderspier'>Flinders Pier</option><option value='cowes'>Cowes Jetty</option><option value='stonypoint'>Stony Point Pier</option><option value='crawfish'>Crawfish Rock</option><option value='rhyll'>Rhyll Jetty</option><option value='newhaven'>Newhaven Pier (San Remo)</option><option value='tortoise'>Tortoise Head (French Is.)</option><option value='corinella'>Corinella Pier</option></optgroup>"
   "</select>"
   "<p style='font-size:13px;color:#3A332A;margin:10px 0 0'>"
-  "<b style='color:#A8200D'>*</b> Needed the first time only. Leave the network and password "
-  "blank to keep the current network and change the spot on its own.</p>"
+  "<b style='color:#A8200D'>*</b> Needed the first time only. Already set up? Leave the "
+  "password blank and this display stays on the network it is already using, even if you "
+  "tap that network in the list.</p>"
   // Seed on DOM ready, not inline: the hidden input renders after this block, so
   // seeding at parse time finds nothing and the menu opens on the first spot.
   "<script>document.addEventListener('DOMContentLoaded',function(){"
@@ -88,7 +89,19 @@ static const char SPOT_PICKER[] =
   "if(h&&s)s.value=h.value;"
   // the intro renders inside the form, below the password; lift it above the network list
   "var i=document.getElementById('gsvintro'),w=document.querySelector('.wrap'),t=w?w.querySelector('h3'):null;"
-  "if(i&&w)w.insertBefore(i,t?t.nextSibling:w.firstChild);});</script>";
+  "if(i&&w)w.insertBefore(i,t?t.nextSibling:w.firstChild);"
+  // Tapping a network fills the SSID field, which is what sends WiFiManager down
+  // its connect-to-new-AP branch: WiFi.persistent(true) + WiFi.begin(ssid, "")
+  // writes the blank password over the working one, the join fails, and the panel
+  // is left with credentials it can't use. An empty password means the customer
+  // is changing the spot, not the network, so clear the SSID and let WiFiManager
+  // skip the wifi save entirely (WiFiManager.cpp:883). A real network change
+  // still works — it has a password typed into it.
+  "var f=document.querySelector(\"form[action='/wifisave']\");"
+  "if(f)f.addEventListener('submit',function(){"
+  "var n=document.getElementById('s'),q=document.getElementById('p');"
+  "if(n&&q&&!q.value)n.value='';});"
+  "});</script>";
 
 // Portal styling. Injected after WiFiManager's own <style> (WiFiManager.cpp:1281),
 // so these win. Palette is OVERWORLD from the site's app/overworld.css; the fonts
@@ -559,8 +572,8 @@ void drawSetupScreen() {
   const char* steps[] = {
     "1.  On a phone or laptop, join the WiFi network:  GimmieSickVis",
     "2.  A setup page opens by itself. If it doesn't, browse to  192.168.4.1",
-    "3.  Tap 'Choose your WiFi network', or 'Choose your dive spot' to move it.",
-    "4.  Press Save. This panel redraws within a minute, then updates hourly.",
+    "3.  Pick your WiFi network, type its password, then choose a dive spot.",
+    "4.  Press Update. This panel redraws within a minute, then updates hourly.",
   };
 
   display.setFullWindow();
