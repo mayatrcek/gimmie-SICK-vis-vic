@@ -53,6 +53,9 @@ const int NTP_TIMEOUT_MS  = 30000;               // first sync after a cold boot
 const char* tzMelbourne  = "AEST-10AEDT,M10.1.0,M4.1.0/3";
 const char* portalName   = "GimmieSickVis";
 const char* brandText    = "gimmiesickvis.com";
+// Printed at the footer's left, so a panel on the wall can say which build it
+// is running without opening a serial monitor. Bump it when you flash.
+const char* FW_VERSION   = "v6 2026-09-20";
 
 // ---- Setup portal copy ----
 // The portal runs in AP mode with no internet, so the spot list has to ship in
@@ -155,6 +158,9 @@ Preferences prefs;
 String spotId   = "diamond"; // slug the API knows; unknown ones fall back to Diamond Bay
 String spotName = "";        // display name, straight from the API response
 bool drawnOnce  = false;     // a forecast is already on the screen (see DRAWN_FLAG)
+// Survives deep sleep but not an EN press, so a reset re-syncs the clock. That
+// is the cheap direction to be wrong in.
+RTC_DATA_ATTR time_t lastNtpSync = 0;
 
 // The portal opens on its own when WiFi won't connect. To reach it on a working
 // unit: press EN (reset) twice — once to restart it, again while it's awake.
@@ -169,7 +175,16 @@ const char* PORTAL_FLAG = "portalpend";
 const char* DRAWN_FLAG = "drawn";
 const int PORTAL_TIMEOUT_S = 180;         // don't hold a battery unit open forever
 
-const uint64_t SLEEP_SECONDS = 3600;
+// Refreshes land on the top of the hour rather than an hour after the last run
+// finished, which used to let them drift into :12, :25 and so on. Nothing is
+// drawn between QUIET_START_H and QUIET_END_H: nobody reads a dive panel at 3am,
+// and on a battery those eight wakes are a third of the day's runs.
+// Hours from QUIET_START_H to QUIET_END_H-1 are skipped, so the last refresh of
+// the evening is 21:00 and the first of the morning is 05:00.
+const int QUIET_START_H = 22;
+const int QUIET_END_H   = 5;
+// Fallback when the clock can't be trusted, i.e. WiFi or NTP failed.
+const uint64_t RETRY_SECONDS = 3600;
 const int SLOTS_PER_DAY = 3;
 const int RATING_HIGHLIGHT_THRESHOLD = 8; // rating >= this gets the double border
 
@@ -298,7 +313,7 @@ void setup() {
     // own: the message wins, even over a forecast.
     if (WiFi.SSID().length() == 0) drawnOnce = false;
     reportFailure("No WiFi - press EN twice to set up");
-    goToSleep();
+    goToSleep(RETRY_SECONDS);
     return;
   }
 
@@ -310,32 +325,50 @@ void setup() {
   Serial.print("IP: ");
   Serial.println(WiFi.localIP());
 
-  configTzTime(tzMelbourne, ntpServer, ntpServer2, ntpServer3);
+  // The RTC keeps running through deep sleep, so an ordinary wake already knows
+  // the time and can skip the sync — which is up to 30 seconds of radio and one
+  // of the three ways a run can fail. The zone has to be set every boot either
+  // way, since the environment doesn't survive sleep.
+  setenv("TZ", tzMelbourne, 1);
+  tzset();
   struct tm timeinfo;
-  if (!getLocalTime(&timeinfo, NTP_TIMEOUT_MS)) {
-    Serial.println("NTP failed - no reply on UDP 123 within timeout");
-    reportFailure("No time sync - check the router allows NTP");
-    goToSleep();
-    return;
+  bool clockSet = getLocalTime(&timeinfo, 100);
+  bool stale = !clockSet || (time(nullptr) - lastNtpSync) > 86400 || lastNtpSync == 0;
+  if (stale) {
+    Serial.println("syncing clock");
+    configTzTime(tzMelbourne, ntpServer, ntpServer2, ntpServer3);
+    if (!getLocalTime(&timeinfo, NTP_TIMEOUT_MS)) {
+      Serial.println("NTP failed - no reply on UDP 123 within timeout");
+      reportFailure("No time sync - check the router allows NTP");
+      goToSleep(RETRY_SECONDS);
+      return;
+    }
+    lastNtpSync = time(nullptr);
   }
   Serial.println(&timeinfo, "time: %Y-%m-%d %H:%M:%S");
 
   buildWeekStructure(timeinfo);
 
   String payload;
-  if (fetchForecast(payload)) {
-    parseForecast(payload);
+  if (!fetchForecast(payload)) {
+    reportFailure("Fetch failed");
+  } else if (!parseForecast(payload)) {
+    reportFailure("No forecast data");
+  } else {
     drawWeek(timeinfo);
     if (!drawnOnce) {
       drawnOnce = true;
       prefs.putBool(DRAWN_FLAG, true);
     }
-  } else {
-    reportFailure("Fetch failed");
   }
 
   WiFi.disconnect(true);
-  goToSleep();
+
+  // Re-read the clock rather than scheduling off timeinfo: the fetch and the
+  // e-ink refresh have eaten half a minute since then, and that is exactly the
+  // error that would land the next wake just before the hour instead of after.
+  struct tm now;
+  goToSleep(getLocalTime(&now, 100) ? sleepSeconds(now) : RETRY_SECONDS);
 }
 
 // A failed run leaves the last forecast on the wall instead of replacing it with
@@ -385,16 +418,34 @@ void buildWeekStructure(struct tm &timeinfo) {
 bool fetchForecast(String &payloadOut) {
   String relayUrl = String(relayBaseUrl) + "?spot=" + spotId;
 
-  HTTPClient http;
-  http.begin(relayUrl);
-  int code = http.GET();
-  bool ok = (code == 200);
-  if (ok) payloadOut = http.getString();
-  http.end();
-  return ok;
+  // Two goes, because the alternative to a 3 second retry is an hour of stale
+  // screen. Both timeouts are set explicitly: a stalled TLS handshake would
+  // otherwise hold the radio on with nothing to show for it.
+  for (int attempt = 1; attempt <= 2; attempt++) {
+    if (attempt > 1) delay(3000);
+    HTTPClient http;
+    http.setConnectTimeout(8000);
+    http.setTimeout(8000);
+    http.begin(relayUrl);
+    int code = http.GET();
+    if (code == 200) {
+      payloadOut = http.getString();
+      http.end();
+      return true;
+    }
+    Serial.print("fetch attempt ");
+    Serial.print(attempt);
+    Serial.print(" failed: HTTP ");
+    Serial.println(code);
+    http.end();
+  }
+  return false;
 }
 
-void parseForecast(const String &payload) {
+// False means nothing usable came back, so the caller can leave the screen as
+// it is. Without this a truncated payload drew a grid of empty slots over a
+// perfectly good forecast.
+bool parseForecast(const String &payload) {
   // ArduinoJson 7: JsonDocument grows as needed, so there's no capacity to guess
   // (DynamicJsonDocument still compiles, but it's deprecated and ignores the number).
   JsonDocument doc;
@@ -402,11 +453,12 @@ void parseForecast(const String &payload) {
   if (err) {
     Serial.print("JSON parse error: ");
     Serial.println(err.c_str());
-    return;
+    return false;
   }
 
   spotName = String((const char*)(doc["name"] | ""));
 
+  int matched = 0; // days in the payload that line up with the week on screen
   JsonArray days = doc["days"].as<JsonArray>();
   for (JsonObject day : days) {
     const char* date = day["date"] | "";
@@ -426,10 +478,15 @@ void parseForecast(const String &payload) {
           week[i].slots[s].windDirection = String((const char*)(slot["windDirection"] | ""));
           s++;
         }
+        matched++;
         break;
       }
     }
   }
+
+  // A payload for last week, or for no days at all, is not a forecast.
+  if (matched == 0) Serial.println("no day in the payload matched this week");
+  return matched > 0;
 }
 
 void rotatePoint(float x, float y, float angleDeg, int cx, int cy, int &outX, int &outY) {
@@ -594,6 +651,9 @@ void drawWeek(struct tm &timeinfo) {
     display.setCursor(PANEL_W - bw - 15, PANEL_H - 5);
     display.print(brandText);
 
+    display.setCursor(15, PANEL_H - 5);
+    display.print(FW_VERSION);
+
   } while (display.nextPage());
 
   display.powerOff();
@@ -661,9 +721,25 @@ void drawError(const char* msg) {
   display.powerOff();
 }
 
-void goToSleep() {
+// Seconds from now to the next refresh: the top of the next hour, then forward
+// over any hour inside the quiet block. Pure arithmetic on the local clock.
+uint64_t sleepSeconds(const struct tm &t) {
+  uint64_t s = 3600 - (t.tm_min * 60 + t.tm_sec);
+  int hour = (t.tm_hour + 1) % 24;
+  // The cap matters: QUIET_START_H == QUIET_END_H would otherwise never exit.
+  for (int i = 0; i < 24 && (hour >= QUIET_START_H || hour < QUIET_END_H); i++) {
+    s += 3600;
+    hour = (hour + 1) % 24;
+  }
+  return s;
+}
+
+void goToSleep(uint64_t seconds) {
   // A completed run means the next boot isn't a double-press.
   prefs.putBool(PORTAL_FLAG, false);
-  esp_sleep_enable_timer_wakeup(SLEEP_SECONDS * 1000000ULL);
+  Serial.print("sleeping for ");
+  Serial.print((uint32_t)seconds);
+  Serial.println("s");
+  esp_sleep_enable_timer_wakeup(seconds * 1000000ULL);
   esp_deep_sleep_start();
 }

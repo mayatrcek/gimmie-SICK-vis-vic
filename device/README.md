@@ -129,8 +129,37 @@ if they change, `parseForecast()` is the only function that needs editing.
 
 ## Timing
 
-`SLEEP_SECONDS = 3600`. Time comes from NTP (`pool.ntp.org`, Google and
-Cloudflare as backups) with the Melbourne DST rule set locally, so the panel
-needs a router that allows outbound UDP 123. After the portal runs, the radio is
+Refreshes land on the top of the hour: `sleepSeconds()` counts to the next hour
+boundary rather than an hour from whenever the last run finished, which used to
+let them drift into :12, then :25. Hours from `QUIET_START_H` (22) to
+`QUIET_END_H` (5) are skipped, so the last refresh of the evening is 21:00 and
+the first of the morning is 05:00 — seven wakes a night that nobody was there to
+read. A failed run with no trustworthy clock falls back to `RETRY_SECONDS`.
+
+`test_sleep_schedule.py` mirrors that arithmetic in Python and asserts the
+boundaries (`python device/test_sleep_schedule.py`). It is a hand-kept copy, so
+change it when the C changes.
+
+The clock is synced at most once a day. The RTC keeps running through deep
+sleep, so an ordinary wake already knows the time; syncing every hour cost up to
+30 s of radio and carried a failure path for nothing. `lastNtpSync` lives in RTC
+memory, which survives sleep but not an EN press — a reset re-syncs, which is
+the cheap direction to be wrong in. The zone is set with `setenv("TZ", ...)` on
+every boot regardless, since the environment does not survive sleep.
+
+NTP is `pool.ntp.org` with Google and Cloudflare as backups, so the panel needs
+a router that allows outbound UDP 123. After the portal runs, the radio is
 forced back to station-only before asking for the time — in AP+STA the request
 can go out the AP interface and never get an answer.
+
+## Failure handling
+
+`fetchForecast()` makes two attempts 3 s apart with explicit 8 s connect and
+read timeouts, so one blip does not cost an hour of stale screen.
+`parseForecast()` returns false when the JSON is bad or when no day in the
+payload matches the week being drawn, and the caller then leaves the screen
+alone — without that, a truncated response drew a grid of empty slots over a
+perfectly good forecast.
+
+The footer's left carries `FW_VERSION`, so a panel on the wall can say which
+build it is running. Bump it when you flash.
