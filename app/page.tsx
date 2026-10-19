@@ -232,6 +232,52 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Workflow */}
+      <section className="bg-parchment py-xxxl px-bleed">
+        <div className="max-w-page-max mx-auto">
+          <div className="bg-parchment p-xxl border-2 border-ink-soft shadow-[8px_8px_0px_0px_#3A332A]">
+            <h2 className="home-h2 font-display-lg text-headline-lg text-ink-soft mb-md uppercase">
+              MY RECOMMENDED WORKFLOW
+            </h2>
+            <ol className="flex flex-col gap-lg mb-xl">
+              {WORKFLOW.map(([step, note], i) => (
+                <li key={i} className="flex gap-md items-start">
+                  <span className="font-display-lg text-headline-md text-bone bg-ink-soft w-10 h-10 shrink-0 flex items-center justify-center">
+                    {i + 1}
+                  </span>
+                  <div className="font-hud-md text-hud-md text-ink-soft">
+                    <p className="opacity-80">{step}</p>
+                    {note && <p className="opacity-60">{note}</p>}
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <p className="font-hud-md text-hud-md text-ink-soft opacity-80 mb-md">
+              Confused what some of this stuff means? Check out my mini-guide
+            </p>
+            {/* ponytail: no mini-guide page yet; swap for a <Link> once it exists */}
+            <span className="btn btn-primary opacity-60 cursor-not-allowed" aria-disabled="true">
+              Mini-guide (soon)
+            </span>
+          </div>
+        </div>
+      </section>
+
     </div>
   );
 }
+
+const WORKFLOW: [string, string?][] = [
+  [
+    "Take a look at the forecast rating. Keep note of days with a rating of 7+. Ratings less than that may still be ideal for scuba diving deep down.",
+    "This is a general indicator of days worth heading out!",
+  ],
+  [
+    "A day or two before the trip, double check forecast details. I also recommend checking out the chlorophyll and satellite scans over an area.",
+    "This highlights any algae blooms etc, which can impact visibility.",
+  ],
+  [
+    "Just before heading out, check the live waves buoy and see whether or not it's holding up with the forecast.",
+  ],
+  ["Have fun!"],
+];
