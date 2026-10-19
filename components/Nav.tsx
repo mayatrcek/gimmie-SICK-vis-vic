@@ -38,11 +38,15 @@ export default function Nav() {
   const [navOpen, setNavOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Close dropdowns on outside click / route change.
-  useEffect(() => {
+  // Close dropdowns on route change — reset during render, not in an effect,
+  // so the old menu never paints on the new page.
+  const [prevPath, setPrevPath] = useState(pathname);
+  if (pathname !== prevPath) {
+    setPrevPath(pathname);
     setOpenDD(null);
     setNavOpen(false);
-  }, [pathname]);
+  }
+  // …and on outside click.
   useEffect(() => {
     function onDoc(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpenDD(null);
