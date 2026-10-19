@@ -5,7 +5,9 @@
 .home [class*="border-"] { border-style: solid; }
 .home img { display: block; max-width: 100%; }
 .home button { border-radius: 0; }
-.home a { color: inherit; text-decoration: none; }
+/* Layered so a link's own colour utilities (and .btn-primary) can override it;
+   unlayered it beat every layer. */
+@layer base { .home a { color: inherit; text-decoration: none; } }
 
 /* Home is full-bleed (100vw), which includes the scrollbar gutter on Windows;
    hide the resulting sliver of horizontal overflow (as the old site did). */
