@@ -11,10 +11,15 @@ type Stretch = { min?: number | null; max?: number | null; bump?: number };
 // NOAA 403s UA-less requests (Node's fetch sends no User-Agent; browsers and
 // curl do). Server routes must fetch ERDDAP through this. Cached hourly;
 // pass `false` for absolute-date URLs, whose data never changes once published.
-export const erddapFetch = (url: string, revalidate: number | false = 3600) =>
+// The timeout sits above NOAA's own ~20 s gateway 502, so it only cuts
+// connections that hang outright — those would otherwise stall a prerender
+// past Next's 60 s limit and fail the whole deploy. Callers on the render path
+// pass less (see sstDays).
+export const erddapFetch = (url: string, revalidate: number | false = 3600, timeout = 25e3) =>
   fetch(url, {
     headers: { "User-Agent": "gimmie-sick-vis" },
     next: { revalidate },
+    signal: AbortSignal.timeout(timeout),
   });
 
 // Colour bar: stretched to a local min/max when known, else auto (Rainbow).
@@ -206,7 +211,7 @@ export function sstDaysFromCsv(csv: string): {
 export async function sstDays() {
   let latest: string | undefined;
   try {
-    const j = await (await erddapFetch(`${SST_BASE}${SST_DS}.json?time%5B(last)%5D`)).json();
+    const j = await (await erddapFetch(`${SST_BASE}${SST_DS}.json?time%5B(last)%5D`, 3600, 10e3)).json();
     latest = j?.table?.rows?.[0]?.[0];
   } catch {}
   // 2 days behind now clears the ~1-day publication lag
@@ -217,8 +222,9 @@ export async function sstDays() {
   // One at a time: NOAA serves these near-serially anyway (12 in parallel →
   // ~half 502 at its 20 s gateway, and Node's connect race drops the rest).
   // Cached days return instantly; the budget only bounds a cold cache (~4 s
-  // a day), keeping the render (plus warmSstThumbs) under Next's 60 s prerender
-  // limit even when the last request in flight hangs to NOAA's 20 s 502.
+  // a day). Each request gets only what is left of it, so the /live/sst render
+  // is capped at 10 s (latest) + 15 s (days) + 10 s (stretch) + 10 s (thumbs),
+  // under Next's 60 s prerender limit however NOAA behaves.
   // ponytail: a cold start renders the newest days only; the next hourly
   // regen fills the rest from where this one stopped.
   const deadline = Date.now() + 15e3;
@@ -226,7 +232,7 @@ export async function sstDays() {
   for (const d of days) {
     if (Date.now() > deadline) break;
     csvs.push(
-      await erddapFetch(sstDayURL(d), false)
+      await erddapFetch(sstDayURL(d), false, Math.max(1, deadline - Date.now()))
         .then((r) => (r.ok ? r.text() : ""))
         .catch(() => ""),
     );
@@ -242,7 +248,7 @@ export async function warmSstThumbs(stretch: Stretch, days: string[]) {
   const deadline = Date.now() + 10e3;
   for (const d of days) {
     if (Date.now() > deadline) break;
-    await erddapFetch(sstThumbURL(stretch, d), false).catch(() => {});
+    await erddapFetch(sstThumbURL(stretch, d), false, Math.max(1, deadline - Date.now())).catch(() => {});
   }
 }
 
@@ -256,7 +262,7 @@ export async function latestGoodDay(): Promise<string | undefined> {
 // forever); a flagged scan's blown-out range would stretch all 12 thumbs wrong.
 export async function sstStretch(day?: string): Promise<{ min?: number; max?: number }> {
   try {
-    const r = await erddapFetch(sstStretchURL(10, day), day ? false : 3600);
+    const r = await erddapFetch(sstStretchURL(10, day), day ? false : 3600, 10e3);
     return (r.ok && stretchFromCsv(await r.text())) || {};
   } catch {
     return {};
