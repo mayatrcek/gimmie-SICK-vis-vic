@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 const KEY = "gsv:store-toast";
 
 // OVERWORLD "achievement" toast pointing at the store. Shows 5s after load,
-// once per visitor: closing it or following the link remembers that.
+// once per visitor: closing it, following the link or letting the timer run
+// out remembers that.
 export default function StoreToast() {
   const [open, setOpen] = useState(false);
 
@@ -28,8 +29,8 @@ export default function StoreToast() {
   return (
     <aside className="ow-toast" role="status">
       <div className="ow-toast__sticker" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
-          <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" />
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+          <path d="M3 9 4.5 4h15L21 9M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0M5 11.5V20h14v-8.5M10 20v-5h4v5" />
         </svg>
       </div>
       <div>
@@ -41,6 +42,8 @@ export default function StoreToast() {
         </p>
       </div>
       <button className="ow-toast__close" aria-label="Close" onClick={dismiss}>×</button>
+      {/* runs for a minute (see .ow-toast__progress), then closes the toast */}
+      <div className="ow-toast__progress" aria-hidden="true" onAnimationEnd={dismiss} />
     </aside>
   );
 }

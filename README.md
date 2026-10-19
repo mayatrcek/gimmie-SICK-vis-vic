@@ -77,7 +77,7 @@ npm test           # rating-logic, tide-prediction + ERDDAP-client self-checks
   place the forecast table's Energy cell gets its number, so a sheltered spot
   sends `-` for swell/energy exactly as the table prints an em dash there.
 - `components/` — UI + map/chart components. `StoreToast` pops a store ad 5s
-  after load, once per visitor (localStorage `gsv:store-toast`). `MapRecall` persists each map's
+  after load for 60s, once per visitor (localStorage `gsv:store-toast`). `MapRecall` persists each map's
   last-viewed center/zoom to localStorage (`gsv:mapview:<name>`); `DiveSites`
   persists this device's chosen spots and which card is open
   (`gsv:locations:v1`, falling back to `DEFAULTS` in `lib/data/regions.ts`).

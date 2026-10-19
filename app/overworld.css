@@ -1023,8 +1023,8 @@
   .coord-copy-btn:active{box-shadow:none}
   .coord-copy-btn.is-copied,.coord-copy-btn.is-copied:hover{background:var(--ink);color:var(--panel)}
 
-  /* Store popup (components/StoreToast.tsx): the OVERWORLD achievement toast
-     without its timer bar. */
+  /* Store popup (components/StoreToast.tsx): the OVERWORLD achievement toast.
+     The green bar drains over 60s, then the toast closes. */
   .ow-toast{position:fixed;right:16px;bottom:16px;z-index:1400;
     display:grid;grid-template-columns:64px 1fr auto;align-items:start;gap:14px;
     width:380px;max-width:calc(100vw - 32px);padding:14px 14px 18px;
@@ -1042,3 +1042,7 @@
   .ow-toast__body{font-size:15px;line-height:1.45;margin:6px 0 0}
   .ow-toast__body a{color:var(--accent);font-weight:600}
   .ow-toast__close{width:32px;height:32px;padding:0;font-size:20px;box-shadow:3px 3px 0 0 var(--ink)}
+  .ow-toast__progress{position:absolute;left:0;bottom:0;height:6px;width:100%;background:var(--green);
+    animation:ow-toast-drain 60s linear forwards}
+  .ow-toast:hover .ow-toast__progress{animation-play-state:paused}
+  @keyframes ow-toast-drain{to{width:0}}
