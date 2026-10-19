@@ -3,8 +3,7 @@ import { FISH_WIP } from "@/lib/nav";
 
 // ponytail: hand-listed. 13 indexable routes, no dynamic segments — globbing the app
 // dir would be more code than the list. Add a route here when you add a page.
-// The /store coming-soon stub is deliberately absent — it also carries
-// robots:{index:false}. Re-add it when it ships.
+// /store is absent on purpose: it redirects to https://www.madart.shop (next.config.ts).
 const ROUTES: Array<[path: string, priority: number]> = [
   ["/", 1],
   ["/forecast", 0.9],
