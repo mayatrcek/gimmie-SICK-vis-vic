@@ -1022,3 +1022,23 @@
     display:inline-flex;align-items:center;justify-content:center;line-height:1}
   .coord-copy-btn:active{box-shadow:none}
   .coord-copy-btn.is-copied,.coord-copy-btn.is-copied:hover{background:var(--ink);color:var(--panel)}
+
+  /* Store popup (components/StoreToast.tsx): the OVERWORLD achievement toast
+     without its timer bar. */
+  .ow-toast{position:fixed;right:16px;bottom:16px;z-index:1400;
+    display:grid;grid-template-columns:64px 1fr auto;align-items:start;gap:14px;
+    width:380px;max-width:calc(100vw - 32px);padding:14px 14px 18px;
+    background:var(--color-cloud);border:2px solid var(--ink);box-shadow:8px 8px 0 0 var(--ink);
+    font-family:var(--font-sans);color:var(--ink);
+    animation:ow-toast-in .45s var(--ease)}
+  @keyframes ow-toast-in{from{opacity:0;transform:translateY(24px)}}
+  @media (prefers-reduced-motion:reduce){.ow-toast{animation:none}}
+  .ow-toast__sticker{display:flex;align-items:center;justify-content:center;width:56px;height:56px;
+    margin-top:4px;background:var(--warm);color:var(--color-cloud);border:2px solid var(--ink);
+    box-shadow:4px 4px 0 0 var(--ink);transform:rotate(-3deg)}
+  .ow-toast__eyebrow{margin:0;font-family:var(--font-hud);font-size:18px;line-height:1;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--accent)}
+  .ow-toast__title{font-family:var(--font-display);font-size:22px;font-weight:700;line-height:1.1;margin:6px 0 0}
+  .ow-toast__body{font-size:15px;line-height:1.45;margin:6px 0 0}
+  .ow-toast__body a{color:var(--accent);font-weight:600}
+  .ow-toast__close{width:32px;height:32px;padding:0;font-size:20px;box-shadow:3px 3px 0 0 var(--ink)}

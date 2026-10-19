@@ -33,8 +33,8 @@ the built HTML, not the browser:
 `grep -o '<h1[^>]*>[^<]*' .next/server/app/<route>.html`.
 
 Every page has exactly one `<h1>` (`.panel-ttl`, which carries `margin:0` because
-Tailwind runs with no preflight). The `/store` coming-soon stub carries `robots:{index:false}` and is absent
-from the sitemap — thin pages drag the whole domain. Re-add it when it ships.
+Tailwind runs with no preflight). `/store` redirects to madart.shop and is absent
+from the sitemap.
 
 Built with **Next.js (App Router) + React + TypeScript + Tailwind v4** and
 react-leaflet. (Ported from the original single-file static site.)
@@ -76,7 +76,8 @@ npm test           # rating-logic, tide-prediction + ERDDAP-client self-checks
   Its slot strings come from `slotCells()` in `lib/logic/rating.ts`, the same
   place the forecast table's Energy cell gets its number, so a sheltered spot
   sends `-` for swell/energy exactly as the table prints an em dash there.
-- `components/` — UI + map/chart components. `MapRecall` persists each map's
+- `components/` — UI + map/chart components. `StoreToast` pops a store ad 5s
+  after load, once per visitor (localStorage `gsv:store-toast`). `MapRecall` persists each map's
   last-viewed center/zoom to localStorage (`gsv:mapview:<name>`); `DiveSites`
   persists this device's chosen spots and which card is open
   (`gsv:locations:v1`, falling back to `DEFAULTS` in `lib/data/regions.ts`).

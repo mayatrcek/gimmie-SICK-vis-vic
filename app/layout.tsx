@@ -4,6 +4,7 @@ import { IBM_Plex_Sans, Inter_Tight, Instrument_Serif, Sora, Pixelify_Sans, VT32
 import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import StoreToast from "@/components/StoreToast";
 
 // OVERWORLD text faces + the pixel-homepage faces, self-hosted via next/font.
 const ibmPlexSans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-ibm-plex-sans", display: "swap" });
@@ -58,6 +59,7 @@ export default function RootLayout({
           <div className="wrap-spacer" aria-hidden="true" />
           <Footer />
         </div>
+        <StoreToast />
         <Analytics />
       </body>
     </html>
