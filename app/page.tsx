@@ -268,7 +268,7 @@ export default function Home() {
   );
 }
 
-const a = "text-primary underline underline-offset-2 hover:text-[#1F47B0]";
+const a = "text-primary hover:text-[#1F47B0]";
 const WORKFLOW: [ReactNode, ReactNode?][] = [
   [
     <>Take a look at the <Link href="/forecast" className={a}>forecast rating</Link>. Keep note of days with a rating of 7+. Ratings less than that may still be ideal for scuba diving deep down.</>,
