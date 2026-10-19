@@ -4,13 +4,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { SST_DS } from "@/lib/api/erddap";
 import { LEARN_ITEMS, LIVE_ITEMS, type NavItem as Item } from "@/lib/nav";
 
 type Group = { id: string; label: string; items: Item[] };
 
-// The fetches that gate a live page's first paint (SatelliteGallery /
-// SstGallery both render a loader until these land). Warmed into the browser
+// The fetch that gates a live page's first paint (SatelliteGallery renders a
+// loader until it lands). Warmed into the browser
 // HTTP cache the first time the Live data menu opens, so by the time a link is
 // clicked the page renders from cache instead of spinning.
 //
@@ -19,13 +18,8 @@ type Group = { id: string; label: string; items: Item[] };
 // ERDDAP/CDSE quota for people who never open Live data. Opening the menu is
 // the earliest honest signal of intent. Move to page-load only if the quota
 // headroom is there. The remaining live pages can't be warmed this way:
-// chlorophyll is server-rendered, nepean is a cross-origin iframe.
-const LIVE_WARM = [
-  "/api/satellite/scenes",
-  "/api/sst-stretch",
-  "/api/sst-times",
-  `/api/timestamp?ds=${SST_DS}`,
-];
+// chlorophyll and sst are server-rendered, nepean is a cross-origin iframe.
+const LIVE_WARM = ["/api/satellite/scenes"];
 let warmed = false;
 function warmLive() {
   if (warmed) return;

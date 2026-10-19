@@ -65,10 +65,8 @@ npm test           # rating-logic, tide-prediction + ERDDAP-client self-checks
     home-shelf entries, stubs the page, noindexes it and drops it from the
     sitemap. Set it to `false` to put the guide back.
 - `app/api/*` — server route handlers proxying the gov feeds that used to be
-  called via JSONP: ERDDAP `timestamp`, `sst-stretch` (regional percentiles that
-  drive the SST colour stretch), `sst-times` (per-day measurement time and the
-  bad-scan flags, from one CSV carrying both `sea_surface_temperature` and
-  `sst_dtime`), `sst-fronts` (detected thermal-front cells for
+  called via JSONP: `sst-thumb` (gallery card PNGs, rendered by ERDDAP once
+  per day and cached forever), `sst-fronts` (detected thermal-front cells for
   the SST map overlay), `sst-point` (click-probe temperature readout),
   Nominatim `geocode`,
   and `depth-tile` (Terrarium elevation PNGs for the dive-map water shading).
@@ -138,8 +136,15 @@ whole region with normal (39 %) coverage, rendering as a saturated rainbow.
 a day whose regional median is more than 1.5 °C off the median of the daily
 medians, or which rests on under 50 retrievals, is flagged. Flagged days still
 appear in the gallery (desaturated, stickered) so the gap is explained, but they
-never anchor a "current" reading — `sst-point` and `sst-stretch` resolve
+never anchor a "current" reading — `sst-point` and the gallery's colour stretch resolve
 `latestGoodDay()` instead of ERDDAP's `(last)`.
+
+**The SST gallery is server-rendered from stored data.** `/live/sst` re-renders
+hourly in the background (`revalidate = 3600`, like chlorophyll), so visitors
+never wait on NOAA. `sstDays()` fetches each of the 12 days as its own
+absolute-date CSV, cached forever: one 12-day request blows NOAA's ~20 s
+gateway timeout (502), and a past day never changes, so a new publish costs one
+new day upstream. Thumbs go through `/api/sst-thumb` for the same reason.
 
 ## Data sources
 

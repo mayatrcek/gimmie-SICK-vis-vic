@@ -9,11 +9,12 @@ export const LON = "(140):(151)";
 type Stretch = { min?: number | null; max?: number | null; bump?: number };
 
 // NOAA 403s UA-less requests (Node's fetch sends no User-Agent; browsers and
-// curl do). Server routes must fetch ERDDAP through this. Cached hourly.
-export const erddapFetch = (url: string) =>
+// curl do). Server routes must fetch ERDDAP through this. Cached hourly;
+// pass `false` for absolute-date URLs, whose data never changes once published.
+export const erddapFetch = (url: string, revalidate: number | false = 3600) =>
   fetch(url, {
     headers: { "User-Agent": "gimmie-sick-vis" },
-    next: { revalidate: 3600 },
+    next: { revalidate },
   });
 
 // Colour bar: stretched to a local min/max when known, else auto (Rainbow).
@@ -113,6 +114,10 @@ export function sstThumbURL(s: Stretch = {}, day?: string): string {
   );
 }
 
+// Same card via /api/sst-thumb, the cached proxy the gallery actually loads.
+export const sstThumbSrc = ({ min, max }: Stretch, day: string) =>
+  `/api/sst-thumb?day=${day}` + (min != null && max != null ? `&min=${min}&max=${max}` : "");
+
 // SST read for the map's click probe — ERDDAP picks the grid cell nearest
 // the coordinates; the CSV parses with meanFromCsv. Optional radius `r`
 // (degrees) averages a small box instead, so shoreline points still get a
@@ -126,13 +131,18 @@ export function sstPointURL(lat: number, lon: number, day?: string, r = 0): stri
   );
 }
 
-// Per-cell temperature and measurement offset for the last 12 grid days in one
-// strided CSV (~1.3 MB, cached hourly). Two variables in a single griddap
-// request — ERDDAP returns the columns in the order asked. (last-n) arithmetic
-// is in axis units — seconds.
-export function sstDaysURL(): string {
-  const sub = `%5B(last-950400):(last)%5D` + region(10);
+// Per-cell temperature and measurement offset for one grid day, strided.
+// One request per day: all 12 days in one CSV blows NOAA's ~20 s gateway
+// timeout (502) — sst_dtime alone costs ~3 s per day.
+export function sstDayURL(day: string): string {
+  const sub = `%5B${sstTime(day)}%5D` + region(10);
   return SST_BASE + SST_DS + `.csv?sea_surface_temperature${sub},sst_dtime${sub}`;
+}
+
+// Glues same-shape ERDDAP CSVs under one copy of the 2 header rows.
+export function joinCsv(csvs: string[]): string {
+  const parts = csvs.filter(Boolean).map((c) => c.trim().split("\n"));
+  return parts.length ? [...parts[0].slice(0, 2), ...parts.flatMap((p) => p.slice(2))].join("\n") : "";
 }
 
 // A day's regional median SST must sit within this much of the 12-day window
@@ -186,17 +196,70 @@ export function sstDaysFromCsv(csv: string): {
   return { times, bad, latestGood };
 }
 
-// Latest grid day that passed the QC filter above, for the server routes that
-// otherwise read (last). Shares erddapFetch's hourly cache entry with
-// /api/sst-times (same URL), so it costs nothing upstream. undefined on any
-// failure — callers fall back to (last), i.e. the old behaviour.
-export async function latestGoodDay(): Promise<string | undefined> {
+// The 12-day gallery window, newest first, anchored on the latest published
+// grid time (checked hourly), plus sstDaysFromCsv's QC over it. Each day's CSV
+// is an absolute-date URL cached forever (only 200s are stored), so a NOAA
+// publish costs one new day upstream, not twelve. A failed day is just absent,
+// like a fully cloudy one, and is retried on the next regen.
+// ponytail: forever-cache assumes NOAA never reprocesses a published day; drop
+// to a daily revalidate if a stale day ever shows up.
+export async function sstDays() {
+  let latest: string | undefined;
   try {
-    const r = await erddapFetch(sstDaysURL());
-    if (!r.ok) return undefined;
-    return sstDaysFromCsv(await r.text()).latestGood;
+    const j = await (await erddapFetch(`${SST_BASE}${SST_DS}.json?time%5B(last)%5D`)).json();
+    latest = j?.table?.rows?.[0]?.[0];
+  } catch {}
+  // 2 days behind now clears the ~1-day publication lag
+  latest ??= new Date(Date.now() - 2 * 864e5).toISOString();
+  const days = Array.from({ length: 12 }, (_, i) =>
+    new Date(Date.parse(latest) - i * 864e5).toISOString().slice(0, 10),
+  );
+  // One at a time: NOAA serves these near-serially anyway (12 in parallel →
+  // ~half 502 at its 20 s gateway, and Node's connect race drops the rest).
+  // Cached days return instantly; the budget only bounds a cold cache (~4 s
+  // a day), keeping the render (plus warmSstThumbs) under Next's 60 s prerender
+  // limit even when the last request in flight hangs to NOAA's 20 s 502.
+  // ponytail: a cold start renders the newest days only; the next hourly
+  // regen fills the rest from where this one stopped.
+  const deadline = Date.now() + 15e3;
+  const csvs: string[] = [];
+  for (const d of days) {
+    if (Date.now() > deadline) break;
+    csvs.push(
+      await erddapFetch(sstDayURL(d), false)
+        .then((r) => (r.ok ? r.text() : ""))
+        .catch(() => ""),
+    );
+  }
+  return { latest, days, ...sstDaysFromCsv(joinCsv(csvs)) };
+}
+
+// Pre-renders the gallery thumbs into the fetch cache /api/sst-thumb reads, so
+// the first visitor after a NOAA publish doesn't wait on ERDDAP's ~2.5 s
+// renders. Sequential for the same reason as sstDays; cached thumbs are free.
+// The build awaits after() work too, hence the budget.
+export async function warmSstThumbs(stretch: Stretch, days: string[]) {
+  const deadline = Date.now() + 10e3;
+  for (const d of days) {
+    if (Date.now() > deadline) break;
+    await erddapFetch(sstThumbURL(stretch, d), false).catch(() => {});
+  }
+}
+
+// Latest grid day that passed QC, for the server routes that otherwise read
+// (last). undefined on any failure — callers fall back to (last).
+export async function latestGoodDay(): Promise<string | undefined> {
+  return (await sstDays()).latestGood;
+}
+
+// Gallery colour stretch off the latest good day (absolute date, cached
+// forever); a flagged scan's blown-out range would stretch all 12 thumbs wrong.
+export async function sstStretch(day?: string): Promise<{ min?: number; max?: number }> {
+  try {
+    const r = await erddapFetch(sstStretchURL(10, day), day ? false : 3600);
+    return (r.ok && stretchFromCsv(await r.text())) || {};
   } catch {
-    return undefined;
+    return {};
   }
 }
 

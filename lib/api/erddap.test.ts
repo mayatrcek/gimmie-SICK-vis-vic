@@ -1,6 +1,6 @@
 // Self-check for the ERDDAP CSV parsers. Run: node lib/api/erddap.test.ts
 import assert from "node:assert";
-import { frontsFromCsv, meanFromCsv, sstDaysFromCsv, stretchFromCsv } from "./erddap.ts";
+import { frontsFromCsv, joinCsv, meanFromCsv, sstDaysFromCsv, stretchFromCsv } from "./erddap.ts";
 
 const header = "time,latitude,longitude,analysed_sst\nUTC,degrees_north,degrees_east,degree_C\n";
 
@@ -69,5 +69,11 @@ assert.deepEqual(sstDaysFromCsv(dayHeader + "2026-07-16T12:00:00Z,-38,141,NaN,Na
   latestGood: undefined,
 });
 assert.deepEqual(sstDaysFromCsv(dayHeader), { times: {}, bad: [], latestGood: undefined });
+
+// Per-day CSVs glued under one header parse the same as one window CSV;
+// failed (empty) days drop out.
+const split = [dayHeader + dayRows("2026-09-01", 14, 60), "", dayHeader + dayRows("2026-09-02", 17, 60) + dayRows("2026-09-03", 13.9, 60)];
+assert.deepEqual(sstDaysFromCsv(joinCsv(split)), sstDaysFromCsv(win));
+assert.equal(joinCsv(["", ""]), "");
 
 console.log("erddap.test.ts: all assertions passed");

@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import { fmtDataDate, graphLink, SST_DS, sstThumbURL } from "@/lib/api/erddap";
+import { fmtDataDate, graphLink, sstThumbSrc } from "@/lib/api/erddap";
 import { THUMB_LAND } from "@/components/geo/gibs";
 import SstScale from "@/components/SstScale";
 import SnaggleInfo from "@/components/SnaggleInfo";
@@ -28,7 +28,7 @@ function Thumb({ day, stretch, flagged }: { day: string; stretch: Stretch; flagg
       <img
         ref={ref}
         loading="lazy"
-        src={sstThumbURL(stretch, day)}
+        src={sstThumbSrc(stretch, day)}
         alt={`SST scan ${fmtDataDate(day)}`}
         onLoad={() => setLoaded(true)}
       />
@@ -45,50 +45,24 @@ function Thumb({ day, stretch, flagged }: { day: string; stretch: Stretch; flagg
 
 const PAGE_SIZE = 6;
 
-export default function SstGallery() {
+// Everything arrives as props from the server page (app/live/sst/page.tsx),
+// which reads it once per NOAA publish and caches it.
+export default function SstGallery({
+  latest,
+  days,
+  times,
+  bad,
+  stretch,
+}: {
+  latest: string; // latest published grid time
+  days: string[]; // 12 days newest-first, anchored on latest
+  times: Record<string, string>; // median measurement time per day ("1:14 am")
+  bad: string[]; // days that failed the out-of-family check (see sstDaysFromCsv)
+  stretch: Stretch; // latest good day's colour stretch, reused for all 12 days
+}) {
   const [selected, setSelected] = useState<string | null>(null);
   const [page, setPage] = useState(0);
-  // ponytail: latest good day's colour stretch reused for all 12 days; per-day
-  // stretches via /api/sst-stretch?day= if the drift ever clips older days
-  const [stretch, setStretch] = useState<Stretch | null>(null);
-  // Latest available grid time — anchors the 12-day window so the newest
-  // card is never an unpublished (broken) day. undefined = still loading.
-  const [latest, setLatest] = useState<string | undefined>(undefined);
-  // Median measurement time per day ("1:14 am"), keyed by day; {} until loaded
-  const [times, setTimes] = useState<Record<string, string>>({});
-  // Days whose scan failed the out-of-family check server-side (see
-  // sstDaysFromCsv) — shown, but marked, so a bogus scan can't read as data
-  const [bad, setBad] = useState<string[]>([]);
-  // if the timestamp query fails: 2 days behind now, past the ~1-day publication lag
-  const fallback = () => new Date(Date.now() - 2 * 864e5).toISOString();
-
-  useEffect(() => {
-    fetch("/api/sst-stretch")
-      .then((r) => r.json())
-      .then((j) => setStretch(j.min != null && j.max != null ? j : {}))
-      .catch(() => setStretch({}));
-
-    fetch("/api/sst-times")
-      .then((r) => r.json())
-      .then((j) => {
-        setTimes(j.times ?? {});
-        setBad(j.bad ?? []);
-      })
-      .catch(() => {});
-
-    fetch(`/api/timestamp?ds=${SST_DS}`)
-      .then((r) => r.json())
-      .then((j) => setLatest(j.time ?? fallback()))
-      .catch(() => setLatest(fallback()));
-  }, []);
-
-  // 12 days newest-first from the latest grid.
-  const days = latest
-    ? Array.from({ length: 12 }, (_, i) =>
-        new Date(Date.parse(latest) - i * 864e5).toISOString().slice(0, 10),
-      )
-    : null;
-  const pages = days ? Math.ceil(days.length / PAGE_SIZE) : 0;
+  const pages = Math.ceil(days.length / PAGE_SIZE);
 
   // back to the top so the new page's cards start in view
   const go = (p: number) => {
@@ -103,24 +77,12 @@ export default function SstGallery() {
     };
   }, [selected]);
 
-  // The header renders ahead of the client-fetched scans so the page ships a real
-  // <h1> in its server HTML — behind the gate a crawler saw only the loading div.
   const header = (
     <div className="panel-hd">
       <h1 className="panel-ttl">Sea temperature scans</h1>
       <SnaggleInfo text="Sea surface temps are good for tracking seasonal fish and finding those temperature breaks. And also if you’re just curious about the water temp haha. You can select a point and copy coordinates if you’re planning a trip offshore." />
     </div>
   );
-
-  if (!stretch || !days)
-    return (
-      <div className="panel">
-        {header}
-        <div className="panel-bd flush">
-          <div className="pad loadgif loadgif-lg" />
-        </div>
-      </div>
-    );
 
   if (selected) {
     return (
@@ -172,7 +134,7 @@ export default function SstGallery() {
           </div>
           <div className="foot">
             <span>
-              NOAA ACSPO &middot; latest: <span>{fmtDataDate(latest ?? null)}</span>
+              NOAA ACSPO &middot; latest: <span>{fmtDataDate(latest)}</span>
             </span>
             <a href={graphLink()} target="_blank" rel="noopener">
               Open data &#8599;
