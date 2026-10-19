@@ -252,12 +252,14 @@ export default function Home() {
                 </li>
               ))}
             </ol>
-            <p className="font-hud-md text-hud-md text-ink-soft opacity-80 mb-md">
-              Confused what some of this stuff means? Check out my mini-guide
-            </p>
-            <Link href="/back-beach" className="btn btn-primary">
-              Mini-guide &rarr;
-            </Link>
+            <div className="flex flex-wrap items-center gap-md">
+              <p className="font-hud-md text-hud-md text-ink-soft opacity-80">
+                Confused what some of this stuff means? Check out my mini-guide
+              </p>
+              <Link href="/back-beach" className="btn btn-primary">
+                Mini-guide &rarr;
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -266,7 +268,7 @@ export default function Home() {
   );
 }
 
-const a = "underline underline-offset-2 hover:text-primary";
+const a = "text-primary underline underline-offset-2 hover:text-[#1F47B0]";
 const WORKFLOW: [ReactNode, ReactNode?][] = [
   [
     <>Take a look at the <Link href="/forecast" className={a}>forecast rating</Link>. Keep note of days with a rating of 7+. Ratings less than that may still be ideal for scuba diving deep down.</>,
