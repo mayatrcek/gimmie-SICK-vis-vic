@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import ShelfToggle from "@/components/ShelfToggle";
@@ -255,10 +255,9 @@ export default function Home() {
             <p className="font-hud-md text-hud-md text-ink-soft opacity-80 mb-md">
               Confused what some of this stuff means? Check out my mini-guide
             </p>
-            {/* ponytail: no mini-guide page yet; swap for a <Link> once it exists */}
-            <span className="btn btn-primary opacity-60 cursor-not-allowed" aria-disabled="true">
-              Mini-guide (soon)
-            </span>
+            <Link href="/back-beach" className="btn btn-primary">
+              Mini-guide &rarr;
+            </Link>
           </div>
         </div>
       </section>
@@ -267,17 +266,18 @@ export default function Home() {
   );
 }
 
-const WORKFLOW: [string, string?][] = [
+const a = "underline underline-offset-2 hover:text-primary";
+const WORKFLOW: [ReactNode, ReactNode?][] = [
   [
-    "Take a look at the forecast rating. Keep note of days with a rating of 7+. Ratings less than that may still be ideal for scuba diving deep down.",
+    <>Take a look at the <Link href="/forecast" className={a}>forecast rating</Link>. Keep note of days with a rating of 7+. Ratings less than that may still be ideal for scuba diving deep down.</>,
     "This is a general indicator of days worth heading out!",
   ],
   [
-    "A day or two before the trip, double check forecast details. I also recommend checking out the chlorophyll and satellite scans over an area.",
+    <>A day or two before the trip, double check <Link href="/forecast" className={a}>forecast details</Link>. I also recommend checking out the <Link href="/live/chlorophyll" className={a}>chlorophyll</Link> and <Link href="/live/satellite" className={a}>satellite scans</Link> over an area.</>,
     "This highlights any algae blooms etc, which can impact visibility.",
   ],
   [
-    "Just before heading out, check the live waves buoy and see whether or not it's holding up with the forecast.",
+    <>Just before heading out, check the <Link href="/live/nepean" className={a}>live waves buoy</Link> and see whether or not it&rsquo;s holding up with the forecast.</>,
   ],
   ["Have fun!"],
 ];
