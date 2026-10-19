@@ -156,16 +156,21 @@ export default function Home() {
               of local know-how. Built to help you find sick vis when it counts.
             </p>
             <p className="font-hud-md text-hud-md text-ink-soft opacity-80 mb-md">
-              Every dive site is scored out of 10 from live swell, wind, tide and rainfall: the
-              piers and wrecks inside Port Phillip Bay, the tide-run of Western Port, the
-              Mornington Peninsula back beaches, and the open coast from the Surf Coast down to
-              Wilsons Promontory.
+              The dive sites you find here are given a rating out of ten based on forecasts and
+              training data.
             </p>
             <p className="font-hud-md text-hud-md text-ink-soft opacity-80">
-              Alongside the forecast you get the raw feeds most sites hide: satellite sea-surface
-              temperature, chlorophyll scans that show a plankton bloom before it kills your vis,
-              and seabed depth. It&rsquo;s a planning aid, not a substitute for
-              checking official forecasts before you get in the water.
+              Alongside the forecast you get access to fresh data on a daily basis, featuring...
+            </p>
+            <ul className="font-hud-md text-hud-md text-ink-soft opacity-80 list-disc pl-xl mb-md">
+              <li>Live swell recordings</li>
+              <li>Chlorophyll scans</li>
+              <li>Sea-surface temperature scans</li>
+              <li>Real-color satellite scans</li>
+            </ul>
+            <p className="font-hud-md text-hud-md text-ink-soft opacity-80">
+              Please note this is a planning aid, not a substitute for checking official
+              forecasts.
             </p>
           </div>
         </div>
