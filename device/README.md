@@ -1,8 +1,10 @@
 # E-ink dive forecast panel
 
 `weekly_forecast/weekly_forecast.ino` — the firmware for the wall panel. It wakes
-once an hour, pulls 7 days of dive conditions for one spot from
-`gimmiesickvis.com/api/eink-forecast`, redraws the screen and goes back to sleep.
+once an hour, downloads the finished screen for one spot from
+`gimmiesickvis.com/api/eink-screen` as a 1-bit bitmap, blits it and goes back to
+sleep. The layout lives on the server (`app/api/eink-screen/route.tsx`), so
+changing it is a deploy, not a reflash.
 
 ## Hardware
 
@@ -12,9 +14,8 @@ once an hour, pulls 7 days of dive conditions for one spot from
 - Waveshare ESP32 e-Paper Driver Board. Panel on HSPI: CS 15, DC 27, RST 26,
   BUSY 25, SCK 13, MISO 12, MOSI 14.
 
-Libraries: GxEPD2, WiFiManager, ArduinoJson (v7 — the sketch uses `JsonDocument`,
-not the deprecated `DynamicJsonDocument`). WiFi, HTTPClient and Preferences ship
-with the ESP32 core.
+Libraries: GxEPD2, WiFiManager. WiFi, HTTPClient and Preferences ship with the
+ESP32 core. ArduinoJson is no longer needed; only v6 used it.
 
 ## Buttons
 
@@ -75,22 +76,32 @@ it is also why the button read "Save" instead of "Update".
 
 ## What it draws
 
-Seven columns, today first and inverted, three rows per day (10 AM / 1 PM /
-4 PM). Each slot shows the 0-10 rating in a filled badge (a second border at 8 or
-above), swell height with a direction arrow, energy, and wind with its own arrow.
-Arrows point where the swell or wind is *going*, which is the compass letter's
-bearing plus 180.
+The v7 layout from the design handoff in `design_handoff_eink_dive_forecast/`
+(`reference-800x480.png` is the target). Header with the spot name and
+`UPDATED HH:MM`; a left panel with today's date, the current hour's swell,
+period and wind, and the next high and low tide; today's 10 AM / 12 PM / 2 PM
+blocks on the right, each with its 1-10 rating; a 7-day strip below, today
+inverted. A day's rating in the strip is the best of its three blocks.
 
-Sheltered spots inside Port Phillip show `-` for height, direction and energy.
-That is deliberate and matches the site: Open-Meteo has no marine cell inside the
-heads, so those points get served the nearest ocean cell's swell. The rating and
-the wind are real everywhere.
+Two areas are left blank on purpose for artwork: x 18-114 / y 100-310 on the
+left, and x 590-800 / y 230-322 over the 2 PM block and the strip.
+
+Wind arrows point where the wind is *going*: the unrotated arrow points down (a
+northerly) and is turned clockwise by the from-bearing.
+
+Sheltered spots inside Port Phillip show `-` for swell height, period and the
+strip's swell. That is deliberate and matches the site: Open-Meteo has no marine
+cell inside the heads, so those points get served the nearest ocean cell's
+swell. The rating, wind and tides are real everywhere.
+
+Preview what a panel will show by opening
+`/api/eink-screen?spot=<id>&format=png` in a browser.
 
 ## When something fails
 
 A failed run leaves the last forecast on the wall rather than replacing it with
 an error line — e-ink holds its image with no power, and the screen's own
-`UPDATED: HH:MM` stamp is what tells you it is old. The failure goes to serial
+`UPDATED HH:MM` stamp is what tells you it is old. The failure goes to serial
 only. A panel that has never drawn a forecast has nothing to lose, so it still
 shows the message; the `drawn` flag in NVS is the difference.
 
@@ -111,21 +122,20 @@ can refresh the screen unattended, so the panel covers the forecast with
 ## API
 
 ```
-GET https://gimmiesickvis.com/api/eink-forecast?spot=<id>
+GET https://gimmiesickvis.com/api/eink-screen?spot=<id>&fw=<FW_VERSION>
 ```
 
-```json
-{ "spot": "diamond", "name": "Diamond Bay", "days": [
-  { "date": "2026-09-20", "slots": [
-    { "time": "10 AM", "rating": 7, "height": "2.1m", "heightDirection": "SW",
-      "energy": "1234 kJ", "wind": "15 kmh", "windDirection": "SW" }
-  ] }
-] }
-```
+The body is the whole screen, 48000 bytes: 800 x 480 pixels, row-major, 8 per
+byte, MSB first, 1 = black. That is the layout `drawBitmap()` reads, so the
+firmware passes the buffer straight through. `fw` is printed at the footer's
+left. `&format=png` returns the same render as an image.
 
-Seven days, three slots each, strings already formatted for the screen so the
-firmware does no maths. Field names come from `app/api/eink-forecast/route.ts`;
-if they change, `parseForecast()` is the only function that needs editing.
+The server renders with `next/og` and packs with `pack1bit()` in `lib/eink.ts`
+(self-check: `node lib/eink.test.ts`). The fetch uses HTTP/1.0 so the response
+can't arrive chunked, which would put chunk headers into the pixels.
+
+v6 panels call the old JSON route, `/api/eink-forecast`, which is still up. It
+can go once every panel runs v7.
 
 ## Timing
 
@@ -154,12 +164,10 @@ can go out the AP interface and never get an answer.
 
 ## Failure handling
 
-`fetchForecast()` makes two attempts 3 s apart with explicit 8 s connect and
-read timeouts, so one blip does not cost an hour of stale screen.
-`parseForecast()` returns false when the JSON is bad or when no day in the
-payload matches the week being drawn, and the caller then leaves the screen
-alone — without that, a truncated response drew a grid of empty slots over a
-perfectly good forecast.
+`fetchScreen()` makes two attempts 3 s apart with explicit 8 s connect and
+read timeouts, so one blip does not cost an hour of stale screen. Anything short
+of exactly 48000 bytes counts as a failure and the screen is left alone, so a
+dropped connection can't paint half a forecast over a good one.
 
-The footer's left carries `FW_VERSION`, so a panel on the wall can say which
-build it is running. Bump it when you flash.
+The footer's left carries `FW_VERSION` (sent as `fw`), so a panel on the wall
+can say which build it is running. Bump it when you flash.

@@ -70,10 +70,17 @@ npm test           # rating-logic, tide-prediction + ERDDAP-client self-checks
   the SST map overlay), `sst-point` (click-probe temperature readout),
   Nominatim `geocode`,
   and `depth-tile` (Terrarium elevation PNGs for the dive-map water shading).
-  `eink-forecast` is the odd one out: 7 days of 10am/1pm/4pm slots (score,
-  swell, energy, wind) for the ESP32 e-ink display; `?spot=<id>` picks the
+  `eink-screen` and `eink-forecast` are the odd ones out, both for the ESP32
+  e-ink display. `eink-screen` (v7 firmware) draws the whole 800x480 screen
+  with `next/og` and returns it as a raw 1-bit framebuffer (48000 bytes,
+  packed by `pack1bit()` in `lib/eink.ts`; `&format=png` for a browser
+  preview, `&fw=` prints the firmware version in the footer), so a layout
+  change is a deploy, not a reflash. Fonts are Atkinson Hyperlegible TTFs next
+  to the route. `eink-forecast` is the v6 JSON, kept for panels still on that
+  firmware: 7 days of 10am/1pm/4pm slots (score, swell, energy, wind). Both
+  take `?spot=<id>` for the
   spot (the device stores its own, set in its WiFi portal), default `diamond`.
-  Its slot strings come from `slotCells()` in `lib/logic/rating.ts`, the same
+  Their slot strings come from `slotCells()` in `lib/logic/rating.ts`, the same
   place the forecast table's Energy cell gets its number, so a sheltered spot
   sends `-` for swell/energy exactly as the table prints an em dash there.
 - `components/` — UI + map/chart components. `StoreToast` pops a store ad 5s
@@ -125,7 +132,7 @@ npm test           # rating-logic, tide-prediction + ERDDAP-client self-checks
   Arduino sketch for a Waveshare 7.5" panel on the ESP32 e-Paper Driver Board
   (GxEPD2; the folder name has to match the sketch name). A WiFiManager portal
   stores WiFi and the spot in NVS, then it deep-sleeps an hour between
-  `eink-forecast?spot=<id>` fetches. Built and flashed from the Arduino IDE, not
+  `eink-screen?spot=<id>` fetches, blitting the bitmap it gets back. Built and flashed from the Arduino IDE, not
   by the web build. Its portal spot menu (`SPOT_PICKER`) hardcodes the
   `lib/data/regions.ts` id/name pairs, since the AP has no internet — a new spot
   needs a reflash to appear there (the route validates the id, so drift is safe).

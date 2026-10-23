@@ -1,29 +1,18 @@
-// Surf forecast display — 7.5" Waveshare panel, ESP32 e-Paper Driver Board
-// Diamond Bay, Sorrento — 7 days x 3 time slots (10am / 1pm / 4pm)
+// Dive forecast display — 7.5" Waveshare panel, ESP32 e-Paper Driver Board
 //
-// Expects JSON shaped like (height/wind direction split from magnitude so the
-// firmware can draw a chunky rotated arrow instead of a compass letter):
-// {
-//   "days": [
-//     { "date": "2026-09-17", "slots": [
-//         {"time":"10 AM","rating":7,"height":"2.1m","heightDirection":"SW","energy":"1234 kJ","wind":"15 kmh","windDirection":"SW"},
-//         {"time":"1 PM","rating":8,"height":"2.1m","heightDirection":"SW","energy":"1234 kJ","wind":"15 kmh","windDirection":"SW"},
-//         {"time":"4 PM","rating":6,"height":"2.1m","heightDirection":"SW","energy":"1234 kJ","wind":"15 kmh","windDirection":"SW"}
-//     ]},
-//     ... 7 days total
-//   ]
-// }
-// If the endpoint's field names differ, only parseForecast() needs to change.
+// The screen is drawn by the site, not here: /api/eink-screen returns the whole
+// 800x480 frame as raw 1-bit pixels (48000 bytes, row-major, MSB first,
+// 1 = black), which is exactly what drawBitmap() takes. A layout change is a
+// deploy, not a reflash. To preview what the panel will show, open the same URL
+// with &format=png in a browser.
 
 #include <GxEPD2_BW.h>
 #include <Fonts/FreeSansBold12pt7b.h>
-#include <Fonts/FreeSansBold9pt7b.h>
 #include <Fonts/FreeSans9pt7b.h>
 #include <WiFi.h>
 #include <WiFiManager.h>
 #include <Preferences.h>
 #include <HTTPClient.h>
-#include <ArduinoJson.h>
 #include "time.h"
 
 // ---- Waveshare ESP32 Driver Board pins (confirmed working) ----
@@ -45,7 +34,7 @@ GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> display(
 // ---- Config ----
 // WiFi credentials and the spot live in NVS, set through the setup portal —
 // nothing to hardcode, nothing to reflash when a customer moves the display.
-const char* relayBaseUrl = "https://gimmiesickvis.com/api/eink-forecast";
+const char* relayBaseUrl = "https://gimmiesickvis.com/api/eink-screen";
 const char* ntpServer    = "pool.ntp.org";
 const char* ntpServer2    = "time.google.com";   // pool.ntp.org needs DNS; these are backups
 const char* ntpServer3    = "time.cloudflare.com";
@@ -53,9 +42,10 @@ const int NTP_TIMEOUT_MS  = 30000;               // first sync after a cold boot
 const char* tzMelbourne  = "AEST-10AEDT,M10.1.0,M4.1.0/3";
 const char* portalName   = "GimmieSickVis";
 const char* brandText    = "gimmiesickvis.com";
-// Printed at the footer's left, so a panel on the wall can say which build it
-// is running without opening a serial monitor. Bump it when you flash.
-const char* FW_VERSION   = "v6 2026-09-20";
+// Sent with every fetch and printed at the footer's left by the server, so a
+// panel on the wall can say which build it is running. Bump it when you flash.
+// Keep it URL-safe apart from the space, which fetchScreen() encodes.
+const char* FW_VERSION   = "v7 2026-10-23";
 
 // ---- Setup portal copy ----
 // The portal runs in AP mode with no internet, so the spot list has to ship in
@@ -156,7 +146,6 @@ static const char PORTAL_CSS[] =
 
 Preferences prefs;
 String spotId   = "diamond"; // slug the API knows; unknown ones fall back to Diamond Bay
-String spotName = "";        // display name, straight from the API response
 bool drawnOnce  = false;     // a forecast is already on the screen (see DRAWN_FLAG)
 // Survives deep sleep but not an EN press, so a reset re-syncs the clock. That
 // is the cheap direction to be wrong in.
@@ -185,35 +174,13 @@ const int QUIET_START_H = 22;
 const int QUIET_END_H   = 5;
 // Fallback when the clock can't be trusted, i.e. WiFi or NTP failed.
 const uint64_t RETRY_SECONDS = 3600;
-const int SLOTS_PER_DAY = 3;
-const int RATING_HIGHLIGHT_THRESHOLD = 8; // rating >= this gets the double border
 
-// ---- Layout constants ----
+// ---- Panel geometry ----
 const int PANEL_W = 800;
 const int PANEL_H = 480;
 const int TITLE_H = 55;
-const int DAY_HEADER_H = 35;
 const int FOOTER_H = 20;
-const int COL_W = 114; // last column absorbs the remainder
-
-struct Slot {
-  String time;
-  int rating = -1;
-  String height;
-  String heightDirection;
-  String energy;
-  String wind;
-  String windDirection;
-};
-
-struct DayForecast {
-  String dateLabel;
-  String dayName;
-  String monthDayISO;
-  Slot slots[SLOTS_PER_DAY];
-};
-
-DayForecast week[7];
+const size_t FRAME_BYTES = PANEL_W / 8 * PANEL_H; // 48000, the server's frame
 
 void setup() {
   Serial.begin(115200);
@@ -347,20 +314,19 @@ void setup() {
   }
   Serial.println(&timeinfo, "time: %Y-%m-%d %H:%M:%S");
 
-  buildWeekStructure(timeinfo);
-
-  String payload;
-  if (!fetchForecast(payload)) {
+  uint8_t* frame = (uint8_t*)malloc(FRAME_BYTES);
+  if (!frame) {
+    reportFailure("Out of memory");
+  } else if (!fetchScreen(frame)) {
     reportFailure("Fetch failed");
-  } else if (!parseForecast(payload)) {
-    reportFailure("No forecast data");
   } else {
-    drawWeek(timeinfo);
+    drawScreen(frame);
     if (!drawnOnce) {
       drawnOnce = true;
       prefs.putBool(DRAWN_FLAG, true);
     }
   }
+  free(frame);
 
   WiFi.disconnect(true);
 
@@ -394,29 +360,13 @@ void loop() {
   // never reached — ESP32 restarts from setup() after each deep sleep wake
 }
 
-// Rolling 7-day window starting today (column 0 = today)
-void buildWeekStructure(struct tm &timeinfo) {
-  time_t now = mktime(&timeinfo);
-
-  char isoBuf[11];
-  char dayBuf[3];
-  char nameBuf[4];
-  for (int i = 0; i < 7; i++) {
-    time_t dayTime = now + (i * 86400L);
-    struct tm dayTm;
-    localtime_r(&dayTime, &dayTm);
-    strftime(isoBuf, sizeof(isoBuf), "%Y-%m-%d", &dayTm);
-    strftime(dayBuf, sizeof(dayBuf), "%d", &dayTm);
-    strftime(nameBuf, sizeof(nameBuf), "%a", &dayTm);
-    week[i].monthDayISO = String(isoBuf);
-    week[i].dateLabel = String(dayBuf);
-    week[i].dayName = String(nameBuf);
-    week[i].dayName.toUpperCase(); // e.g. "Thu" -> "THU"
-  }
-}
-
-bool fetchForecast(String &payloadOut) {
-  String relayUrl = String(relayBaseUrl) + "?spot=" + spotId;
+// Fills frame with the server-drawn screen. False means nothing usable came
+// back, so the caller leaves the last good screen up; a short body is a failure,
+// not a partial draw, or a dropped connection would paint half a forecast.
+bool fetchScreen(uint8_t* frame) {
+  String fw = FW_VERSION;
+  fw.replace(" ", "%20");
+  String url = String(relayBaseUrl) + "?spot=" + spotId + "&fw=" + fw;
 
   // Two goes, because the alternative to a 3 second retry is an hour of stale
   // screen. Both timeouts are set explicitly: a stalled TLS handshake would
@@ -426,236 +376,32 @@ bool fetchForecast(String &payloadOut) {
     HTTPClient http;
     http.setConnectTimeout(8000);
     http.setTimeout(8000);
-    http.begin(relayUrl);
+    // HTTP/1.0 rules out chunked encoding, so the raw stream below is the body
+    // and nothing else.
+    http.useHTTP10(true);
+    http.begin(url);
     int code = http.GET();
+    size_t got = 0;
     if (code == 200) {
-      payloadOut = http.getString();
-      http.end();
-      return true;
+      Stream* stream = http.getStreamPtr(); // NetworkClient on core 3.x, WiFiClient on 2.x
+      stream->setTimeout(8000);
+      got = stream->readBytes(frame, FRAME_BYTES);
     }
-    Serial.print("fetch attempt ");
-    Serial.print(attempt);
-    Serial.print(" failed: HTTP ");
-    Serial.println(code);
     http.end();
+    if (code == 200 && got == FRAME_BYTES) return true;
+    Serial.printf("fetch attempt %d failed: HTTP %d, %u of %u bytes\n",
+                  attempt, code, (unsigned)got, (unsigned)FRAME_BYTES);
   }
   return false;
 }
 
-// False means nothing usable came back, so the caller can leave the screen as
-// it is. Without this a truncated payload drew a grid of empty slots over a
-// perfectly good forecast.
-bool parseForecast(const String &payload) {
-  // ArduinoJson 7: JsonDocument grows as needed, so there's no capacity to guess
-  // (DynamicJsonDocument still compiles, but it's deprecated and ignores the number).
-  JsonDocument doc;
-  DeserializationError err = deserializeJson(doc, payload);
-  if (err) {
-    Serial.print("JSON parse error: ");
-    Serial.println(err.c_str());
-    return false;
-  }
-
-  spotName = String((const char*)(doc["name"] | ""));
-
-  int matched = 0; // days in the payload that line up with the week on screen
-  JsonArray days = doc["days"].as<JsonArray>();
-  for (JsonObject day : days) {
-    const char* date = day["date"] | "";
-
-    for (int i = 0; i < 7; i++) {
-      if (week[i].monthDayISO == String(date)) {
-        JsonArray slots = day["slots"].as<JsonArray>();
-        int s = 0;
-        for (JsonObject slot : slots) {
-          if (s >= SLOTS_PER_DAY) break;
-          week[i].slots[s].time = String((const char*)(slot["time"] | ""));
-          week[i].slots[s].rating = slot["rating"] | -1;
-          week[i].slots[s].height = String((const char*)(slot["height"] | ""));
-          week[i].slots[s].heightDirection = String((const char*)(slot["heightDirection"] | ""));
-          week[i].slots[s].energy = String((const char*)(slot["energy"] | ""));
-          week[i].slots[s].wind = String((const char*)(slot["wind"] | ""));
-          week[i].slots[s].windDirection = String((const char*)(slot["windDirection"] | ""));
-          s++;
-        }
-        matched++;
-        break;
-      }
-    }
-  }
-
-  // A payload for last week, or for no days at all, is not a forecast.
-  if (matched == 0) Serial.println("no day in the payload matched this week");
-  return matched > 0;
-}
-
-void rotatePoint(float x, float y, float angleDeg, int cx, int cy, int &outX, int &outY) {
-  float rad = angleDeg * PI / 180.0;
-  float rx = x * cos(rad) - y * sin(rad);
-  float ry = x * sin(rad) + y * cos(rad);
-  outX = cx + round(rx);
-  outY = cy + round(ry);
-}
-
-int directionToAngle(const String &dirIn) {
-  // Compass letters are meteorological "from" directions (e.g. "SW" = coming
-  // from the southwest). The arrow should show where it's heading, not where
-  // it came from, so each angle here is the letter's compass bearing + 180.
-  String dir = dirIn;
-  dir.trim();
-  dir.toUpperCase();
-  if (dir == "N") return 180;
-  if (dir == "NE") return 225;
-  if (dir == "E") return 270;
-  if (dir == "SE") return 315;
-  if (dir == "S") return 0;
-  if (dir == "SW") return 45;
-  if (dir == "W") return 90;
-  if (dir == "NW") return 135;
-  return -1; // unrecognized — skip drawing
-}
-
-// Chunky filled arrow: a wide arrowhead triangle plus a short stem rectangle,
-// rotated around (cx, cy) to point in the compass direction given by angleDeg
-// (0 = north/up, clockwise). Drawn as 3 filled triangles since GxEPD2 has no
-// native polygon fill.
-void drawDirectionArrow(int cx, int cy, float angleDeg) {
-  if (angleDeg < 0) return; // unrecognized direction — draw nothing rather than guess
-
-  int tipX, tipY, rWingX, rWingY, lWingX, lWingY;
-  int stemTLx, stemTLy, stemTRx, stemTRy, stemBRx, stemBRy, stemBLx, stemBLy;
-
-  rotatePoint(0, -12, angleDeg, cx, cy, tipX, tipY);
-  rotatePoint(7, 4, angleDeg, cx, cy, rWingX, rWingY);
-  rotatePoint(-7, 4, angleDeg, cx, cy, lWingX, lWingY);
-
-  rotatePoint(-2.5, 4, angleDeg, cx, cy, stemTLx, stemTLy);
-  rotatePoint(2.5, 4, angleDeg, cx, cy, stemTRx, stemTRy);
-  rotatePoint(2.5, 12, angleDeg, cx, cy, stemBRx, stemBRy);
-  rotatePoint(-2.5, 12, angleDeg, cx, cy, stemBLx, stemBLy);
-
-  display.fillTriangle(tipX, tipY, rWingX, rWingY, lWingX, lWingY, GxEPD_BLACK);
-  display.fillTriangle(stemTLx, stemTLy, stemTRx, stemTRy, stemBRx, stemBRy, GxEPD_BLACK);
-  display.fillTriangle(stemTLx, stemTLy, stemBRx, stemBRy, stemBLx, stemBLy, GxEPD_BLACK);
-}
-
-void drawRatingBadge(int x1, int y, int rating) {
-  const int badgeSize = 18;
-  int bx = x1 - 6 - badgeSize;
-  int by = y - 14;
-
-  display.fillRect(bx, by, badgeSize, badgeSize, GxEPD_BLACK);
-
-  if (rating >= RATING_HIGHLIGHT_THRESHOLD) {
-    // double border: an outer unfilled ring with a gap, for ideal-conditions emphasis
-    display.drawRect(bx - 4, by - 4, badgeSize + 8, badgeSize + 8, GxEPD_BLACK);
-  }
-
-  display.setFont(&FreeSansBold9pt7b);
-  display.setTextColor(GxEPD_WHITE);
-  char ratingBuf[4];
-  if (rating >= 0) snprintf(ratingBuf, sizeof(ratingBuf), "%d", rating);
-  else snprintf(ratingBuf, sizeof(ratingBuf), "-");
-
-  int16_t bx2, by2; uint16_t bw2, bh2;
-  display.getTextBounds(ratingBuf, 0, 0, &bx2, &by2, &bw2, &bh2);
-  display.setCursor(bx + (badgeSize - bw2) / 2, by + badgeSize - 4);
-  display.print(ratingBuf);
-  display.setTextColor(GxEPD_BLACK);
-}
-
-void drawWeek(struct tm &timeinfo) {
-  char updatedBuf[20];
-  strftime(updatedBuf, sizeof(updatedBuf), "UPDATED: %H:%M", &timeinfo);
-
+void drawScreen(const uint8_t* frame) {
   display.setFullWindow();
   display.firstPage();
   do {
     display.fillScreen(GxEPD_WHITE);
-
-    // title bar
-    display.drawLine(0, TITLE_H, PANEL_W, TITLE_H, GxEPD_BLACK);
-    display.setFont(&FreeSansBold12pt7b);
-    display.setTextColor(GxEPD_BLACK);
-    display.setCursor(15, 35);
-    String title = spotName.length() ? ("Dive forecast: " + spotName) : String("Dive forecast");
-    title.toUpperCase();
-    display.print(title);
-
-    int16_t bx, by; uint16_t bw, bh;
-    display.setFont(&FreeSans9pt7b);
-    display.getTextBounds(updatedBuf, 0, 0, &bx, &by, &bw, &bh);
-    display.setCursor(PANEL_W - bw - 15, 32);
-    display.print(updatedBuf);
-
-    int contentTop = TITLE_H + DAY_HEADER_H;
-    int contentBottom = PANEL_H - FOOTER_H;
-    int slotHeight = (contentBottom - contentTop) / SLOTS_PER_DAY;
-
-    for (int i = 0; i < 7; i++) {
-      int x0 = i * COL_W;
-      int x1 = (i == 6) ? PANEL_W : x0 + COL_W;
-
-      if (i > 0) {
-        display.drawLine(x0, TITLE_H, x0, contentBottom, GxEPD_BLACK);
-      }
-
-      // day header — invert to black for today's column (always index 0)
-      char headerText[10];
-      snprintf(headerText, sizeof(headerText), "%s %s", week[i].dayName.c_str(), week[i].dateLabel.c_str());
-      display.setFont(&FreeSansBold9pt7b);
-      display.getTextBounds(headerText, 0, 0, &bx, &by, &bw, &bh);
-
-      if (i == 0) {
-        display.fillRect(x0, TITLE_H, x1 - x0, DAY_HEADER_H, GxEPD_BLACK);
-        display.setTextColor(GxEPD_WHITE);
-      } else {
-        display.setTextColor(GxEPD_BLACK);
-      }
-      display.setCursor(x0 + ((x1 - x0) - bw) / 2, TITLE_H + 24);
-      display.print(headerText);
-      display.setTextColor(GxEPD_BLACK);
-      display.drawLine(x0, contentTop, x1, contentTop, GxEPD_BLACK);
-
-      // 3 time slots
-      int badgeCenterX = x1 - 15; // matches drawRatingBadge's badge center, so arrows line up under it
-      for (int s = 0; s < SLOTS_PER_DAY; s++) {
-        int slotY = contentTop + s * slotHeight;
-        Slot &slot = week[i].slots[s];
-
-        display.setFont(&FreeSansBold9pt7b);
-        display.setCursor(x0 + 6, slotY + 20);
-        display.print(slot.time);
-
-        drawRatingBadge(x1, slotY + 20, slot.rating);
-
-        display.setFont(&FreeSans9pt7b);
-        display.setCursor(x0 + 6, slotY + 44);
-        display.print(slot.height);
-        drawDirectionArrow(badgeCenterX, slotY + 37, directionToAngle(slot.heightDirection));
-
-        display.setCursor(x0 + 6, slotY + 66);
-        display.print(slot.energy);
-
-        display.setCursor(x0 + 6, slotY + 88);
-        display.print(slot.wind);
-        drawDirectionArrow(badgeCenterX, slotY + 81, directionToAngle(slot.windDirection));
-      }
-    }
-
-    // footer
-    display.drawLine(0, contentBottom, PANEL_W, contentBottom, GxEPD_BLACK);
-    display.setFont(&FreeSans9pt7b);
-
-    display.getTextBounds(brandText, 0, 0, &bx, &by, &bw, &bh);
-    display.setCursor(PANEL_W - bw - 15, PANEL_H - 5);
-    display.print(brandText);
-
-    display.setCursor(15, PANEL_H - 5);
-    display.print(FW_VERSION);
-
+    display.drawBitmap(0, 0, frame, PANEL_W, PANEL_H, GxEPD_BLACK);
   } while (display.nextPage());
-
   display.powerOff();
 }
 
@@ -692,7 +438,7 @@ void drawSetupScreen() {
 
     display.setCursor(15, y + 20);
     display.print("Showing: ");
-    display.print(spotName.length() ? spotName : spotId);
+    display.print(spotId);
 
     int contentBottom = PANEL_H - FOOTER_H;
     display.drawLine(0, contentBottom, PANEL_W, contentBottom, GxEPD_BLACK);

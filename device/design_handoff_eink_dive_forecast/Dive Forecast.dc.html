@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&amp;display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>body{margin:0;background:#1e1e1e;font-family:'Atkinson Hyperlegible',sans-serif}a{color:#000}a:hover{color:#555}</style>
+</helmet>
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:safe center;padding:40px;box-sizing:border-box">
+<div style="zoom:{{ zoom }};background:#111;padding:22px;border-radius:4px;box-shadow:0 20px 50px rgba(0,0,0,.5)">
+<div style="background:#f2f2ee;padding:30px">
+<div data-screen-label="E-ink 800x480" style="width:800px;height:480px;background:#fff;color:#000;display:flex;flex-direction:column;overflow:hidden;font-family:'Atkinson Hyperlegible',sans-serif;box-sizing:border-box">
+
+  <div style="height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:2px solid #000;flex:none">
+    <div style="font-size:26px;font-weight:700;letter-spacing:.02em">CAPE SCHANCK</div>
+    <div style="font-size:16px;letter-spacing:.04em">UPDATED 17:00</div>
+  </div>
+
+  <div style="height:274px;display:flex;flex:none">
+    <div style="width:340px;padding:12px 16px 12px 18px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px">
+      
+      <div style="font-size: 24px; font-weight: 700; letter-spacing: .02em; text-align: center">{{ today.label }}</div><div style="display:flex;gap:16px;flex:1;min-height:0">
+        <div style="width:96px;display:flex;flex-direction:column;gap:4px;flex:none">
+          <sc-if value="{{ showTide }}" hint-placeholder-val="{{ true }}"><div style="flex:1"></div></sc-if>
+          <sc-if value="{{ showSlot }}" hint-placeholder-val="{{ false }}">
+            <image-slot id="left-graphic" shape="rect" placeholder="Graphic" style="width:96px;height:200px;border:2px solid #000;box-sizing:border-box"></image-slot>
+          </sc-if>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 14px; flex: 1; padding-top: 6px; width: 208px; height: 190px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <svg width="44" height="30" viewBox="0 0 44 30" style="flex:none"><path d="M2 24 C8 24 10 6 22 6 C30 6 33 13 29 17 C26 20 21 17 23 13 C16 14 16 24 26 24 C32 24 36 20 42 22" fill="none" stroke="#000" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M2 28 H42" stroke="#000" stroke-width="2.5" stroke-linecap="round"></path></svg>
+            <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:36px;font-weight:700;line-height:1">{{ today.swell }}</span><span style="font-size:18px">{{ today.period }}</span></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:44px;display:flex;justify-content:center;flex:none"><svg width="30" height="34" viewBox="0 0 30 34" style="transform:rotate({{ today.windRot }})"><path d="M15 2 V30 M4 19 L15 31 L26 19" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+            <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:30px;font-weight:700;line-height:1">{{ today.wind }}</span><span style="font-size:16px">kmh {{ today.windDir }}</span></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:2px;font-size:16px;margin-top:auto;border-top:1px solid #000;padding-top:8px">
+            <div style="display:flex;justify-content:space-between"><span>Next high</span><b>{{ today.high }}</b></div>
+            <div style="display:flex;justify-content:space-between"><span>Next low</span><b>{{ today.low }}</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="width:2px;background:#000;margin:14px 0;flex:none"></div>
+    <div style="flex: 1; padding: 10px 18px 10px 20px; display: flex; flex-direction: column; justify-content: space-between; position: relative">
+      <sc-for list="{{ hours }}" as="h" hint-placeholder-count="3">
+        <div style="display:grid;grid-template-columns:76px 44px auto;align-items:center;row-gap:2px;font-size:22px;padding:4px 0;border-bottom:{{ h.border }}">
+            <span style="font-weight:700">{{ h.time }}</span>
+            <span style="width:24px;height:24px;background:#000;color:#fff;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;grid-column:2 / 4">{{ h.rating }}</span>
+            <span><b>{{ h.swell }}</b></span>
+            <span>{{ h.period }}</span>
+            <span style="display:flex;align-items:center;gap:6px">{{ h.wind }} kmh<svg width="18" height="20" viewBox="0 0 30 34" style="transform:rotate({{ h.windRot }})"><path d="M15 2 V30 M4 19 L15 31 L26 19" fill="none" stroke="#000" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="flex:1;display:flex;justify-content:center;min-height:0;border-top:2px solid #000">
+    <div style="width:590px;border-left:1px solid #000;display:grid;grid-template-columns:repeat(7,minmax(0,1fr))">
+      <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border-right:1px solid #000;background:{{ d.bg }};color:{{ d.fg }}">
+          <span style="font-size:15px;font-weight:700;letter-spacing:.04em">{{ d.day }}</span>
+          <span style="width:38px;height:38px;background:{{ d.boxBg }};color:{{ d.boxFg }};font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center">{{ d.rating }}</span>
+          <span style="font-size:14px">{{ d.swell }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <sc-if value="{{ showGraphic }}" hint-placeholder-val="{{ true }}">
+      <div style="width:210px;flex:none;position:relative">
+        
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="height:22px;display:flex;align-items:center;justify-content:space-between;padding:2px 12px 0;border-top:2px solid #000;box-sizing:border-box;font-size:12px;flex:none">
+    <span>v7 2026-10-26</span>
+    <span>gimmiesickvis.com</span>
+  </div>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;selectedDay&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0,&quot;max&quot;:6,&quot;step&quot;:1,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;},&quot;leftPanel&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;tide&quot;,&quot;graphic&quot;],&quot;default&quot;:&quot;tide&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;showGraphic&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;zoom&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:1,&quot;max&quot;:2,&quot;step&quot;:0.25,&quot;default&quot;:1.25,&quot;tsType&quot;:&quot;number&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const sel = p.selectedDay ?? 0;
+    const days = [
+      { day: 'MON', date: 26, rating: 1, swell: '1.5m', period: '9s', wind: 27, dir: 'N', rot: 0 },
+      { day: 'TUE', date: 27, rating: 1, swell: '1.7m', period: '10s', wind: 23, dir: 'W', rot: 270 },
+      { day: 'WED', date: 28, rating: 2, swell: '1.3m', period: '11s', wind: 22, dir: 'NW', rot: 315 },
+      { day: 'THU', date: 29, rating: 1, swell: '2.2m', period: '8s', wind: 18, dir: 'SW', rot: 225 },
+      { day: 'FRI', date: 30, rating: 2, swell: '1.8m', period: '12s', wind: 35, dir: 'N', rot: 0 },
+      { day: 'SAT', date: 31, rating: 3, swell: '1.1m', period: '13s', wind: 8, dir: 'S', rot: 180 },
+      { day: 'SUN', date: 1, rating: 2, swell: '1.6m', period: '10s', wind: 23, dir: 'S', rot: 180 },
+    ];
+    const t = days[sel];
+    const month = t.date < 26 ? 'NOVEMBER' : 'OCTOBER';
+    const hours = [
+      { time: '10 AM', rating: t.rating, swell: t.swell, period: t.period, wind: t.wind, windRot: t.rot + 'deg' },
+      { time: '12 PM', rating: t.rating, swell: t.swell, period: t.period, wind: t.wind + 2, windRot: (t.rot - 45) + 'deg' },
+      { time: '2 PM', rating: Math.min(3, t.rating + 1), swell: t.swell, period: t.period, wind: Math.max(5, t.wind - 4), windRot: (t.rot - 90) + 'deg' },
+    ].map((h, i) => ({ ...h, border: i < 2 ? '1px solid #aaa' : 'none' }));
+    // tide curve, 0-24h, ~12.4h period
+    const W = 96, H = 168, pts = [];
+    for (let i = 0; i <= 48; i++) {
+      const hr = i / 2, x = (hr / 24) * W;
+      const y = H / 2 - Math.cos(((hr - 14.9) / 12.42) * 2 * Math.PI) * (H * 0.32);
+      pts.push(x.toFixed(1) + ' ' + y.toFixed(1));
+    }
+    const tideLine = 'M' + pts.join(' L');
+    return {
+      zoom: p.zoom ?? 1,
+      showTide: (p.leftPanel ?? 'blank') !== 'graphic',
+      showSlot: (p.leftPanel ?? 'blank') === 'graphic',
+      showGraphic: p.showGraphic ?? false,
+      tideLine, tideFill: tideLine + ` L${W} ${H} L0 ${H} Z`, nowX: ((10 / 24) * W).toFixed(1),
+      today: { label: `${t.day} ${t.date} ${month}`, swell: t.swell, period: t.period, wind: t.wind, windDir: t.dir, windRot: t.rot + 'deg', high: '2:52 PM  1.9m', low: '9:08 PM  0.4m' },
+      hours,
+      week: days.map((d, i) => {
+        const on = i === sel;
+        return { day: d.day, rating: d.rating, swell: d.swell, bg: on ? '#000' : '#fff', fg: on ? '#fff' : '#000', boxBg: on ? '#fff' : '#000', boxFg: on ? '#000' : '#fff' };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>
