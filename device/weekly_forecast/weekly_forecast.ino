@@ -45,7 +45,7 @@ const char* brandText    = "gimmiesickvis.com";
 // Sent with every fetch and printed at the footer's left by the server, so a
 // panel on the wall can say which build it is running. Bump it when you flash.
 // Keep it URL-safe apart from the space, which fetchScreen() encodes.
-const char* FW_VERSION   = "v7 2026-10-23";
+const char* FW_VERSION   = "v7.1 2026-10-23";
 
 // ---- Setup portal copy ----
 // The portal runs in AP mode with no internet, so the spot list has to ship in
@@ -383,9 +383,21 @@ bool fetchScreen(uint8_t* frame) {
     int code = http.GET();
     size_t got = 0;
     if (code == 200) {
+      // Looped, not one readBytes(): the ESP32 core's client overrides it with a
+      // single read() that returns whatever TLS has decrypted so far (2358 bytes
+      // on the first try), not the count asked for. A stall of 8 s gives up.
       Stream* stream = http.getStreamPtr(); // NetworkClient on core 3.x, WiFiClient on 2.x
-      stream->setTimeout(8000);
-      got = stream->readBytes(frame, FRAME_BYTES);
+      unsigned long last = millis();
+      while (got < FRAME_BYTES && millis() - last < 8000) {
+        if (stream->available()) {
+          got += stream->readBytes(frame + got, FRAME_BYTES - got);
+          last = millis();
+        } else if (!http.connected()) {
+          break;
+        } else {
+          delay(5);
+        }
+      }
     }
     http.end();
     if (code == 200 && got == FRAME_BYTES) return true;
