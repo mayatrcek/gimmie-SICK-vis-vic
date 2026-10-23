@@ -43,20 +43,28 @@ this ever needs a second gesture.
 
 Opens by itself when WiFi won't connect, or on the EN double press. Join the
 `GimmieSickVis` network from a phone; the page should open on its own, otherwise
-browse to `192.168.4.1`. Enter the WiFi network and password, pick a dive spot,
-press Update. The portal closes after 3 minutes (`PORTAL_TIMEOUT_S`), or ~20 s
-after a save, then the panel redraws.
+browse to `192.168.4.1`. Tap a network in the list, enter its password, pick a
+dive spot, press Update. The portal closes after 3 minutes (`PORTAL_TIMEOUT_S`),
+or ~20 s after a save, then the panel redraws.
 
-**Changing only the spot needs no password.** Leave the network box alone, pick
-a spot, press Update. The saved credentials are not touched.
+**Networks are picked, never typed.** Each scan result is a full-width card;
+tapping one fills WiFiManager's SSID box, which is hidden. A line under the list
+says what is picked, or which network the panel will stay on (the box's
+placeholder is the stored SSID). A network that isn't in the scan, e.g. a hidden
+SSID, can't be entered; press Refresh to rescan.
 
-**Tapping a network means you must type its password.** Update greys out until
-you do, with a line saying so. That one combination — a network selected, the
-password blank — is what breaks a working panel: it sends WiFiManager down its
-connect-to-new-AP branch, where `WiFi.persistent(true); WiFi.begin(ssid, "")`
+**Changing only the spot needs no password.** Pick no network, pick a spot,
+press Update. The saved credentials are not touched.
+
+**Tapping a secured network means you must type its password.** Update greys out
+until you do, with a line saying so. That one combination — a network selected,
+the password blank — is what breaks a working panel: it sends WiFiManager down
+its connect-to-new-AP branch, where `WiFi.persistent(true); WiFi.begin(ssid, "")`
 writes the blank password over the stored one (`WiFiManager.cpp:1104`). The join
 then fails, the page says "Not connected", and the panel is left holding
-credentials it cannot use. Clear the network box to get Update back.
+credentials it cannot use. Tap the picked network again to unpick it and get
+Update back. Open networks are exempt: WiFiManager's own `c()` disables the
+password box for them.
 
 After you press Update the portal closes and **the panel reboots itself**, then
 comes back on the new spot about half a minute later. That is deliberate: the

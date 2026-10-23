@@ -45,7 +45,7 @@ const char* brandText    = "gimmiesickvis.com";
 // Sent with every fetch and printed at the footer's left by the server, so a
 // panel on the wall can say which build it is running. Bump it when you flash.
 // Keep it URL-safe apart from the space, which fetchScreen() encodes.
-const char* FW_VERSION   = "v7.1 2026-10-23";
+const char* FW_VERSION   = "v7.2 2026-10-23";
 
 // ---- Setup portal copy ----
 // The portal runs in AP mode with no internet, so the spot list has to ship in
@@ -68,11 +68,11 @@ static const char PORTAL_INTRO[] =
 // the stored spot survives, which is the safe failure.
 static const char SPOT_PICKER[] =
   "<p style='font-size:13px;color:#3A332A;margin:2px 0 16px'>"
-  "Needed the first time this display joins a network. Already set up? Leave both boxes "
-  "blank and it stays on the network it is using.</p>"
+  "Needed the first time this display joins a network. Already set up? Pick no network "
+  "and leave this blank: it stays on the network it is using.</p>"
   "<p id='gsvneedpass' style='display:none;font-size:13px;color:#A8200D;margin:2px 0 16px'>"
-  "<b>Password needed.</b> Type the password for the network you picked, or clear the "
-  "network box to stay on the one this display already uses.</p>"
+  "<b>Password needed.</b> Type the password for the network you picked, or tap that "
+  "network again to stay on the one this display already uses.</p>"
   "<label for='spotsel' style='display:block;margin-bottom:4px'><b>3. Dive spot</b></label>"
   "<select id='spotsel' onchange=\"document.getElementById('spot').value=this.value\">"
   "<optgroup label='Surf Coast'><option value='bells'>Bells Beach</option><option value='winki'>Winkipop</option><option value='janjuc'>Jan Juc</option><option value='torquay'>Torquay Point</option><option value='roadknight'>Point Roadknight</option><option value='anglesea'>Anglesea</option><option value='lorne'>Lorne</option><option value='apollo'>Apollo Bay</option></optgroup><optgroup label='Bellarine'><option value='13th'>13th Beach</option><option value='barwon'>Barwon Heads</option><option value='oceangrove'>Ocean Grove</option><option value='lonsdale'>Point Lonsdale</option></optgroup><optgroup label='Mornington Peninsula'><option value='pointnepean'>Point Nepean (buoy)</option><option value='portsea'>Portsea Back Beach</option><option value='diamond'>Diamond Bay</option><option value='sorrento'>Sorrento Back Beach</option><option value='rye'>Rye Back Beach</option><option value='gunnamatta'>Gunnamatta</option><option value='schanck'>Cape Schanck</option><option value='flinders'>Flinders</option><option value='pointleo'>Point Leo</option></optgroup><optgroup label='Phillip Island'><option value='woolamai'>Cape Woolamai</option><option value='smiths'>Smiths Beach</option><option value='surfbeach'>Surf Beach</option><option value='pyramid'>Pyramid Rock</option><option value='express'>Express Point</option><option value='summerland'>Summerland</option><option value='ycw'>YCW / Cat Bay</option></optgroup><optgroup label='East Coast / Gippsland'><option value='capepat'>Cape Paterson</option><option value='inverloch'>Inverloch</option><option value='venus'>Venus Bay</option><option value='waratah'>Waratah Bay</option><option value='sandypt'>Sandy Point</option><option value='walkerville'>Walkerville</option></optgroup><optgroup label='Wilsons Promontory'><option value='tonguept'>Tongue Point</option><option value='whiskybay'>Whisky Bay</option><option value='squeaky'>Squeaky Beach</option><option value='normanbay'>Norman Bay (Tidal River)</option><option value='shellback'>Shellback Island</option><option value='oberon'>Oberon Bay</option><option value='glennie'>Great Glennie Island</option><option value='cleft'>Cleft Island (Skull Rock)</option><option value='anser'>Anser Island</option><option value='kanowna'>Kanowna Island</option><option value='rodondo'>Rodondo Island</option><option value='waterloobay'>Waterloo Bay</option><option value='refugecove'>Refuge Cove</option><option value='sealerscove'>Sealers Cove</option></optgroup><optgroup label='Far West / Shipwreck Coast'><option value='portcampbell'>Port Campbell</option><option value='princetown'>Princetown</option><option value='warrnambool'>Warrnambool (Logans)</option><option value='portfairy'>Port Fairy</option><option value='portland'>Portland</option></optgroup><optgroup label='Port Phillip'><option value='fort'>South Channel Fort</option><option value='blairgowrie'>Blairgowrie (bay)</option><option value='ryepier'>Rye Pier</option><option value='sorrentopier'>Sorrento Pier</option><option value='portseapier'>Portsea Pier</option><option value='portseahole'>Portsea Hole</option><option value='popeseye'>Popes Eye</option><option value='chinamans'>Chinaman's Hat</option><option value='lonsdalewall'>Lonsdale Wall</option><option value='queenscliffpier'>Queenscliff Pier</option><option value='stleonards'>St Leonards Pier</option><option value='portarlington'>Portarlington Pier</option><option value='morningtonpier'>Mornington Pier</option><option value='ricketts'>Ricketts Point</option><option value='cerberus'>HMVS Cerberus (Black Rock)</option><option value='williamstown'>Williamstown (The Dell)</option></optgroup><optgroup label='Western Port'><option value='flinderspier'>Flinders Pier</option><option value='cowes'>Cowes Jetty</option><option value='stonypoint'>Stony Point Pier</option><option value='crawfish'>Crawfish Rock</option><option value='rhyll'>Rhyll Jetty</option><option value='newhaven'>Newhaven Pier (San Remo)</option><option value='tortoise'>Tortoise Head (French Is.)</option><option value='corinella'>Corinella Pier</option></optgroup>"
@@ -98,12 +98,34 @@ static const char SPOT_PICKER[] =
   "var n=document.getElementById('s'),q=document.getElementById('p');"
   "var b=f?f.querySelector(\"button[type='submit']\"):null;"
   "var m=document.getElementById('gsvneedpass');"
-  "function g(){var bad=!!(n.value&&!q.value);b.disabled=bad;"
+  // An open network disables the password box (WiFiManager's c()), so blank is
+  // fine there.
+  "function g(){var bad=!!(n.value&&!q.disabled&&!q.value);b.disabled=bad;"
   "if(m)m.style.display=bad?'block':'none';}"
-  // Tapping a network sets the field from WiFiManager's own onclick, and a
-  // scripted value change fires no input event — so re-check after any click too.
-  "if(f&&n&&q&&b){n.addEventListener('input',g);q.addEventListener('input',g);"
-  "document.addEventListener('click',function(){setTimeout(g,0);});g();}"
+  "if(!(f&&n&&q&&b))return;"
+  "q.addEventListener('input',g);"
+  // The network list. Each scan result is <div><a data-ssid onclick=c(this)>
+  // then the signal icon, rendered above the form (WiFiManager.cpp:1366). The
+  // whole row becomes the tap target and the SSID text box is hidden (CSS), so
+  // nobody types a network name. Tapping the picked row again unpicks it, which
+  // is the "keep the current network" path. The box's placeholder is the stored
+  // SSID (WiFiManager.cpp:1375), which is how the status line can name it.
+  // Names go in through textContent: an SSID is anyone's broadcast.
+  "var rows=[].slice.call(document.querySelectorAll('a[data-ssid]'));"
+  "var cur=n.getAttribute('placeholder')||'';"
+  "var hd=document.createElement('div');hd.className='gsvh';hd.textContent='1. WiFi network';"
+  "var st=document.createElement('p');st.id='gsvsel';"
+  "function show(){var t=n.value?'Picked: ':cur?'Nothing picked. Staying on: ':"
+  "rows.length?'Nothing picked yet. Tap your network.':'No networks found. Press Refresh to scan again.';"
+  "st.textContent=t;if(n.value||cur){var e=document.createElement('b');e.textContent=n.value||cur;st.appendChild(e);}}"
+  "var at=rows.length?rows[0].parentNode:f;at.parentNode.insertBefore(hd,at);"
+  "var last=rows.length?rows[rows.length-1].parentNode:hd;last.parentNode.insertBefore(st,last.nextSibling);"
+  "rows.forEach(function(a){var r=a.parentNode;a.removeAttribute('onclick');r.classList.add('gsvnet');"
+  "r.addEventListener('click',function(ev){ev.preventDefault();"
+  "if(n.value&&n.value===a.getAttribute('data-ssid')){n.value='';q.value='';q.disabled=false;}else{q.value='';c(a);}"
+  "rows.forEach(function(x){x.parentNode.classList.toggle('sel',!!n.value&&x.getAttribute('data-ssid')===n.value);});"
+  "show();g();if(n.value&&!q.disabled)q.focus();});});"
+  "show();g();"
   "});</script>";
 
 // Portal styling. Injected after WiFiManager's own <style> (WiFiManager.cpp:1281),
@@ -132,10 +154,26 @@ static const char PORTAL_CSS[] =
   "a{color:#161310}a:hover{color:#2E5DD6}"
   // Field labels and the submit button are library strings, so they get rewritten
   // here; see the note above about this tying us to 2.0.17's markup.
-  "label[for='s'],label[for='p']{font-size:0;display:block;margin-top:14px}"
-  "label[for='s']::before{content:'1. WiFi network ';font-size:1rem;font-weight:700}"
+  // The SSID box stays in the form (it is what gets submitted) but out of sight:
+  // the network list above fills it. See SPOT_PICKER's script.
+  "#s,label[for='s']{display:none}"
+  "label[for='p']{font-size:0;display:block;margin-top:14px}"
   "label[for='p']::before{content:'2. WiFi password ';font-size:1rem;font-weight:700}"
-  "label[for='s']::after,label[for='p']::after{content:'*';font-size:1rem;font-weight:700;color:#A8200D}"
+  "label[for='p']::after{content:'*';font-size:1rem;font-weight:700;color:#A8200D}"
+  "input:disabled{opacity:.45}"
+  // Network rows: card buttons, filled blue once picked.
+  ".gsvh{font-weight:700;margin:4px 0 8px}"
+  ".gsvnet{display:flex;align-items:center;gap:8px;background:#FFFAEF;border:2px solid #161310;"
+  "box-shadow:3px 3px 0 #161310;margin:0 0 10px;padding:0 10px;min-height:52px;cursor:pointer}"
+  ".gsvnet a{flex:1;color:#161310;font-size:1.05rem;padding:14px 0;text-decoration:none;overflow-wrap:anywhere}"
+  ".gsvnet a:hover{color:#161310;text-decoration:none}"
+  ".gsvnet::after{content:'Pick';font-weight:700;font-size:.9rem;color:#2E5DD6}"
+  ".gsvnet .q{float:none;min-width:0;padding:0}"
+  ".gsvnet.sel{background:#2E5DD6;box-shadow:none;transform:translate(3px,3px)}"
+  ".gsvnet.sel a,.gsvnet.sel::after{color:#FFFAEF}"
+  ".gsvnet.sel::after{content:'Picked'}"
+  ".gsvnet.sel .q{filter:invert(1)}"
+  "#gsvsel{font-size:14px;margin:4px 0 6px}"
   "form[action$='wifisave'] button[type='submit']{font-size:0;margin-top:18px}"
   "form[action$='wifisave'] button[type='submit']::after{content:'Update';font-size:1.1rem}"
   "button[disabled]{opacity:.45;box-shadow:2px 2px 0 #161310;transform:translate(2px,2px)}"
