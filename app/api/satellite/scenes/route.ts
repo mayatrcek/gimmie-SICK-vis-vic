@@ -62,7 +62,8 @@ export async function GET() {
       { scenes },
       { headers: { "Cache-Control": "public, max-age=3600" } },
     );
-  } catch {
+  } catch (e) {
+    console.error("satellite scenes:", e);
     return NextResponse.json({ scenes: [] });
   }
 }
