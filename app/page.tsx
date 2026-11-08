@@ -235,7 +235,7 @@ export default function Home() {
       {/* Workflow, with the sticker promo beside it from lg up. The sticker art is
           white-on-transparent, so it sits on the shop's own teal, not parchment. */}
       <section className="bg-parchment py-xxxl px-bleed">
-        <div className="max-w-page-max mx-auto flex flex-col lg:flex-row items-center lg:items-start gap-xxl">
+        <div className="max-w-page-max mx-auto flex flex-col lg:flex-row items-center gap-xxl">
           <div className="flex-1 self-stretch bg-parchment p-xxl border-2 border-ink-soft shadow-[8px_8px_0px_0px_#3A332A]">
             <h2 className="home-h2 font-display-lg text-headline-lg text-ink-soft mb-md uppercase">
               MY RECOMMENDED WORKFLOW
@@ -277,11 +277,7 @@ export default function Home() {
               />
             </div>
             <div className="flex flex-col justify-between gap-md p-md text-ink-soft">
-              <p className="font-hud-md text-hud-md opacity-60 uppercase">New ▸ Sticker</p>
-              <div>
-                <h2 className="font-display-lg text-headline-md uppercase mb-sm">Port Jackson Shark</h2>
-                <p className="font-hud-md text-hud-md opacity-80">Vinyl. Fins, tanks, cars.</p>
-              </div>
+              <h2 className="font-display-lg text-headline-md uppercase">Port Jackson Shark</h2>
               <div className="flex flex-col gap-sm">
                 <p className="font-display-lg text-headline-md">$10</p>
                 <span className="btn btn-primary">Get it</span>
