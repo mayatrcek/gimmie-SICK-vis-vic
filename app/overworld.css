@@ -1046,8 +1046,9 @@
     animation:ow-toast-drain 60s linear forwards}
   .ow-toast:hover .ow-toast__progress{animation-play-state:paused}
   @keyframes ow-toast-drain{to{width:0}}
-  /* /store interstitial: ink sheet drops from the top, then three square dots blink in turn */
-  .store-go{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;gap:14px;
+  /* /store interstitial: ink sheet drops from the top, then three square dots blink in turn.
+     z-index 1500 sits over the nav (.tabs 1300) and the store toast (1400). */
+  .store-go{position:fixed;inset:0;z-index:1500;display:flex;align-items:center;justify-content:center;gap:14px;
     background:var(--ink);animation:store-drop .4s var(--ease-shut) both}
   .store-go>span{width:14px;height:14px;background:var(--paper);opacity:0;
     animation:store-dot .6s steps(1) .4s infinite}
