@@ -252,12 +252,12 @@ export default function Home() {
                 </li>
               ))}
             </ol>
-            <div className="flex flex-wrap items-center gap-md">
+            <div className="flex flex-wrap items-center justify-center text-center gap-md">
               <p className="font-hud-md text-hud-md text-ink-soft opacity-80">
                 Confused what some of this stuff means? Check out my mini-guide
               </p>
               <Link href="/back-beach" className="btn btn-primary">
-                Mini-guide &rarr;
+                Mini-guide
               </Link>
             </div>
           </div>
