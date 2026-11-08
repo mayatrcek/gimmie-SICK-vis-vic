@@ -264,25 +264,25 @@ export default function Home() {
           </div>
           <a
             href="https://www.madart.shop/products/port-jackson-sticker"
-            className="group grid sm:grid-cols-2 sm:aspect-square w-full max-w-[420px] shrink-0 bg-bone border-2 border-ink-soft shadow-[8px_8px_0px_0px_#3A332A]"
+            className="group flex flex-col items-center gap-xl w-full max-w-[420px] shrink-0"
           >
-            {/* Phones stack art over text: two columns at ~250px wide can't hold the title. */}
-            <div className="relative h-64 sm:h-auto bg-[#4c6971] border-b-2 sm:border-b-0 sm:border-r-2 border-ink-soft overflow-hidden">
+            {/* Title reads bottom-to-top up the left edge; cqw keeps it spanning
+                the square's height at any card width. */}
+            <div className="relative aspect-square w-full [container-type:inline-size] bg-[#4c6971] border-2 border-ink-soft shadow-[8px_8px_0px_0px_#3A332A] overflow-hidden">
               <Image
                 src="/assets/store/port-jackson.png"
                 alt="Port Jackson shark sticker"
                 fill
-                sizes="210px"
+                sizes="420px"
                 className="object-contain p-md -rotate-2 drop-shadow-[4px_4px_0_#191310] transition-transform duration-200 group-hover:rotate-0 group-hover:-translate-y-1"
               />
-            </div>
-            <div className="flex flex-col justify-between gap-md p-md text-ink-soft">
-              <h2 className="font-display-lg text-headline-md uppercase">Port Jackson Shark</h2>
-              <div className="flex flex-col gap-sm">
-                <p className="font-display-lg text-headline-md">$10</p>
-                <span className="btn btn-primary">Get it</span>
+              <div className="absolute inset-y-0 left-[4cqw] flex items-center">
+                <h2 className="[writing-mode:vertical-rl] rotate-180 font-display-lg text-[9cqw] leading-none uppercase text-bone whitespace-nowrap drop-shadow-[3px_3px_0_#191310]">
+                  Port Jackson Shark
+                </h2>
               </div>
             </div>
+            <span className="btn btn-primary">Get it</span>
           </a>
         </div>
       </section>
