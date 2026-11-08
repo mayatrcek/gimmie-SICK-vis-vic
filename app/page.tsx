@@ -264,25 +264,30 @@ export default function Home() {
           </div>
           <a
             href="https://www.madart.shop/products/port-jackson-sticker"
-            className="group flex flex-col items-center gap-xl w-full max-w-[420px] shrink-0"
+            className="group block w-full max-w-[420px] shrink-0 bg-bone border-2 border-ink-soft shadow-[8px_8px_0px_0px_#3A332A]"
           >
-            {/* Title reads bottom-to-top up the left edge; cqw keeps it spanning
-                the square's height at any card width. */}
-            <div className="relative aspect-square w-full [container-type:inline-size] bg-[#4c6971] border-2 border-ink-soft shadow-[8px_8px_0px_0px_#3A332A] overflow-hidden">
+            {/* The photo is portrait; turned -90deg it lies across a 4:3 header.
+                Pre-rotation it's the header's height wide (75cqw) by its width tall
+                (100cqw), each bumped a little: exact values left a 2px sliver. */}
+            <div className="relative aspect-[4/3] [container-type:inline-size] border-b-2 border-ink-soft overflow-hidden">
               <Image
-                src="/assets/store/port-jackson.png"
-                alt="Port Jackson shark sticker"
-                fill
+                src="/assets/store/pj-fin.png"
+                alt="Port Jackson shark sticker on a freediving fin"
+                width={722}
+                height={1283}
                 sizes="420px"
-                className="object-contain p-md -rotate-2 drop-shadow-[4px_4px_0_#191310] transition-transform duration-200 group-hover:rotate-0 group-hover:-translate-y-1"
+                className="absolute left-1/2 top-1/2 w-[78cqw] h-[103cqw] max-w-none object-cover -translate-x-1/2 -translate-y-1/2 -rotate-90 transition-transform duration-200 group-hover:scale-105"
               />
-              <div className="absolute inset-y-0 left-[4cqw] flex items-center">
-                <h2 className="[writing-mode:vertical-rl] rotate-180 font-display-lg text-[9cqw] leading-none uppercase text-bone whitespace-nowrap drop-shadow-[3px_3px_0_#191310]">
-                  Port Jackson Shark
-                </h2>
+            </div>
+            <div className="p-lg text-ink-soft">
+              <p className="font-hud-md text-hud-md text-primary uppercase tracking-widest">Sticker · New</p>
+              <h2 className="font-display-lg text-headline-lg mb-sm">Port Jackson Shark</h2>
+              <p className="font-body-md text-body-md opacity-80">Now available on my shop!</p>
+              {/* inline: .home [class*="border-"] would force a solid box border */}
+              <div className="flex justify-center mt-lg pt-lg" style={{ borderTop: "2px dotted rgb(58 51 42 / 0.3)" }}>
+                <span className="btn btn-primary">Get it here ▸</span>
               </div>
             </div>
-            <span className="btn btn-primary">Get it</span>
           </a>
         </div>
       </section>
