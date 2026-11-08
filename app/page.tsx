@@ -263,7 +263,7 @@ export default function Home() {
             </div>
           </div>
           <a
-            href="https://www.madart.shop/products/port-jackson-sticker"
+            href="/store?to=/products/port-jackson-sticker"
             className="group block w-full max-w-[420px] shrink-0 bg-bone border-2 border-ink-soft shadow-[8px_8px_0px_0px_#3A332A]"
           >
             {/* The photo is portrait; turned -90deg it lies across a 4:3 header.

@@ -1046,3 +1046,13 @@
     animation:ow-toast-drain 60s linear forwards}
   .ow-toast:hover .ow-toast__progress{animation-play-state:paused}
   @keyframes ow-toast-drain{to{width:0}}
+  /* /store interstitial: ink sheet drops from the top, then three square dots blink in turn */
+  .store-go{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;gap:14px;
+    background:var(--ink);animation:store-drop .4s var(--ease-shut) both}
+  .store-go>span{width:14px;height:14px;background:var(--paper);opacity:0;
+    animation:store-dot .6s steps(1) .4s infinite}
+  .store-go>span:nth-of-type(2){animation-delay:.6s}
+  .store-go>span:nth-of-type(3){animation-delay:.8s}
+  @keyframes store-drop{from{transform:translateY(-100%)}}
+  @keyframes store-dot{0%{opacity:1}50%{opacity:.25}}
+  @media(prefers-reduced-motion:reduce){.store-go{animation:none}}

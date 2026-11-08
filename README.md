@@ -33,7 +33,7 @@ the built HTML, not the browser:
 `grep -o '<h1[^>]*>[^<]*' .next/server/app/<route>.html`.
 
 Every page has exactly one `<h1>` (`.panel-ttl`, which carries `margin:0` because
-Tailwind runs with no preflight). `/store` redirects to madart.shop and is absent
+Tailwind runs with no preflight). `/store` is a loading screen that hands off to madart.shop (`?to=/path` deep-links) and is absent
 from the sitemap.
 
 Built with **Next.js (App Router) + React + TypeScript + Tailwind v4** and
