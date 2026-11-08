@@ -232,6 +232,37 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Sticker promo: the art is white-on-transparent, so it sits on the
+          shop's own teal rather than parchment, where it would vanish. */}
+      <section className="bg-parchment pt-xxxl px-bleed flex justify-center">
+        <a
+          href="https://www.madart.shop/products/port-jackson-sticker"
+          className="group relative grid sm:grid-cols-2 sm:aspect-square w-full max-w-[420px] bg-bone border-2 border-ink-soft shadow-[8px_8px_0px_0px_#3A332A]"
+        >
+          <span className="absolute -top-4 -right-4 z-10 rotate-2 bg-secondary text-bone border-2 border-ink-soft px-sm font-hud-md text-hud-md shadow-[3px_3px_0px_0px_#191310]">
+            $10
+          </span>
+          {/* Phones stack art over text: two columns at ~250px wide can't hold the title. */}
+          <div className="relative h-64 sm:h-auto bg-[#4c6971] border-b-2 sm:border-b-0 sm:border-r-2 border-ink-soft overflow-hidden">
+            <Image
+              src="/assets/store/port-jackson.png"
+              alt="Port Jackson shark sticker"
+              fill
+              sizes="210px"
+              className="object-contain p-md -rotate-2 drop-shadow-[4px_4px_0_#191310] transition-transform duration-200 group-hover:rotate-0 group-hover:-translate-y-1"
+            />
+          </div>
+          <div className="flex flex-col justify-between gap-md p-md text-ink-soft">
+            <p className="font-hud-md text-hud-md opacity-60 uppercase">New ▸ Sticker</p>
+            <div>
+              <h2 className="font-display-lg text-headline-md uppercase mb-sm">Port Jackson Shark</h2>
+              <p className="font-hud-md text-hud-md opacity-80">Vinyl. Fins, tanks, cars.</p>
+            </div>
+            <span className="btn btn-primary">Get it</span>
+          </div>
+        </a>
+      </section>
+
       {/* Workflow */}
       <section className="bg-parchment py-xxxl px-bleed">
         <div className="max-w-page-max mx-auto">
